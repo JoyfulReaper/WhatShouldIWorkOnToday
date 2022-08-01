@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.ResponseCompression;
+using WhatShouldIWorkOnToday.Server.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
+builder.Services.AddScoped<IWorkItemData, WorkItemData>();
 
 var app = builder.Build();
 

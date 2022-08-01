@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="70106057-c854-4582-a5d7-82695d100293" ChangeDateTime="08/01/2022 22:22:04">
+    <Property Name="ElementName" Value="[dbo].[WorkItem].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[WorkItem]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="WorkItemId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="8e96ee5a-ed6e-4dce-ab8b-66df9e26a9cf" ChangeDateTime="08/01/2022 22:25:13">
+    <Property Name="ElementName" Value="[dbo].[WorkSequenceNumber].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[WorkSequenceNumber]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="WorkSequenceNumberId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="7e7294e0-6232-4539-bd0f-85590f37c39b" ChangeDateTime="08/01/2022 22:25:29">
+    <Property Name="ElementName" Value="[dbo].[WorkSequenceNumber].[WorkItem]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[WorkSequenceNumber]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="WorkItemId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="8689c9e9-5cf1-4420-bd2e-d4bb86d020e6" ChangeDateTime="08/01/2022 22:28:39">
+    <Property Name="ElementName" Value="[dbo].[CurrentSequenceNumber].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[CurrentSequenceNumber]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CurrentSequenceNumberId" />
+  </Operation>
+</Operations>

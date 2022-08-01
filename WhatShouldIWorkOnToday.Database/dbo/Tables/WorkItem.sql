@@ -1,0 +1,9 @@
+﻿CREATE TABLE [dbo].[WorkItem]
+(
+	[WorkItemId] INT NOT NULL PRIMARY KEY IDENTITY, 
+    [Name] NVARCHAR(300) NOT NULL, 
+    [Description] NVARCHAR(500) NULL, 
+    [Url] NVARCHAR(300) NULL, 
+    [DateCreated] DATETIME2 NOT NULL DEFAULT GETUTCDATE(), 
+    [DateWorkedOn] DATETIME2 NULL
+)

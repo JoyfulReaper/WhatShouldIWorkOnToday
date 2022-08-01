@@ -1,0 +1,13 @@
+﻿@page "/work-items"
+@inject HttpClient _http
+
+<PageTitle>WSIWOT: Work Items</PageTitle>
+
+@code {
+    private List<WorkItem>? _workItems;
+
+    protected async override void OnInitialized()
+    {
+        _workItems = await _http.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
+    }
+}

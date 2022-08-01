@@ -1,0 +1,17 @@
+﻿CREATE PROCEDURE [dbo].[spWorkItem_GetAll]
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+
+	SELECT
+		[WorkItemId]
+		,[Name]
+		,[Description]
+		,[Url]
+		,[DateCreated]
+		,[DateWorkedOn]
+	FROM
+		WorkItem;
+
+END
