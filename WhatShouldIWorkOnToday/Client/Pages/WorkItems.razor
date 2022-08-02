@@ -3,11 +3,32 @@
 
 <PageTitle>WSIWOT: Work Items</PageTitle>
 
+<div class="row">
+    <div class="col">
+        @if (_workItems is null)
+        {
+            <span>Loading...</span>
+        }
+        else
+        {
+            @foreach (var item in _workItems)
+            {
+                <div>
+                    @item.Name
+                </div>
+            }
+        }
+    </div>
+    <div class="col">
+    </div>
+</div>
+
 @code {
     private List<WorkItem>? _workItems;
 
     protected async override void OnInitialized()
     {
         _workItems = await _http.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
+        StateHasChanged();
     }
 }
