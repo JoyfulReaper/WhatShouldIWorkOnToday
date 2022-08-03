@@ -5,5 +5,7 @@
     [Description] NVARCHAR(500) NULL, 
     [Url] NVARCHAR(300) NULL, 
     [DateCreated] DATETIME2 NOT NULL DEFAULT GETUTCDATE(), 
-    [DateWorkedOn] DATETIME2 NULL
+    [DateWorkedOn] DATETIME2 NULL, 
+    [DateDeleted] DATETIME2 NULL, 
+    [DateCompleted] DATETIME2 NULL
 )

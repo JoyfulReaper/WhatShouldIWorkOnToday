@@ -7,4 +7,6 @@ public class WorkItem
     public string? Url { get; set; }
     public DateTime DateCreated { get; set; }
     public DateTime? DateWorkedOn { get; set; }
+    public DateTime? DateDeleted { get; set; }
+    public DateTime? DateCompleted { get; set; }
 }

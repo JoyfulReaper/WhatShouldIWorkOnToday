@@ -19,8 +19,12 @@ public class WorkItemData : IWorkItemData
 			Name = workItem.Name,
 			Description = workItem.Description,
 			Url = workItem.Url,
+			DateDeleted = workItem.DateDeleted,
+			DateCompleted = workItem.DateCompleted
 		},
 		"WSIWOT");
+
+		workItem.WorkItemId = id;
 	}
 
 	public Task<List<WorkItem>> GetAll()

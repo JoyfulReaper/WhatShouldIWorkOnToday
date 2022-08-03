@@ -11,22 +11,27 @@
         }
         else
         {
-            @foreach (var item in _workItems)
-            {
-                <div>
-                    @item.Name
-                </div>
-            }
+            <div class="list-group">
+                @{int i = 0;}
+                @foreach (var item in _workItems)
+                {
+                    var className = i % 2 == 0 ? "list-group-item list-group-item-action" : "list-group-item list-group-item-action list-group-item-dark";
+                    <span class="@className">
+                        @item.Name
+                    </span>
+                    i++;
+                }
+            </div>
         }
     </div>
     <div class="col">
-        @if(_errorMessage is not null)
+        @if (_errorMessage is not null)
         {
             <div class="alert alert-danger" role="alert">
                 @_errorMessage
             </div>
         }
-        
+
         <h1 class="display-6">New Work Item</h1>
         <EditForm Model="_newWorkItem" OnValidSubmit="HandleValidSubmit">
             <DataAnnotationsValidator />
@@ -37,7 +42,7 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Description</label>
-                <InputText class="form-control form-control-sm" @bind-Value="_newWorkItem.Description"/>
+                <InputText class="form-control form-control-sm" @bind-Value="_newWorkItem.Description" />
             </div>
             <div class="mb-3">
                 <label for="WorkItemUrl" class="form-label">Url</label>
@@ -69,11 +74,13 @@
     private async Task HandleValidSubmit()
     {
         using var response = await _http.PostAsJsonAsync("api/WorkItem", _newWorkItem);
-        if(!response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
         {
             _errorMessage = response.ReasonPhrase;
-            await UpdateData();
-            _newWorkItem = new();
         }
+
+        await UpdateData();
+        _newWorkItem = new();
+        _errorMessage = null;
     }
 }

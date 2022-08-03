@@ -11,6 +11,8 @@ BEGIN
 		,[Url]
 		,[DateCreated]
 		,[DateWorkedOn]
+		,[DateCompleted]
+		,[DateDeleted]
 	FROM
 		WorkItem;
 
