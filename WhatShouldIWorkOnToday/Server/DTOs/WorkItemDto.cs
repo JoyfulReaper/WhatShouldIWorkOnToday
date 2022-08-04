@@ -1,5 +1,5 @@
-﻿namespace WhatShouldIWorkOnToday.Shared.Models;
-public class WorkItem
+﻿namespace WhatShouldIWorkOnToday.Server.DTOs;
+public class WorkItemDto
 {
     public int WorkItemId { get; set; }
     public string Name { get; set; } = null!;
@@ -7,6 +7,5 @@ public class WorkItem
     public string? Url { get; set; }
     public DateTime DateCreated { get; set; }
     public DateTime? DateWorkedOn { get; set; }
-    public DateTime? DateDeleted { get; set; }
     public DateTime? DateCompleted { get; set; }
 }

@@ -7,5 +7,6 @@ BEGIN
 	FROM
 		WorkItem
 	WHERE
-		WorkItemId = @WorkItemId;
+		WorkItemId = @WorkItemId
+	AND DateDeleted IS NULL;
 END

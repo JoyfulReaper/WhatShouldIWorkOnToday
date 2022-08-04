@@ -1,4 +1,4 @@
-﻿using WhatShouldIWorkOnToday.Shared.Models;
+﻿using WhatShouldIWorkOnToday.Server.Models;
 
 namespace WhatShouldIWorkOnToday.Server.DataAccess;
 

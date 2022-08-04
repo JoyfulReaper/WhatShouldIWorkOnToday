@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WhatShouldIWorkOnToday.Client.Pages.WorkItems;
+using WhatShouldIWorkOnToday.Server.Models;
 using WhatShouldIWorkOnToday.Server.DataAccess;
-using WhatShouldIWorkOnToday.Shared.Models;
+using WhatShouldIWorkOnToday.Server.DTOs;
 
 namespace WhatShouldIWorkOnToday.Server.Controllers;
 
@@ -10,46 +10,50 @@ namespace WhatShouldIWorkOnToday.Server.Controllers;
 [ApiController]
 public class WorkItemController : ControllerBase
 {
-	private readonly IWorkItemData _workItemData;
+    private readonly IWorkItemData _workItemData;
 
-	public WorkItemController(IWorkItemData workItemData)
-	{
-		_workItemData = workItemData;
-	}
-    
-    [HttpGet]
-    public async Task<List<WorkItem>> Get()
+    public WorkItemController(IWorkItemData workItemData)
     {
-        return await _workItemData.GetAll();
+        _workItemData = workItemData;
+    }
+
+    [HttpGet]
+    public async Task<List<WorkItemDto>> Get()
+    {
+        return (await _workItemData.GetAll())
+            .Select(x => WorkItemToDto(x))
+            .ToList();
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<WorkItem>> Get(int id)
+    public async Task<ActionResult<WorkItemDto>> Get(int id)
     {
         var workItem = await _workItemData.Get(id);
-        if(workItem is null)
+        if (workItem is null)
         {
             return NotFound();
         }
 
-        return workItem;
+        return WorkItemToDto(workItem);
     }
 
     [HttpPost]
-    public async Task<ActionResult<WorkItem>> Post([FromBody] WorkItem workItem)
+    public async Task<ActionResult<WorkItemDto>> Post([FromBody] WorkItemDto workItemDto)
     {
+        var workItem = DtoToWorkItem(workItemDto);
+        
         await _workItemData.Save(workItem);
         var savedItem = await _workItemData.Get(workItem.WorkItemId);
-        if(savedItem is null)
+        if (savedItem is null)
         {
             return BadRequest();
         }
 
-        return savedItem;
+        return WorkItemToDto(savedItem);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, WorkItem workItem)
+    public async Task<IActionResult> Put(int id, WorkItemDto workItem)
     {
         if (id != workItem.WorkItemId)
         {
@@ -57,7 +61,7 @@ public class WorkItemController : ControllerBase
         }
 
         var workItemDb = await _workItemData.Get(id);
-        if(workItemDb is null)
+        if (workItemDb is null)
         {
             return NotFound();
         }
@@ -66,11 +70,56 @@ public class WorkItemController : ControllerBase
         workItemDb.Description = workItem.Description;
         workItemDb.Url = workItem.Url;
         workItemDb.DateWorkedOn = workItem.DateWorkedOn;
-        workItemDb.DateDeleted = workItem.DateDeleted;
         workItemDb.DateCompleted = workItem.DateCompleted;
 
         await _workItemData.Save(workItemDb);
 
         return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var workItem = await _workItemData.Get(id);
+        if (workItem is null)
+        {
+            return NotFound();
+        }
+
+        workItem.DateDeleted = DateTime.UtcNow;
+        await _workItemData.Save(workItem);
+
+        return NoContent();
+    }
+
+    private WorkItemDto WorkItemToDto(WorkItem workItem)
+    {
+        var dto = new WorkItemDto()
+        {
+            WorkItemId = workItem.WorkItemId,
+            Name = workItem.Name,
+            Description = workItem.Description,
+            Url = workItem.Url,
+            DateCreated = workItem.DateCreated,
+            DateCompleted = workItem.DateCompleted
+        };
+
+        return dto;
+    }
+
+    private WorkItem DtoToWorkItem(WorkItemDto dto)
+    {
+        var workItem = new WorkItem()
+        {
+            WorkItemId = dto.WorkItemId,
+            Name = dto.Name,
+            Description = dto.Description,
+            Url = dto.Url,
+            DateCreated = dto.DateCreated,
+            DateWorkedOn = dto.DateWorkedOn,
+            DateCompleted = dto.DateCompleted
+        };
+
+        return workItem;
     }
 }

@@ -14,6 +14,8 @@ BEGIN
 		,[DateCompleted]
 		,[DateDeleted]
 	FROM
-		WorkItem;
+		WorkItem
+	WHERE
+		DateDeleted IS NULL;
 
 END

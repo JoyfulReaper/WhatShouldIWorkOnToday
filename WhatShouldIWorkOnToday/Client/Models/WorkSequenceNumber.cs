@@ -1,4 +1,4 @@
-﻿namespace WhatShouldIWorkOnToday.Shared.Models;
+﻿namespace WhatShouldIWorkOnToday.Client.Models;
 public class WorkSequenceNumber
 {
     public int WorkSequenceNumberId { get; set; }
