@@ -1,0 +1,42 @@
+﻿@page "/view-work-item/{WorkItemId:int}"
+@inject HttpClient _httpClient
+
+<div class="row">
+    <div class="col">
+        @if (_workItem is null)
+        {
+            <Loading />
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@_workItem.Name</h5>
+                    <p class="card-text">@_workItem.Description</p>
+                    @if (_workItem.Url is not null)
+                    {
+                        <a href="@_workItem.Url" class="btn btn-primary">Go to Work Item</a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int WorkItemId { get; set; }
+
+    public WorkItem? _workItem { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await UpdateData();
+        StateHasChanged();
+    }
+
+    private async Task UpdateData()
+    {
+        _workItem = await _httpClient.GetFromJsonAsync<WorkItem>($"api/WorkItem/{WorkItemId}");
+    }
+}

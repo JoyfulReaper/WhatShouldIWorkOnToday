@@ -31,4 +31,9 @@ public class WorkItemData : IWorkItemData
 	{
 		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetAll", new { }, "WSIWOT");
 	}
+
+	public async Task<WorkItem?> Get(int id)
+	{
+		return (await _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_Get", new { WorkItemId = id }, "WSIWOT")).SingleOrDefault();
+	}
 }

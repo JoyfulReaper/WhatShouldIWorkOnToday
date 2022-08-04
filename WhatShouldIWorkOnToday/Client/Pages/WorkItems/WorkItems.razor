@@ -1,0 +1,70 @@
+﻿@page "/work-items"
+@inject HttpClient _httpClient
+
+<PageTitle>WSIWOT: Work Items</PageTitle>
+
+<div class="row">
+    <div class="col">
+        @if (_workItems is null)
+        {
+            <Loading />
+        }
+        else
+        {
+            <div class="list-group">
+                @{
+                    int i = 0;
+                }
+                @foreach (var item in _workItems)
+                {
+                    var className = i % 2 == 0 ? "list-group-item list-group-item-action" : "list-group-item list-group-item-action list-group-item-dark";
+                    <a href="view-work-item/@item.WorkItemId" class="@className">
+                        @item.Name
+                    </a>
+                    i++;
+                }
+            </div>
+        }
+    </div>
+    <div class="col">
+        @if (_errorMessage is not null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @_errorMessage
+            </div>
+        }
+        @if (_workItems is not null)
+        {
+            <WorkItemForm OnSuccess="WorkItemCreated" OnError="WorkItemError" />
+        }
+    </div>
+</div>
+
+@code {
+    private List<WorkItem>? _workItems;
+    private WorkItem _newWorkItem = new();
+    private string? _errorMessage = null;
+
+    protected async override void OnInitialized()
+    {
+        await UpdateData();
+    }
+
+    private async Task UpdateData()
+    {
+        _workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
+        StateHasChanged();
+    }
+
+    private void WorkItemCreated(WorkItem workItem)
+    {
+        _workItems!.Add(workItem);
+        _errorMessage = null;
+    }
+
+    private void WorkItemError(string errorMessage)
+    {
+        _errorMessage = errorMessage;
+        StateHasChanged();
+    }
+}

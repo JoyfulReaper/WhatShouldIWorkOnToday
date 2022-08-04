@@ -1,0 +1,67 @@
+﻿@inject HttpClient _httpClient
+
+<h1 class="display-6">New Work Item</h1>
+<EditForm Model="_workItem" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control form-control-sm" @bind-Value="_workItem.Name" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <InputText class="form-control form-control-sm" @bind-Value="_workItem.Description" />
+    </div>
+    <div class="mb-3">
+        <label for="WorkItemUrl" class="form-label">Url</label>
+        <InputText class="form-control form-control-sm" @bind-Value="_workItem.Url" />
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int WorkItemId { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnError { get; set; }
+
+    [Parameter]
+    public EventCallback<WorkItem> OnSuccess { get; set; }
+
+    private WorkItem _workItem = new();
+
+    private async Task HandleValidSubmit()
+    {
+        HttpResponseMessage response;
+        if (WorkItemId == 0)
+        {
+            response = await _httpClient.PostAsJsonAsync("api/WorkItem", _workItem);
+            var workItem = await response.Content.ReadFromJsonAsync<WorkItem>();
+            if(workItem is null)
+            {
+                await OnError.InvokeAsync("Unable to de-serialized API response");
+                _workItem = new();
+            }
+            else
+            {
+                _workItem = workItem;
+            }
+        }
+        else
+        {
+            response = await _httpClient.PutAsJsonAsync("api/WorkItem", _workItem);
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            await OnError.InvokeAsync(response.ReasonPhrase);
+        }
+
+        response.Dispose();
+        await OnSuccess.InvokeAsync(_workItem);
+        _workItem = new();
+    }
+}
