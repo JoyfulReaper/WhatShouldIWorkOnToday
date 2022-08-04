@@ -10,7 +10,7 @@
         {
             <Loading />
         }
-        else
+        else if(!_editing)
         {
             <div class="card">
                 <div class="card-body">
@@ -26,11 +26,14 @@
 
                     @if (_workItem.Url is not null)
                     {
-                        <a href="@_workItem.Url" class="btn btn-primary">Work Item Link</a>
+                        <a href="@_workItem.Url" class="btn btn-sm btn-primary" target="_blank">
+                            Work Item Link
+                        </a>
                     }
                     <div class="mt-2">
-                        <button type="button" class="btn btn-warning" @onclick="Complete">Complete</button>
-                        <button type="button" class="btn btn-danger" @onclick="Delete">Delete</button>
+                        <button type="button" class="btn btn-sm btn-success" @onclick="Complete">Complete</button>
+                        <button type="button" class="btn btn-sm btn-warning" @onclick="() => {_editing = true;}">Edit</button>
+                        <button type="button" class="btn btn-sm btn-danger" @onclick="Delete">Delete</button>
                     </div>
                 </div>
                 <div class="card-footer text-muted">
@@ -47,6 +50,13 @@
                 </div>
             </div>
         }
+        else
+        {
+            <h1>Edit Work Item</h1>
+            <WorkItemForm WorkItemId="_workItem.WorkItemId" ShowCancel=true 
+            OnCancelClicked="() => {_editing = false;}" OnError="(e) => { _errorMessage = e;}" 
+            OnSuccess="ItemEdited"/>
+        }
     </div>
 </div>
 
@@ -57,6 +67,7 @@
     public WorkItem? _workItem { get; set; }
 
     private string? _errorMessage;
+    private bool _editing;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -75,6 +86,12 @@
         }
 
         StateHasChanged();
+    }
+
+    public async Task ItemEdited(WorkItem item)
+    {
+        _workItem = item;
+        _editing = false ;
     }
 
     private async Task Delete()

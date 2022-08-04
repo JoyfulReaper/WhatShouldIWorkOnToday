@@ -1,6 +1,5 @@
 ﻿@inject IWorkItemEndpoint _workItemData
 
-<h1 class="display-6">New Work Item</h1>
 <EditForm Model="_workItem" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -17,7 +16,15 @@
         <InputText class="form-control form-control-sm" @bind-Value="_workItem.Url" />
     </div>
     <div>
-        <button type="submit" class="btn btn-primary">Create</button>
+        <button type="submit" class="btn btn-primary">
+            @(WorkItemId == 0 ? "Create" : "Edit")
+        </button>
+        @if (ShowCancel)
+        {
+            <button type="button" class="btn btn-warning ms-2" @onclick="async () => await OnCancelClicked.InvokeAsync()">
+                Cancel
+            </button>
+        }
     </div>
 </EditForm>
 
@@ -26,12 +33,26 @@
     public int WorkItemId { get; set; }
 
     [Parameter]
+    public bool ShowCancel { get; set; }
+
+    [Parameter]
     public EventCallback<string> OnError { get; set; }
 
     [Parameter]
     public EventCallback<WorkItem> OnSuccess { get; set; }
 
+    [Parameter]
+    public EventCallback OnCancelClicked { get; set; }
+
     private WorkItem _workItem = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (WorkItemId != 0)
+        {
+            _workItem = await _workItemData.GetAsync(WorkItemId);
+        }
+    }
 
     private async Task HandleValidSubmit()
     {

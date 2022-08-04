@@ -30,6 +30,7 @@
         <ErrorMessage Error=@_errorMessage />
         @if (_workItems is not null)
         {
+            <h1>New Work Item</h1>
             <WorkItemForm OnSuccess="WorkItemCreated" OnError="WorkItemError" />
         }
     </div>
