@@ -1,3 +1,5 @@
+// TODO: Create an API Wrapper instead of just calling the API directly from the components
+
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using WhatShouldIWorkOnToday.Client;

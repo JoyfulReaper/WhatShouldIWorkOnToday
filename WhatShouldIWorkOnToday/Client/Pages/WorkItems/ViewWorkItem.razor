@@ -1,8 +1,11 @@
 ﻿@page "/view-work-item/{WorkItemId:int}"
 @inject HttpClient _httpClient
+@inject NavigationManager _nav
 
 <div class="row">
     <div class="col">
+        <ErrorMessage Error=@_errorMessage />
+
         @if (_workItem is null)
         {
             <Loading />
@@ -12,10 +15,34 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">@_workItem.Name</h5>
-                    <p class="card-text">@_workItem.Description</p>
+                    <p class="card-text">
+                        @_workItem.Description
+                        @if (_workItem.DateCompleted.HasValue)
+                        {
+                            <br />
+                            <span>Completed: @_workItem.DateCompleted.Value.ToShortDateString()</span>
+                        }
+                    </p>
+
                     @if (_workItem.Url is not null)
                     {
-                        <a href="@_workItem.Url" class="btn btn-primary">Go to Work Item</a>
+                        <a href="@_workItem.Url" class="btn btn-primary">Work Item Link</a>
+                    }
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-warning" @onclick="Complete">Complete</button>
+                        <button type="button" class="btn btn-danger" @onclick="Delete">Delete</button>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <strong>Created:</strong> @_workItem.DateCreated.ToShortDateString()
+                    <strong>Last Worked: </strong>
+                    @if (_workItem.DateWorkedOn.HasValue)
+                    {
+                        <span>@_workItem.DateWorkedOn?.ToShortDateString()</span>
+                    }
+                    else
+                    {
+                        <span>Never</span>
                     }
                 </div>
             </div>
@@ -29,6 +56,8 @@
 
     public WorkItem? _workItem { get; set; }
 
+    private string? _errorMessage;
+
     protected override async Task OnParametersSetAsync()
     {
         await UpdateData();
@@ -38,5 +67,41 @@
     private async Task UpdateData()
     {
         _workItem = await _httpClient.GetFromJsonAsync<WorkItem>($"api/WorkItem/{WorkItemId}");
+        if (_workItem is null)
+        {
+            _errorMessage = "Failed to de-serialize WorkItem";
+        }
+        else
+        {
+            _errorMessage = null;
+        }
+    }
+
+    private async Task Delete()
+    {
+        //TODO: Confirm Delete
+        using var response = await _httpClient.DeleteAsync($"/api/WorkItem/{_workItem!.WorkItemId}");
+        CheckResponse(response);
+
+        _nav.NavigateTo("work-items", false, true);
+    }
+
+    private async Task Complete()
+    {
+        _workItem!.DateCompleted = DateTime.Now;
+        using var response = await _httpClient.PutAsJsonAsync($"api/WorkItem/{_workItem.WorkItemId}", _workItem);
+        CheckResponse(response);
+    }
+
+    private void CheckResponse(HttpResponseMessage response)
+    {
+        if (!response.IsSuccessStatusCode)
+        {
+            _errorMessage = $"API Response was not succesful: {response.StatusCode}";
+        }
+        else
+        {
+            _errorMessage = null;
+        }
     }
 }

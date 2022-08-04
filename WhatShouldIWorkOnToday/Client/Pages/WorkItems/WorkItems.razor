@@ -27,12 +27,7 @@
         }
     </div>
     <div class="col">
-        @if (_errorMessage is not null)
-        {
-            <div class="alert alert-danger" role="alert">
-                @_errorMessage
-            </div>
-        }
+        <ErrorMessage Error=@_errorMessage />
         @if (_workItems is not null)
         {
             <WorkItemForm OnSuccess="WorkItemCreated" OnError="WorkItemError" />
@@ -52,7 +47,19 @@
 
     private async Task UpdateData()
     {
-        _workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
+        try
+        {
+            _workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
+            if (_workItems is null)
+            {
+                _errorMessage = "Failed to de-serialize List of WorkItems";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "An Error occured while attempting to contact the API";
+        }
+
         StateHasChanged();
     }
 

@@ -35,24 +35,34 @@
 
     private async Task HandleValidSubmit()
     {
-        HttpResponseMessage response;
-        if (WorkItemId == 0)
-        {
-            response = await _httpClient.PostAsJsonAsync("api/WorkItem", _workItem);
-            var workItem = await response.Content.ReadFromJsonAsync<WorkItem>();
-            if(workItem is null)
+        HttpResponseMessage response = null!;
+        
+        try {
+            if (WorkItemId == 0)
             {
-                await OnError.InvokeAsync("Unable to de-serialized API response");
-                _workItem = new();
+
+                response = await _httpClient.PostAsJsonAsync("api/WorkItem", _workItem);
+                var workItem = await response.Content.ReadFromJsonAsync<WorkItem>();
+                if (workItem is null)
+                {
+                    await OnError.InvokeAsync("Unable to de-serialized API response");
+                    _workItem = new();
+                }
+                else
+                {
+                    _workItem = workItem;
+                }
+
+
             }
             else
             {
-                _workItem = workItem;
+                response = await _httpClient.PutAsJsonAsync("api/WorkItem", _workItem);
             }
         }
-        else
+        catch (Exception)
         {
-            response = await _httpClient.PutAsJsonAsync("api/WorkItem", _workItem);
+            await OnError.InvokeAsync("An error occured while contacting the API");
         }
 
         if (!response.IsSuccessStatusCode)
