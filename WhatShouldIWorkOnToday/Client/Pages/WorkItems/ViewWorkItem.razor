@@ -1,5 +1,5 @@
 ﻿@page "/view-work-item/{WorkItemId:int}"
-@inject HttpClient _httpClient
+@inject IWorkItemEndpoint _workItemData
 @inject NavigationManager _nav
 
 <div class="row">
@@ -61,27 +61,33 @@
     protected override async Task OnParametersSetAsync()
     {
         await UpdateData();
-        StateHasChanged();
     }
 
     private async Task UpdateData()
     {
-        _workItem = await _httpClient.GetFromJsonAsync<WorkItem>($"api/WorkItem/{WorkItemId}");
-        if (_workItem is null)
+        try
         {
-            _errorMessage = "Failed to de-serialize WorkItem";
+            _workItem = await _workItemData.GetAsync(WorkItemId);
         }
-        else
+        catch (Exception)
         {
-            _errorMessage = null;
+            _errorMessage = "An Error occured while attempting to contact the API";
         }
+
+        StateHasChanged();
     }
 
     private async Task Delete()
     {
         //TODO: Confirm Delete
-        using var response = await _httpClient.DeleteAsync($"/api/WorkItem/{_workItem!.WorkItemId}");
-        CheckResponse(response);
+        try
+        {
+            await _workItemData.DeleteAsync(WorkItemId);
+        }
+        catch (Exception)
+        {
+            _errorMessage = "An Error occured while attempting to contact the API";
+        }
 
         _nav.NavigateTo("work-items", false, true);
     }
@@ -89,19 +95,13 @@
     private async Task Complete()
     {
         _workItem!.DateCompleted = DateTime.Now;
-        using var response = await _httpClient.PutAsJsonAsync($"api/WorkItem/{_workItem.WorkItemId}", _workItem);
-        CheckResponse(response);
-    }
-
-    private void CheckResponse(HttpResponseMessage response)
-    {
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            _errorMessage = $"API Response was not succesful: {response.StatusCode}";
+            await _workItemData.PutAsync(_workItem);
         }
-        else
+        catch (Exception)
         {
-            _errorMessage = null;
+            _errorMessage = "An Error occured while attempting to contact the API";
         }
     }
 }

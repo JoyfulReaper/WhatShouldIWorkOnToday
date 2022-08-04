@@ -1,4 +1,4 @@
-﻿@inject HttpClient _httpClient
+﻿@inject IWorkItemEndpoint _workItemData
 
 <h1 class="display-6">New Work Item</h1>
 <EditForm Model="_workItem" OnValidSubmit="HandleValidSubmit">
@@ -35,29 +35,15 @@
 
     private async Task HandleValidSubmit()
     {
-        HttpResponseMessage response = null!;
-        
-        try {
+        try
+        {
             if (WorkItemId == 0)
             {
-
-                response = await _httpClient.PostAsJsonAsync("api/WorkItem", _workItem);
-                var workItem = await response.Content.ReadFromJsonAsync<WorkItem>();
-                if (workItem is null)
-                {
-                    await OnError.InvokeAsync("Unable to de-serialized API response");
-                    _workItem = new();
-                }
-                else
-                {
-                    _workItem = workItem;
-                }
-
-
+                _workItem = await _workItemData.PostAsync(_workItem);
             }
             else
             {
-                response = await _httpClient.PutAsJsonAsync("api/WorkItem", _workItem);
+                await _workItemData.PutAsync(_workItem);
             }
         }
         catch (Exception)
@@ -65,12 +51,6 @@
             await OnError.InvokeAsync("An error occured while contacting the API");
         }
 
-        if (!response.IsSuccessStatusCode)
-        {
-            await OnError.InvokeAsync(response.ReasonPhrase);
-        }
-
-        response.Dispose();
         await OnSuccess.InvokeAsync(_workItem);
         _workItem = new();
     }

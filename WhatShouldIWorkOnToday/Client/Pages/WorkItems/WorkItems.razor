@@ -1,5 +1,5 @@
 ﻿@page "/work-items"
-@inject HttpClient _httpClient
+@inject IWorkItemEndpoint _workItemData
 
 <PageTitle>WSIWOT: Work Items</PageTitle>
 
@@ -49,11 +49,7 @@
     {
         try
         {
-            _workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
-            if (_workItems is null)
-            {
-                _errorMessage = "Failed to de-serialize List of WorkItems";
-            }
+            _workItems = await _workItemData.GetAllAsync();
         }
         catch (Exception)
         {
