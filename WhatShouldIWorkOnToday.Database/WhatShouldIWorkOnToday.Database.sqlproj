@@ -69,6 +69,8 @@
     <Build Include="dbo\Stored Procedures\spWorkItem_GetAll.sql" />
     <Build Include="dbo\Stored Procedures\spWorkItem_Upsert.sql" />
     <Build Include="dbo\Stored Procedures\spWorkItem_Get.sql" />
+    <Build Include="dbo\Stored Procedures\spWorkItem_GetComplete.sql" />
+    <Build Include="dbo\Stored Procedures\spWorkItem_GetIncomplete.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="WhatShouldIWorkOnToday.Database.refactorlog" />

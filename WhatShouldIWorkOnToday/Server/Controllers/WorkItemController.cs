@@ -18,9 +18,25 @@ public class WorkItemController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<List<WorkItemDto>> Get()
+    public async Task<List<WorkItemDto>> GetAll()
     {
-        return (await _workItemData.GetAll())
+        return (await _workItemData.GetAllAsync())
+            .Select(x => WorkItemToDto(x))
+            .ToList();
+    }
+
+    [HttpGet("Complete")]
+    public async Task<List<WorkItemDto>> GetAllCompleted()
+    {
+        return (await _workItemData.GetCompleteAsync())
+            .Select(x => WorkItemToDto(x))
+            .ToList();
+    }
+
+    [HttpGet("Incomplete")]
+    public async Task<List<WorkItemDto>> GetAllIncomplete()
+    {
+        return (await _workItemData.GetIncompleteAsync())
             .Select(x => WorkItemToDto(x))
             .ToList();
     }
@@ -28,7 +44,7 @@ public class WorkItemController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<WorkItemDto>> Get(int id)
     {
-        var workItem = await _workItemData.Get(id);
+        var workItem = await _workItemData.GetAsync(id);
         if (workItem is null)
         {
             return NotFound();
@@ -42,8 +58,8 @@ public class WorkItemController : ControllerBase
     {
         var workItem = DtoToWorkItem(workItemDto);
         
-        await _workItemData.Save(workItem);
-        var savedItem = await _workItemData.Get(workItem.WorkItemId);
+        await _workItemData.SaveAsync(workItem);
+        var savedItem = await _workItemData.GetAsync(workItem.WorkItemId);
         if (savedItem is null)
         {
             return BadRequest();
@@ -60,7 +76,7 @@ public class WorkItemController : ControllerBase
             return BadRequest();
         }
 
-        var workItemDb = await _workItemData.Get(id);
+        var workItemDb = await _workItemData.GetAsync(id);
         if (workItemDb is null)
         {
             return NotFound();
@@ -72,7 +88,7 @@ public class WorkItemController : ControllerBase
         workItemDb.DateWorkedOn = workItem.DateWorkedOn;
         workItemDb.DateCompleted = workItem.DateCompleted;
 
-        await _workItemData.Save(workItemDb);
+        await _workItemData.SaveAsync(workItemDb);
 
         return NoContent();
     }
@@ -80,14 +96,14 @@ public class WorkItemController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var workItem = await _workItemData.Get(id);
+        var workItem = await _workItemData.GetAsync(id);
         if (workItem is null)
         {
             return NotFound();
         }
 
         workItem.DateDeleted = DateTime.UtcNow;
-        await _workItemData.Save(workItem);
+        await _workItemData.SaveAsync(workItem);
 
         return NoContent();
     }

@@ -11,7 +11,7 @@ public class WorkItemData : IWorkItemData
 		_dataAccess = dataAccess;
 	}
 
-	public async Task Save(WorkItem workItem)
+	public async Task SaveAsync(WorkItem workItem)
 	{
 		var id = await _dataAccess.SaveDataAndGetIdAsync("spWorkItem_Upsert", new
 		{
@@ -27,12 +27,23 @@ public class WorkItemData : IWorkItemData
 		workItem.WorkItemId = id;
 	}
 
-	public Task<List<WorkItem>> GetAll()
+	public Task<List<WorkItem>> GetAllAsync()
 	{
 		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetAll", new { }, "WSIWOT");
 	}
 
-	public async Task<WorkItem?> Get(int id)
+    public Task<List<WorkItem>> GetCompleteAsync()
+	{
+		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetComplete", new { }, "WSIWOT");
+	}
+
+    public Task<List<WorkItem>> GetIncompleteAsync()
+	{
+		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetIncomplete", new { }, "WSIWOT");
+	}
+
+
+    public async Task<WorkItem?> GetAsync(int id)
 	{
 		return (await _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_Get", new { WorkItemId = id }, "WSIWOT")).SingleOrDefault();
 	}

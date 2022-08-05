@@ -3,7 +3,9 @@
 namespace WhatShouldIWorkOnToday.Server.DataAccess;
 public interface IWorkItemData
 {
-    Task<WorkItem?> Get(int id);
-    Task<List<WorkItem>> GetAll();
-    Task Save(WorkItem workItem);
+    Task<WorkItem?> GetAsync(int id);
+    Task<List<WorkItem>> GetAllAsync();
+    Task SaveAsync(WorkItem workItem);
+    Task<List<WorkItem>> GetCompleteAsync();
+    Task<List<WorkItem>> GetIncompleteAsync();
 }
