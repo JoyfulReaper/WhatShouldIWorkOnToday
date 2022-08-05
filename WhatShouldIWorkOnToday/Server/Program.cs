@@ -10,6 +10,7 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
 builder.Services.AddScoped<IWorkItemData, WorkItemData>();
+builder.Services.AddScoped<IWorkItemSequenceData, WorkItemSequenceData>();
 
 var app = builder.Build();
 
