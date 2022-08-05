@@ -3,14 +3,13 @@ AS
 BEGIN
 	SELECT
 		[wsn].[WorkSequenceNumberId], 
-		[wsn].[WorkItemId],
+		[wi].[WorkItemId],
 		ISNULL([wsn].[SequenceNumber], -1) AS SequenceNumber,
 		[wi].[Name], 
 		[wi].[Description],
 		[wi].[Url],
 		[wi].[DateCreated], 
 		[wi].[DateWorkedOn],
-		[wi].[DateDeleted], 
 		[wi].[DateCompleted]
 	FROM
 		WorkItem wi LEFT JOIN
