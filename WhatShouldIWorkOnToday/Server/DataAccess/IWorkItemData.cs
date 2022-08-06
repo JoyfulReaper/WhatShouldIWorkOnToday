@@ -8,4 +8,5 @@ public interface IWorkItemData
     Task SaveAsync(WorkItem workItem);
     Task<List<WorkItem>> GetCompleteAsync();
     Task<List<WorkItem>> GetIncompleteAsync();
+    Task<List<WorkItem>> GetBySequeunceNumber(int sequenceNumber);
 }

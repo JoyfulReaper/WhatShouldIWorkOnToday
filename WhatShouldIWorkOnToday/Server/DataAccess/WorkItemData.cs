@@ -37,6 +37,14 @@ public class WorkItemData : IWorkItemData
 		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetComplete", new { }, "WSIWOT");
 	}
 
+    public Task<List<WorkItem>> GetBySequeunceNumber(int sequenceNumber)
+	{
+		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetBySequenceNumber", new
+		{
+			SequeunceNumber = sequenceNumber
+		}, "WSIWOT");
+	}
+
     public Task<List<WorkItem>> GetIncompleteAsync()
 	{
 		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetIncomplete", new { }, "WSIWOT");

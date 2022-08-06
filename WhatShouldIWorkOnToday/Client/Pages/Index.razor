@@ -1,9 +1,42 @@
 ﻿@page "/"
+@inject IWorkItemEndpoint _workItemData
 
-<PageTitle>Index</PageTitle>
+<PageTitle>What Should I Work on Today?</PageTitle>
 
 <div class="row">
     <div class="col">
-        <h1 class="text-center display-6">What Should I Work on Today?</h1>
+        <ErrorMessage Error="@_errorMessage" />
+        @if (_currentItems is null)
+        {
+            <Loading />
+        }
+        else
+        {
+            <h1 class="text-center display-6">What Should I Work on Today?</h1>
+            <div>
+                @foreach(var item in _currentItems)
+                {
+                    <div>@item.Name</div>
+                }
+            </div>
+        }
     </div>
 </div>
+
+@code {
+    private List<WorkItem>? _currentItems = null;
+    private string? _errorMessage = null;
+
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            _currentItems = await _workItemData.GetCurrent();
+            _errorMessage = null;
+        }
+        catch
+        {
+            _errorMessage = "An error occured while attempting to contact the API";
+        }
+    }
+}

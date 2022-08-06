@@ -11,10 +11,13 @@ namespace WhatShouldIWorkOnToday.Server.Controllers;
 public class WorkItemController : ControllerBase
 {
     private readonly IWorkItemData _workItemData;
+    private readonly ICurrentSequenceNumberData _currentSequenceNumberData;
 
-    public WorkItemController(IWorkItemData workItemData)
+    public WorkItemController(IWorkItemData workItemData,
+        ICurrentSequenceNumberData currentSequenceNumberData)
     {
         _workItemData = workItemData;
+        _currentSequenceNumberData = currentSequenceNumberData;
     }
 
     [HttpGet]
@@ -29,6 +32,15 @@ public class WorkItemController : ControllerBase
     public async Task<List<WorkItemDto>> GetAllCompleted()
     {
         return (await _workItemData.GetCompleteAsync())
+            .Select(x => WorkItemToDto(x))
+            .ToList();
+    }
+
+    [HttpGet("Current")]
+    public async Task<List<WorkItemDto>> GetCurrent()
+    {
+        var seqNum = await _currentSequenceNumberData.GetAsync();
+        return (await _workItemData.GetBySequeunceNumber(seqNum.CurrentSequence))
             .Select(x => WorkItemToDto(x))
             .ToList();
     }
