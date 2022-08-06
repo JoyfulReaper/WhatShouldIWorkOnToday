@@ -9,37 +9,36 @@ namespace WhatShouldIWorkOnToday.Server.Controllers;
 [ApiController]
 public class WorkItemSequenceController : ControllerBase
 {
-	private readonly IWorkItemSequenceData _workItemSequenceData;
+	private readonly IWorkSequenceNumberData _workSequenceNumber;
 
-	public WorkItemSequenceController(IWorkItemSequenceData workItemSequenceData)
+	public WorkItemSequenceController(IWorkSequenceNumberData workItemSequenceData)
 	{
-		_workItemSequenceData = workItemSequenceData;
+		_workSequenceNumber = workItemSequenceData;
 	}
 
 	[HttpGet]
-	public async Task<List<WorkItemSequence>> GetAll()
+	public async Task<List<WorkItemSequenceDto>> GetAll()
 	{
-		return await _workItemSequenceData.GetAllAsync();
+		return await _workSequenceNumber.GetAllWorkItemSequenceAsync();
 	}
 
 	[HttpPost]
-	public async Task<ActionResult<WorkItemSequence>> Post([FromBody] WorkItemSequenceDto workItemSequenceDto)
+	public async Task<ActionResult<WorkSequenceNumber>> Post([FromBody] WorkSequenceNumber workSequenceNumber)
 	{
-		var workItemSequence = new WorkItemSequence()
-		{
-			WorkSequenceNumberId = workItemSequenceDto.WorkSequenceNumberId,
-			WorkItemId = workItemSequenceDto.WorkItemId,
-			SequenceNumber = workItemSequenceDto.SequenceNumber
-		};
+		await _workSequenceNumber.SaveAsync(workSequenceNumber);
+		return workSequenceNumber;
+    }
 
-		await _workItemSequenceData.SaveAsync(workItemSequence);
-
-        var savedItem = await _workItemSequenceData.GetAsync(workItemSequence.WorkSequenceNumberId);
-        if (savedItem is null)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(int id, WorkSequenceNumber workSequenceNumber)
+    {
+        if (id != workSequenceNumber.WorkItemId)
         {
             return BadRequest();
         }
 
-		return savedItem;
+        await _workSequenceNumber.SaveAsync(workSequenceNumber);
+
+        return NoContent();
     }
 }

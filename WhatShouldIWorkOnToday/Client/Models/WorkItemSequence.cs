@@ -2,7 +2,7 @@
 
 public class WorkItemSequence
 {
-    public int WorkSequenceNumberId { get; set; }
+    public int? WorkSequenceNumberId { get; set; }
     public int SequenceNumber { get; set; }
     public int WorkItemId { get; set; }
     public string Name { get; set; } = null!;

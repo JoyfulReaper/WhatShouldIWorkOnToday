@@ -4,5 +4,5 @@ namespace WhatShouldIWorkOnToday.Client.ApiClient;
 public interface IWorkItemSequenceEndpoint
 {
     Task<List<WorkItemSequence>> GetAllAsync();
-    Task<WorkItemSequence> PostAsync(WorkItemSequence workItemSequence);
+    Task<WorkSequenceNumber> PostAsync(WorkSequenceNumber workSequence);
 }

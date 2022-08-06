@@ -23,17 +23,23 @@ public class WorkItemSequenceEndpoint : Endpoint, IWorkItemSequenceEndpoint
         return seqItems;
     }
 
-    public async Task<WorkItemSequence> PostAsync(WorkItemSequence workItemSequence)
+    public async Task<WorkSequenceNumber> PostAsync(WorkSequenceNumber workSequenceNumber)
     {
-        using var response = await _httpClient.PostAsJsonAsync("api/WorkItemSequence", workItemSequence);
+        using var response = await _httpClient.PostAsJsonAsync("api/WorkItemSequence", workSequenceNumber);
         CheckResponse(response);
 
-        var workItemResp = await response.Content.ReadFromJsonAsync<WorkItemSequence>();
+        var workItemResp = await response.Content.ReadFromJsonAsync<WorkSequenceNumber>();
         if (workItemResp is null)
         {
             throw new Exception("Failed to de-serialize work item.");
         }
 
         return workItemResp;
+    }
+
+    public async Task PutAsync(WorkSequenceNumber workSequenceNumber)
+    {
+        using var response = await _httpClient.PutAsJsonAsync($"api/WorkItemSequence/{workSequenceNumber.WorkItemId}", workSequenceNumber);
+        CheckResponse(response);
     }
 }
