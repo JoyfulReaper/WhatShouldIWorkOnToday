@@ -27,6 +27,7 @@ public class CurrentSequenceNumberData : ICurrentSequenceNumberData
         {
             currentSeq = new CurrentSequenceNumber()
             {
+                CurrentSequence = 1,
                 DateSet = DateTime.Now
             };
             await UpdateAsync(currentSeq);

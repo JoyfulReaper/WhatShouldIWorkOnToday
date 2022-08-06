@@ -3,13 +3,24 @@
 
 <div class="row">
     <div class="col">
-        @if(_currentSequenceNumber is null)
+        @if (_currentSequenceNumber is null)
         {
             <Loading />
         }
         else
         {
-            <h3>@_currentSequenceNumber.CurrentSequence</h3>
+            <h3>Current Sequeunce Number: @_currentSequenceNumber.CurrentSequence</h3>
+            <EditForm Model="_newSequenceNumber" OnValidSubmit="HandleValidSubmit">
+
+                <div class="mb-3">
+                    <label class="form-label">Set Sequeunce Number</label>
+                    <InputNumber class="form-control form-control-sm w-auto"
+                             @bind-Value=_newSequenceNumber.CurrentSequence />
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Change Sequence</button>
+                </div>
+            </EditForm>
         }
     </div>
 </div>
@@ -17,6 +28,7 @@
 
 @code {
     private CurrentSequenceNumber? _currentSequenceNumber;
+    private CurrentSequenceNumber _newSequenceNumber = new();
 
     protected async override Task OnParametersSetAsync()
     {
@@ -26,6 +38,17 @@
     private async Task LoadData()
     {
         _currentSequenceNumber = await _sequenceNumberData.Get();
+        _newSequenceNumber.CurrentSequence = _currentSequenceNumber.CurrentSequence;
         StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit(EditContext editContext)
+    {
+        _newSequenceNumber.DateSet = DateTime.UtcNow;
+
+        await _sequenceNumberData.Put(_newSequenceNumber);
+        _currentSequenceNumber = _newSequenceNumber;
+
+        editContext.MarkAsUnmodified();
     }
 }
