@@ -74,6 +74,8 @@
     <Build Include="dbo\Stored Procedures\spWorkItemSequence_GetAll.sql" />
     <Build Include="dbo\Stored Procedures\spWorkSequenceNumber_Upsert.sql" />
     <Build Include="dbo\Stored Procedures\spWorkItemSequence_Get.sql" />
+    <Build Include="dbo\Stored Procedures\spCurrentSequenceNumber_Get.sql" />
+    <Build Include="dbo\Stored Procedures\spCurrentSequenceNumber_Update.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="WhatShouldIWorkOnToday.Database.refactorlog" />

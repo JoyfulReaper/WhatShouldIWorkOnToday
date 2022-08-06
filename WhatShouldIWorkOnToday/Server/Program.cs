@@ -11,6 +11,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
 builder.Services.AddScoped<IWorkItemData, WorkItemData>();
 builder.Services.AddScoped<IWorkSequenceNumberData, WorkSequenceNumberData>();
+builder.Services.AddScoped<ICurrentSequenceNumberData, CurrentSequenceNumberData>();
 
 var app = builder.Build();
 

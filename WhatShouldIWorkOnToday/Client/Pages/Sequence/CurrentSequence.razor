@@ -1,0 +1,31 @@
+﻿@page "/current-sequence"
+@inject ISequenceNumberEndpoint _sequenceNumberData
+
+<div class="row">
+    <div class="col">
+        @if(_currentSequenceNumber is null)
+        {
+            <Loading />
+        }
+        else
+        {
+            <h3>@_currentSequenceNumber.CurrentSequence</h3>
+        }
+    </div>
+</div>
+
+
+@code {
+    private CurrentSequenceNumber? _currentSequenceNumber;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _currentSequenceNumber = await _sequenceNumberData.Get();
+        StateHasChanged();
+    }
+}
