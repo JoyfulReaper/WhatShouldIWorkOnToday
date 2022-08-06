@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[spWorkItemSequence_Upsert]
+﻿CREATE PROCEDURE [dbo].[spWorkSequenceNumber_Upsert]
 	@WorkSequenceNumberId INT,
 	@WorkItemId INT,
 	@SequenceNumber INT
