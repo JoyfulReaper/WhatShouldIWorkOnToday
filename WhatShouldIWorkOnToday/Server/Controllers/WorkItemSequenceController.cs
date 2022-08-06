@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WhatShouldIWorkOnToday.Client.Models;
 using WhatShouldIWorkOnToday.Server.DataAccess;
 using WhatShouldIWorkOnToday.Server.DTOs;
 using WhatShouldIWorkOnToday.Server.Models;

@@ -1,0 +1,23 @@
+﻿@page "/work-sequence"
+@inject IWorkItemSequenceEndpoint _workItemSequenceData
+
+<div class="col">
+    <divl class="row">
+
+    </divl>
+</div>
+
+@code {
+    private List<WorkItemSequence> workSequence;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateData();
+    }
+
+    private async Task UpdateData()
+    {
+        workSequence = await _workItemSequenceData.GetAllAsync();
+        StateHasChanged();
+    }
+}

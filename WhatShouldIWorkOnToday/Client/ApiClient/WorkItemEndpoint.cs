@@ -1,10 +1,9 @@
 ﻿using System.Net.Http.Json;
 using WhatShouldIWorkOnToday.Client.Models;
-using WhatShouldIWorkOnToday.Client.Pages.WorkItems;
 
 namespace WhatShouldIWorkOnToday.Client.ApiClient;
 
-public class WorkItemEndpoint : IWorkItemEndpoint
+public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
 {
     private readonly HttpClient _httpClient;
 
@@ -59,13 +58,5 @@ public class WorkItemEndpoint : IWorkItemEndpoint
     {
         using var response = await _httpClient.DeleteAsync($"/api/WorkItem/{Id}");
         CheckResponse(response);
-    }
-
-    private void CheckResponse(HttpResponseMessage response)
-    {
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception($"API Response was not successful: {response.StatusCode}");
-        }
     }
 }
