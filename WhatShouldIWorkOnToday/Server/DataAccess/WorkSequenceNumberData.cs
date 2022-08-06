@@ -23,11 +23,11 @@ public class WorkSequenceNumberData : IWorkSequenceNumberData
         return await _dataAccess.LoadDataAsync<WorkItemSequenceDto, dynamic>("spWorkItemSequence_GetAll", new { }, "WSIWOT");
     }
 
-    public async Task<WorkItemSequenceDto?> GetWorkItemSequenceAsync(int id)
+    public async Task<WorkItemSequenceDto?> GetWorkItemSequenceAsync(int workSequenceNumberId)
     {
         return (await _dataAccess.LoadDataAsync<WorkItemSequenceDto, dynamic>("spWorkItemSequence_Get", new
         {
-            WorkSequenceNumberId = id
+            WorkSequenceNumberId = workSequenceNumberId
         }, "WSIWOT")).SingleOrDefault();
     }
 }

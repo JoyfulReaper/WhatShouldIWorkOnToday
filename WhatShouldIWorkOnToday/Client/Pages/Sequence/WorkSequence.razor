@@ -2,13 +2,41 @@
 @inject IWorkItemSequenceEndpoint _workItemSequenceData
 
 <div class="col">
-    <divl class="row">
-
-    </divl>
+    <div class="row">
+        <ErrorMessage Error="@_errorMessage" />
+        @if (_workSequence is null)
+        {
+            <Loading />
+        }
+        else
+        {
+            <table class="table table-striped table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Sequence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _workSequence)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>
+                                <input class="form-control form-control-sm" type="number" value="@item.SequenceNumber"
+                               @onchange="(e) => UpdateSequenceNumber(e, item)">
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
 </div>
 
 @code {
-    private List<WorkItemSequence> workSequence;
+    private List<WorkItemSequence>? _workSequence;
+    private string? _errorMessage = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -17,7 +45,43 @@
 
     private async Task UpdateData()
     {
-        workSequence = await _workItemSequenceData.GetAllAsync();
+        _workSequence = await _workItemSequenceData.GetAllWorkItemSequenceAsync();
         StateHasChanged();
+    }
+
+    private async Task UpdateSequenceNumber(ChangeEventArgs e, WorkItemSequence wis)
+    {
+        var seqNum = int.Parse((e.Value as string)!);
+
+        try
+        {
+            if (wis.WorkSequenceNumberId is null)
+            {
+                _workSequence?.Remove(wis);
+
+                var wisResposne = await _workItemSequenceData.PostAsync(new WorkSequenceNumber
+                    {
+                        WorkItemId = wis.WorkItemId,
+                        WorkSequenceNumberId = wis.WorkSequenceNumberId,
+                        SequenceNumber = seqNum,
+                    });
+
+                _workSequence?.Add(await _workItemSequenceData.GetWorkItemSequenceAsync(wisResposne.WorkSequenceNumberId.Value));
+            }
+            else
+            {
+                await _workItemSequenceData.PutAsync(new WorkSequenceNumber
+                    {
+                        WorkItemId = wis.WorkItemId,
+                        WorkSequenceNumberId = wis.WorkSequenceNumberId,
+                        SequenceNumber = seqNum,
+                    });
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An error occured while attempting to contact the API.";
+        }
+
     }
 }

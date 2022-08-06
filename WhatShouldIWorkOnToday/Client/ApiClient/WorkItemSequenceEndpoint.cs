@@ -11,8 +11,19 @@ public class WorkItemSequenceEndpoint : Endpoint, IWorkItemSequenceEndpoint
     {
         _httpClient = httpClient;
     }
+    
+    public async Task<WorkItemSequence> GetWorkItemSequenceAsync(int workSequenceNumberId)
+    {
+        var wis = await _httpClient.GetFromJsonAsync<WorkItemSequence>($"api/WorkItemSequence/{workSequenceNumberId}");
+        if (wis is null)
+        {
+            throw new Exception("Failed to de-serialize work item sequence.");
+        }
 
-    public async Task<List<WorkItemSequence>> GetAllAsync()
+        return wis;
+    }
+
+    public async Task<List<WorkItemSequence>> GetAllWorkItemSequenceAsync()
     {
         var seqItems = await _httpClient.GetFromJsonAsync<List<WorkItemSequence>>("api/WorkItemSequence");
         if (seqItems is null)

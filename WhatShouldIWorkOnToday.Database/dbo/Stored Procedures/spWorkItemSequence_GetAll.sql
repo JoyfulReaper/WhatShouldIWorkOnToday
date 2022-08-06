@@ -17,5 +17,7 @@ BEGIN
 	WHERE
 		wi.DateDeleted IS NULL
 	AND wi.DateCompleted IS NULL
+	ORDER BY
+		wsn.SequenceNumber;
 
 END

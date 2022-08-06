@@ -15,8 +15,22 @@ public class WorkItemSequenceController : ControllerBase
 	{
 		_workSequenceNumber = workItemSequenceData;
 	}
+    
+    [HttpGet("{workSequenceNumberId}")]
+    public async Task<ActionResult<WorkItemSequenceDto>> Get(int workSequenceNumberId)
+    {
+        var wis =  await _workSequenceNumber.GetWorkItemSequenceAsync(workSequenceNumberId);
+        if(wis is null)
+        {
+            return NotFound();
+        }
+        else
+        {
+            return wis;
+        }
+    }
 
-	[HttpGet]
+    [HttpGet]
 	public async Task<List<WorkItemSequenceDto>> GetAll()
 	{
 		return await _workSequenceNumber.GetAllWorkItemSequenceAsync();
