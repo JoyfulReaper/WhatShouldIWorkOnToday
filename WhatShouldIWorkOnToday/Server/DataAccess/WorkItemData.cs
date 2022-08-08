@@ -42,7 +42,7 @@ public class WorkItemData : IWorkItemData
 	{
 		return _dataAccess.LoadDataAsync<WorkItem, dynamic>("spWorkItem_GetBySequenceNumber", new
 		{
-			SequeunceNumber = sequenceNumber
+            SequenceNumber = sequenceNumber
 		}, "WSIWOT");
 	}
 

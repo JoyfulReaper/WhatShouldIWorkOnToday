@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject IWorkItemEndpoint _workItemData
+@inject ISequenceNumberEndpoint _sequenceNumberData
 
 <PageTitle>What Should I Work on Today?</PageTitle>
 
@@ -13,10 +14,24 @@
         else
         {
             <h1 class="text-center display-6">What Should I Work on Today?</h1>
+            <p>
+                The current sequence number is: @_currentSequence?.CurrentSequence <br />
+                Set on: @_currentSequence?.DateSet.ToShortDateString()
+            </p>
             <div>
-                @foreach(var item in _currentItems)
+                <button type="button" class="btn btn-primary" @onclick="AdvanceSequence">
+                    Advance Sequence
+                </button>
+            </div>
+
+            <div>
+                @foreach (var item in _currentItems)
                 {
-                    <div><a href="view-work-item/@item.WorkItemId">@item.Name</a></div>
+                    <div class="card mt-2">
+                        <div class="card-body">
+                            <a href="view-work-item/@item.WorkItemId">@item.Name</a>
+                        </div>
+                    </div>
                 }
             </div>
         }
@@ -25,18 +40,44 @@
 
 @code {
     private List<WorkItem>? _currentItems = null;
+    private CurrentSequenceNumber? _currentSequence = null;
     private string? _errorMessage = null;
 
     protected async override Task OnInitializedAsync()
     {
+        await UpdateData();
+    }
+
+    private async Task UpdateData()
+    {
         try
         {
             _currentItems = await _workItemData.GetCurrent();
+            _currentSequence = await _sequenceNumberData.Get();
             _errorMessage = null;
         }
         catch
         {
             _errorMessage = "An error occured while attempting to contact the API";
         }
+        StateHasChanged();
+    }
+
+    private async Task AdvanceSequence()
+    {
+        int maxSeq = await _sequenceNumberData.GetMaxSequenceNumber();
+        if(_currentSequence.CurrentSequence >= maxSeq)
+        {
+            _currentSequence.CurrentSequence = 0;
+        }
+        else
+        {
+            _currentSequence.CurrentSequence++;
+        }
+
+        _currentSequence.DateSet = DateTime.UtcNow;
+
+        await _sequenceNumberData.Put(_currentSequence);
+        await UpdateData();
     }
 }

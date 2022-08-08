@@ -40,6 +40,7 @@ public class WorkItemController : ControllerBase
     public async Task<List<WorkItemDto>> GetCurrent()
     {
         var seqNum = await _currentSequenceNumberData.GetAsync();
+
         return (await _workItemData.GetBySequeunceNumber(seqNum.CurrentSequence))
             .Select(x => WorkItemToDto(x))
             .ToList();
@@ -62,7 +63,7 @@ public class WorkItemController : ControllerBase
             return NotFound();
         }
 
-        workItem.DateWorkedOn = DateTime.Now;
+        workItem.DateWorkedOn = DateTime.UtcNow;
         await _workItemData.SaveAsync(workItem);
 
         return workItem;

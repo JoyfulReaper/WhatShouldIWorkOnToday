@@ -28,11 +28,16 @@ public class CurrentSequenceNumberData : ICurrentSequenceNumberData
             currentSeq = new CurrentSequenceNumber()
             {
                 CurrentSequence = 1,
-                DateSet = DateTime.Now
+                DateSet = DateTime.UtcNow
             };
             await UpdateAsync(currentSeq);
         }
 
         return currentSeq;
+    }
+
+    public async Task<int> GetMaxSequenceNumber()
+    {
+        return (await _dataAccess.LoadDataAsync<int, dynamic>("spGetMaxSequenceNumber", new { }, "WSIWOT")).SingleOrDefault();
     }
 }

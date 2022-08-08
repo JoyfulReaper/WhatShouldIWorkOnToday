@@ -127,7 +127,7 @@
     {
         //TODO: Confirm Complete
 
-        _workItem!.DateCompleted = DateTime.Now;
+        _workItem!.DateCompleted = DateTime.UtcNow;
         try
         {
             await _workItemData.PutAsync(_workItem);

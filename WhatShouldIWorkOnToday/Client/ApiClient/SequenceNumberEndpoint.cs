@@ -13,6 +13,13 @@ public class SequenceNumberEndpoint : Endpoint, ISequenceNumberEndpoint
         _httpClient = httpClient;
     }
 
+    public async Task<int> GetMaxSequenceNumber()
+    {
+        var maxSequence = await _httpClient.GetFromJsonAsync<int>("api/SequenceNumber/MaxSequence");
+
+        return maxSequence;
+    }
+
     public async Task<CurrentSequenceNumber> Get()
     {
         var curSeq = await _httpClient.GetFromJsonAsync<CurrentSequenceNumber>("api/SequenceNumber");

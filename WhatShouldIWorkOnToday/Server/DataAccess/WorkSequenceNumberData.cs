@@ -30,9 +30,4 @@ public class WorkSequenceNumberData : IWorkSequenceNumberData
             WorkSequenceNumberId = workSequenceNumberId
         }, "WSIWOT")).SingleOrDefault();
     }
-
-    public async Task<int> GetMaxSequenceNumber()
-    {
-        return (await _dataAccess.LoadDataAsync<int, dynamic>("spGetMaxSequenceNumber", new { }, "WSIWOT")).SingleOrDefault();
-    }
 }

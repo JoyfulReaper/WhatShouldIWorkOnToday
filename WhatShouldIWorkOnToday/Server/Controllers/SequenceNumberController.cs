@@ -29,6 +29,12 @@ public class SequenceNumberController : ControllerBase
         }
     }
 
+    [HttpGet("MaxSequence")]
+    public async Task<int> GetMaxSequence()
+    {
+        return await _currentSequenceNumberData.GetMaxSequenceNumber();
+    }
+
     [HttpPut]
     public async Task<IActionResult> Put([FromBody] CurrentSequenceNumber currentSequenceNumber)
     {
