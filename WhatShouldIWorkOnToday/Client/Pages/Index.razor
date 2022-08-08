@@ -22,6 +22,9 @@
                 <button type="button" class="btn btn-primary" @onclick="AdvanceSequence">
                     Advance Sequence
                 </button>
+                <button type="button" class="btn btn-warning" @onclick="RandomItem">
+                    Random Item
+                </button>
             </div>
 
             <div>
@@ -43,8 +46,15 @@
     private CurrentSequenceNumber? _currentSequence = null;
     private string? _errorMessage = null;
 
+    private static Random _random = null!;
+
     protected async override Task OnInitializedAsync()
     {
+        if(_random is null)
+        {
+            _random = new Random();
+        }
+
         await UpdateData();
     }
 
@@ -65,19 +75,46 @@
 
     private async Task AdvanceSequence()
     {
-        int maxSeq = await _sequenceNumberData.GetMaxSequenceNumber();
-        if(_currentSequence.CurrentSequence >= maxSeq)
+        try
         {
-            _currentSequence.CurrentSequence = 0;
+            int maxSeq = await _sequenceNumberData.GetMaxSequenceNumber();
+
+            if (_currentSequence.CurrentSequence >= maxSeq)
+            {
+                _currentSequence.CurrentSequence = 0;
+            }
+            else
+            {
+                _currentSequence.CurrentSequence++;
+            }
+
+            _currentSequence.DateSet = DateTime.UtcNow;
+            await _sequenceNumberData.Put(_currentSequence);
+
+            _errorMessage = null;
         }
-        else
+        catch
         {
-            _currentSequence.CurrentSequence++;
+            _errorMessage = "An error occured while attempting to contact the API";
         }
 
-        _currentSequence.DateSet = DateTime.UtcNow;
-
-        await _sequenceNumberData.Put(_currentSequence);
         await UpdateData();
+    }
+
+    private async Task RandomItem()
+    {
+        try
+        {
+            var allItems = await _workItemData.GetAllAsync();
+            _currentItems!.Clear();
+            _currentItems!.Add(allItems[_random.Next(allItems.Count)]);
+
+            _errorMessage = null;
+        }
+        catch
+        {
+            _errorMessage = "An error occured while attempting to contact the API";
+        }
+
     }
 }
