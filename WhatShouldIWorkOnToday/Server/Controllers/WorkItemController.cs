@@ -53,6 +53,21 @@ public class WorkItemController : ControllerBase
             .ToList();
     }
 
+    [HttpGet("UpdateWorkedOn/{Id}")]
+    public async Task<ActionResult<WorkItem>> UpdateWorkedOn(int Id)
+    {
+        var workItem = await _workItemData.GetAsync(Id);
+        if (workItem == null)
+        {
+            return NotFound();
+        }
+
+        workItem.DateWorkedOn = DateTime.Now;
+        await _workItemData.SaveAsync(workItem);
+
+        return workItem;
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<WorkItemDto>> Get(int id)
     {
@@ -69,6 +84,7 @@ public class WorkItemController : ControllerBase
     public async Task<ActionResult<WorkItemDto>> Post([FromBody] WorkItemDto workItemDto)
     {
         var workItem = DtoToWorkItem(workItemDto);
+        workItem.DateWorkedOn = null;
         
         await _workItemData.SaveAsync(workItem);
         var savedItem = await _workItemData.GetAsync(workItem.WorkItemId);
@@ -97,7 +113,6 @@ public class WorkItemController : ControllerBase
         workItemDb.Name = workItem.Name;
         workItemDb.Description = workItem.Description;
         workItemDb.Url = workItem.Url;
-        workItemDb.DateWorkedOn = workItem.DateWorkedOn;
         workItemDb.DateCompleted = workItem.DateCompleted;
 
         await _workItemData.SaveAsync(workItemDb);
@@ -129,7 +144,8 @@ public class WorkItemController : ControllerBase
             Description = workItem.Description,
             Url = workItem.Url,
             DateCreated = workItem.DateCreated,
-            DateCompleted = workItem.DateCompleted
+            DateCompleted = workItem.DateCompleted,
+            DateWorkedOn = workItem.DateWorkedOn,
         };
 
         return dto;

@@ -31,6 +31,7 @@
                         </a>
                     }
                     <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-primary" @onclick="MarkWorked">Mark Worked</button>
                         <button type="button" class="btn btn-sm btn-success" @onclick="Complete">Complete</button>
                         <button type="button" class="btn btn-sm btn-warning" @onclick="() => {_editing = true;}">Edit</button>
                         <button type="button" class="btn btn-sm btn-danger" @onclick="Delete">Delete</button>
@@ -88,7 +89,19 @@
         StateHasChanged();
     }
 
-    public async Task ItemEdited(WorkItem item)
+    private async Task MarkWorked()
+    {
+        try 
+        {
+            _workItem = await _workItemData.UpdateWorkedOn(WorkItemId);
+        }
+        catch
+        {
+            _errorMessage = "An Error occured while attempting to contact the API";
+        }
+    }
+
+    public void ItemEdited(WorkItem item)
     {
         _workItem = item;
         _editing = false ;
@@ -100,6 +113,7 @@
         try
         {
             await _workItemData.DeleteAsync(WorkItemId);
+            _errorMessage = null;
         }
         catch (Exception)
         {
@@ -111,10 +125,13 @@
 
     private async Task Complete()
     {
+        //TODO: Confirm Complete
+
         _workItem!.DateCompleted = DateTime.Now;
         try
         {
             await _workItemData.PutAsync(_workItem);
+            _errorMessage = null;
         }
         catch (Exception)
         {

@@ -20,7 +20,8 @@ public class WorkItemData : IWorkItemData
 			Description = workItem.Description,
 			Url = workItem.Url,
 			DateDeleted = workItem.DateDeleted,
-			DateCompleted = workItem.DateCompleted
+			DateCompleted = workItem.DateCompleted,
+			DateWorkedOn = workItem.DateWorkedOn
 		},
 		"WSIWOT");
 

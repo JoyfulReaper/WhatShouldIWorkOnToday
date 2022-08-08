@@ -4,14 +4,27 @@
 	@Description NVARCHAR(500),
 	@Url NVARCHAR(300),
 	@DateDeleted DATETIME2(7),
-	@DateCompleted DATETIME2(7)
+	@DateCompleted DATETIME2(7),
+	@DateWorkedOn DATETIME2(7)
 AS
 BEGIN
 
 	BEGIN TRANSACTION;
  
-	INSERT dbo.WorkItem([Name], [Description], [Url], [DateDeleted], [DateCompleted])
-	  SELECT @Name, @Description, @Url, @DateDeleted, @DateCompleted
+	INSERT dbo.WorkItem
+		([Name]
+		,[Description]
+		,[Url]
+		,[DateDeleted]
+		,[DateCompleted]
+		,[DateWorkedOn])
+	  SELECT 
+		@Name
+		,@Description
+		,@Url
+		,@DateDeleted
+		,@DateCompleted
+		,@DateWorkedOn
 	  WHERE NOT EXISTS
 	  (
 		SELECT 1 FROM dbo.WorkItem WITH (UPDLOCK, SERIALIZABLE)
@@ -21,8 +34,15 @@ BEGIN
 	IF @@ROWCOUNT = 0
 		BEGIN
 		  UPDATE dbo.WorkItem 
-		  SET [Name] = @Name, [Description] = @Description, [Url] = @Url, [DateDeleted] = @DateDeleted, [DateCompleted] = @DateCompleted
-		  WHERE [WorkItemId] = @WorkItemId;
+		  SET 
+			[Name] = @Name
+			,[Description] = @Description
+			,[Url] = @Url
+			,[DateDeleted] = @DateDeleted
+			,[DateCompleted] = @DateCompleted
+			,[DateWorkedOn] = @DateWorkedOn
+		  WHERE 
+			[WorkItemId] = @WorkItemId;
 		END
 	ELSE
 		BEGIN

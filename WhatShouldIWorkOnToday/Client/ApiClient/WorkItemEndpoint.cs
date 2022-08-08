@@ -11,6 +11,17 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
     {
         _httpClient = httpClient;
     }
+    
+    public async Task<WorkItem> UpdateWorkedOn(int workItemId)
+    {
+        var workItem = await _httpClient.GetFromJsonAsync<WorkItem>($"api/WorkItem/UpdateWorkedOn/{workItemId}");
+        if (workItem is null)
+        {
+            throw new Exception("Failed to de-serialize list of work items.");
+        }
+
+        return workItem;
+    }
 
     public async Task<List<WorkItem>> GetCurrent()
     {

@@ -3,7 +3,14 @@
 AS
 BEGIN
 	SELECT
-		[WorkItemId], [Name], [Description], [Url], [DateCreated], [DateWorkedOn], [DateDeleted], [DateCompleted]
+		[WorkItemId]
+		,[Name]
+		,[Description]
+		,[Url]
+		,[DateCreated]
+		,[DateWorkedOn]
+		,[DateDeleted]
+		,[DateCompleted]
 	FROM
 		WorkItem
 	WHERE

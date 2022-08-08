@@ -16,7 +16,7 @@
             <div>
                 @foreach(var item in _currentItems)
                 {
-                    <div>@item.Name</div>
+                    <div><a href="view-work-item/@item.WorkItemId">@item.Name</a></div>
                 }
             </div>
         }
