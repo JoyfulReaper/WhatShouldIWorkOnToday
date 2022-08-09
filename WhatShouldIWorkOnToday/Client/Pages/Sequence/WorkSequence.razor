@@ -1,6 +1,8 @@
 ﻿@page "/work-sequence"
 @inject IWorkItemSequenceEndpoint _workItemSequenceData
 
+<PageTitle>WSIWOT: Set Work Item Sequeunce</PageTitle>
+
 <div class="col">
     <div class="row">
         <ErrorMessage Error="@_errorMessage" />
@@ -10,6 +12,11 @@
         }
         else
         {
+            <p>
+                Set the sequence number for each work item. Multiple items can have the same sequeunce number. If an item has a sequence number less than one then it will only show up
+                when the 'Random Item' button is pressed on the Home page.
+            </p>
+
             <table class="table table-striped table-sm table-bordered">
                 <thead>
                     <tr>
