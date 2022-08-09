@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.ResponseCompression;
+using WhatShouldIWorkOnToday.Server.Authentication;
 using WhatShouldIWorkOnToday.Server.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +10,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+builder.Services.AddAuthentication()
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication",
+    options => { });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("BasicAuthentication", new AuthorizationPolicyBuilder("BasicAuthentication")
+        .RequireAuthenticatedUser()
+        .Build());
+});
 
 builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
 builder.Services.AddScoped<IWorkItemData, WorkItemData>();
@@ -29,11 +43,14 @@ else
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();

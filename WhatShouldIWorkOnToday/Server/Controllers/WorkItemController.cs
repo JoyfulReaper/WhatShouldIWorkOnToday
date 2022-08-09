@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using WhatShouldIWorkOnToday.Server.Models;
 using WhatShouldIWorkOnToday.Server.DataAccess;
 using WhatShouldIWorkOnToday.Server.DTOs;
+using WhatShouldIWorkOnToday.Server.Authentication;
 
 namespace WhatShouldIWorkOnToday.Server.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[BasicAuthorization]
 public class WorkItemController : ControllerBase
 {
     private readonly IWorkItemData _workItemData;

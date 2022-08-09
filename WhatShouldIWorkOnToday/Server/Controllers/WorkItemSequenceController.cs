@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WhatShouldIWorkOnToday.Server.Authentication;
 using WhatShouldIWorkOnToday.Server.DataAccess;
 using WhatShouldIWorkOnToday.Server.DTOs;
 using WhatShouldIWorkOnToday.Server.Models;
 
 namespace WhatShouldIWorkOnToday.Server.Controllers;
+
+[BasicAuthorization]
 [Route("api/[controller]")]
 [ApiController]
 public class WorkItemSequenceController : ControllerBase
