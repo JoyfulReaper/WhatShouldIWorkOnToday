@@ -73,7 +73,10 @@
                         SequenceNumber = seqNum,
                     });
 
-                _workSequence[index] = await _workItemSequenceData.GetWorkItemSequenceAsync(wisResposne.WorkSequenceNumberId.Value);
+                //_workSequence[index] = await _workItemSequenceData.GetWorkItemSequenceAsync(wisResposne.WorkSequenceNumberId.Value);
+                _workSequence[index].WorkSequenceNumberId = wisResposne.WorkSequenceNumberId;
+                _workSequence[index].SequenceNumber = wisResposne.SequenceNumber;
+                _workSequence[index].WorkItemId = wisResposne.WorkItemId;
             }
             else
             {

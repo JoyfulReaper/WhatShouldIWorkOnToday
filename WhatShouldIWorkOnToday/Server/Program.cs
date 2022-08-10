@@ -26,6 +26,7 @@ builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
 builder.Services.AddScoped<IWorkItemData, WorkItemData>();
 builder.Services.AddScoped<IWorkSequenceNumberData, WorkSequenceNumberData>();
 builder.Services.AddScoped<ICurrentSequenceNumberData, CurrentSequenceNumberData>();
+builder.Services.AddScoped<INoteData, NoteData>();
 
 var app = builder.Build();
 
