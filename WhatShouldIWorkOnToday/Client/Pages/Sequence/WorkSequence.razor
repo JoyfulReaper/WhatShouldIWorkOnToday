@@ -64,7 +64,7 @@
         {
             if (wis.WorkSequenceNumberId is null)
             {
-                _workSequence?.Remove(wis);
+                var index = _workSequence.IndexOf(wis);
 
                 var wisResposne = await _workItemSequenceData.PostAsync(new WorkSequenceNumber
                     {
@@ -73,7 +73,7 @@
                         SequenceNumber = seqNum,
                     });
 
-                _workSequence?.Add(await _workItemSequenceData.GetWorkItemSequenceAsync(wisResposne.WorkSequenceNumberId.Value));
+                _workSequence[index] = await _workItemSequenceData.GetWorkItemSequenceAsync(wisResposne.WorkSequenceNumberId.Value);
             }
             else
             {

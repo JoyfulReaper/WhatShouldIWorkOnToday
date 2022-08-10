@@ -18,6 +18,6 @@ BEGIN
 		wi.DateDeleted IS NULL
 	AND wi.DateCompleted IS NULL
 	ORDER BY
-		wsn.SequenceNumber;
+		SequenceNumber;
 
 END

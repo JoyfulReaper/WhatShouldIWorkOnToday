@@ -16,6 +16,8 @@ BEGIN
 	FROM
 		WorkItem
 	WHERE
-		DateDeleted IS NULL;
+		DateDeleted IS NULL
+	ORDER BY
+		[Name];
 
 END

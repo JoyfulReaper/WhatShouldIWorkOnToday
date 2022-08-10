@@ -84,5 +84,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PublishProfiles\WhatShouldIWorkOnToday.Database.publish.xml" />
+    <None Include="Scripts\InitialSetUp.sql" />
   </ItemGroup>
 </Project>
