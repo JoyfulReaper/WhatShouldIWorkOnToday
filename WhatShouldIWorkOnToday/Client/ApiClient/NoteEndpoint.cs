@@ -24,9 +24,17 @@ public class NoteEndpoint : Endpoint, INoteEndpoint
         return notes;
     }
 
-    public async Task PostNote(Note note)
+    public async Task<Note> PostNote(Note note)
     {
         using var response = await _httpClient.PostAsJsonAsync("api/Note", note);
         CheckResponse(response);
+
+        var noteResp = await response.Content.ReadFromJsonAsync<Note>();
+        if (noteResp is null)
+        {
+            throw new Exception("Failed to de-serialize note.");
+        }
+
+        return noteResp;
     }
 }

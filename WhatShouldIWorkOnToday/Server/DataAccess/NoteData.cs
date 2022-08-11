@@ -13,8 +13,7 @@ public class NoteData : INoteData
 
     public async Task<List<Note>> GetAsync(int workItemId)
     {
-        return (await _dataAccess.LoadDataAsync<Note, dynamic>("spNote_Get", new { WorkItemId = workItemId }, "WSIWOT"))
-            .ToList();
+        return await _dataAccess.LoadDataAsync<Note, dynamic>("spNote_Get", new { WorkItemId = workItemId }, "WSIWOT");
     }
 
     public async Task SaveAsync(Note note)
@@ -24,7 +23,6 @@ public class NoteData : INoteData
             NoteId = note.NoteId,
             WorkItemId = note.WorkItemId,
             Text = note.Text,
-            DateCreated = note.DateCreated,
         }, "WSIWOT");
 
         note.NoteId = id;

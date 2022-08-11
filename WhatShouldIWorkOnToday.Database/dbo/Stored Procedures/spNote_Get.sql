@@ -11,4 +11,6 @@ BEGIN
 		Note
 	WHERE
 		WorkItemId = @WorkItemId
+	ORDER BY
+		DateCreated DESC;
 END
