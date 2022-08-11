@@ -11,5 +11,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<IWorkItemEndpoint, WorkItemEndpoint>();
 builder.Services.AddScoped<IWorkItemSequenceEndpoint, WorkItemSequenceEndpoint>();
 builder.Services.AddScoped<ISequenceNumberEndpoint, SequenceNumberEndpoint>();
+builder.Services.AddScoped<INoteEndpoint, NoteEndpoint>();
 
 await builder.Build().RunAsync();

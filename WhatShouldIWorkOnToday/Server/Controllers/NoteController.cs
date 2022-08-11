@@ -15,7 +15,7 @@ public class NoteController : ControllerBase
 		_noteData = noteData;
 	}
 
-    [HttpGet]
+    [HttpGet("{workItemId}")]
     public async Task<List<Note>> Get(int workItemId)
     {
         return await _noteData.GetAsync(workItemId);
