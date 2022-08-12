@@ -31,18 +31,38 @@
                 @foreach (var item in _currentItems)
                 {
                     <div class="card mt-2">
+                        <div class="card-header">
+                            Current Item - <span class="text-muted">Last worked: @(item.DateWorkedOn?.ToShortDateString() ?? "Never")</span>
+                        </div>
                         <div class="card-body">
                             <a href="view-work-item/@item.WorkItemId">@item.Name</a>
+                            <div class="mt-1">@item.Description</div>
                         </div>
                     </div>
                 }
             </div>
+
+            @if (_randomItem is not null)
+            {
+                <div>
+                    <div class="card mt-2">
+                        <div class="card-header">
+                            Random Item - <span class="text-muted">Last worked: @(_randomItem.DateWorkedOn?.ToShortDateString() ?? "Never")</span>
+                        </div>
+                        <div class="card-body">
+                            <a href="view-work-item/@_randomItem.WorkItemId">@_randomItem.Name</a>
+                            <div class="mt-1">@_randomItem.Description</div>
+                        </div>
+                    </div>
+                </div>
+            }
         }
     </div>
 </div>
 
 @code {
     private List<WorkItem>? _currentItems = null;
+    private WorkItem? _randomItem = null;
     private CurrentSequenceNumber? _currentSequence = null;
     private string? _errorMessage = null;
 
@@ -50,7 +70,7 @@
 
     protected async override Task OnInitializedAsync()
     {
-        if(_random is null)
+        if (_random is null)
         {
             _random = new Random();
         }
@@ -70,6 +90,7 @@
         {
             _errorMessage = "An error occured while attempting to contact the API";
         }
+        await RandomItem();
         StateHasChanged();
     }
 
@@ -106,8 +127,7 @@
         try
         {
             var allItems = await _workItemData.GetAllAsync();
-            _currentItems!.Clear();
-            _currentItems!.Add(allItems[_random.Next(allItems.Count)]);
+            _randomItem = allItems[_random.Next(allItems.Count)];
 
             _errorMessage = null;
         }
