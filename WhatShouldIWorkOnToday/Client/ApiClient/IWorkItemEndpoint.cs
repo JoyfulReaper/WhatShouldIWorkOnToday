@@ -9,5 +9,6 @@ public interface IWorkItemEndpoint
     Task<List<WorkItem>> GetCurrent();
     Task<WorkItem> PostAsync(WorkItem workItem);
     Task PutAsync(WorkItem workItem);
+    Task<List<WorkItem>> Search(string term);
     Task<WorkItem> UpdateWorkedOn(int workItemId);
 }

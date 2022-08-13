@@ -4,6 +4,7 @@ using WhatShouldIWorkOnToday.Server.Models;
 using WhatShouldIWorkOnToday.Server.DataAccess;
 using WhatShouldIWorkOnToday.Server.DTOs;
 using WhatShouldIWorkOnToday.Server.Authentication;
+using System.Web;
 
 namespace WhatShouldIWorkOnToday.Server.Controllers;
 
@@ -56,6 +57,8 @@ public class WorkItemController : ControllerBase
             .ToList();
     }
 
+
+
     [HttpGet("UpdateWorkedOn/{Id}")]
     public async Task<ActionResult<WorkItem>> UpdateWorkedOn(int Id)
     {
@@ -88,7 +91,7 @@ public class WorkItemController : ControllerBase
     {
         var workItem = DtoToWorkItem(workItemDto);
         workItem.DateWorkedOn = null;
-        
+
         await _workItemData.SaveAsync(workItem);
         var savedItem = await _workItemData.GetAsync(workItem.WorkItemId);
         if (savedItem is null)
@@ -136,6 +139,16 @@ public class WorkItemController : ControllerBase
         await _workItemData.SaveAsync(workItem);
 
         return NoContent();
+    }
+
+    [HttpGet("Search")]
+    public async Task <ActionResult<IEnumerable<WorkItem>>> Search(string term)
+    {
+        var decodeTerm = HttpUtility.UrlDecode(term);
+        var items = await _workItemData.GetAllAsync();
+        var matchingItems = items.Where(i => i.Name.ToUpper().Contains(term.ToUpper())).ToList();
+
+        return matchingItems;
     }
 
     private WorkItemDto WorkItemToDto(WorkItem workItem)

@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Web;
 using WhatShouldIWorkOnToday.Client.Models;
 
 namespace WhatShouldIWorkOnToday.Client.ApiClient;
@@ -80,5 +81,18 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
     {
         using var response = await _httpClient.DeleteAsync($"/api/WorkItem/{Id}");
         CheckResponse(response);
+    }
+
+    // Search work item names
+    public async Task<List<WorkItem>> Search(string term)
+    {
+        var encodedTerm = HttpUtility.UrlEncode(term);
+        var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>($"api/WorkItem/Search?term={encodedTerm}");
+        if (workItems is null)
+        {
+            throw new Exception("Failed to de-serialize list of work items.");
+        }
+
+        return workItems;
     }
 }
