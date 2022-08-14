@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using WhatShouldIWorkOnToday.Client;
 using WhatShouldIWorkOnToday.Client.ApiClient;
+using WhatShouldIWorkOnToday.Client.ApiClient.Interfaces;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

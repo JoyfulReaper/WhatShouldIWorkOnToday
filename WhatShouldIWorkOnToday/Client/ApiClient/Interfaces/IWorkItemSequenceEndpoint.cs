@@ -1,6 +1,6 @@
 ﻿using WhatShouldIWorkOnToday.Client.Models;
 
-namespace WhatShouldIWorkOnToday.Client.ApiClient;
+namespace WhatShouldIWorkOnToday.Client.ApiClient.Interfaces;
 public interface IWorkItemSequenceEndpoint
 {
     Task<List<WorkItemSequence>> GetAllWorkItemSequenceAsync();

@@ -1,5 +1,8 @@
 ﻿using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Web;
+using WhatShouldIWorkOnToday.Client.ApiClient.Interfaces;
 using WhatShouldIWorkOnToday.Client.Models;
 
 namespace WhatShouldIWorkOnToday.Client.ApiClient;
@@ -15,46 +18,37 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
     
     public async Task<WorkItem> UpdateWorkedOn(int workItemId)
     {
-        var workItem = await _httpClient.GetFromJsonAsync<WorkItem>($"api/WorkItem/UpdateWorkedOn/{workItemId}");
-        if (workItem is null)
-        {
-            throw new Exception("Failed to de-serialize list of work items.");
-        }
+        var response = await _httpClient.PostAsync("api/WorkItem/UpdateWorkedOn", 
+            new StringContent(JsonSerializer.Serialize(workItemId), Encoding.UTF8, "application/json"));
+        CheckResponse(response);
+        var workItem = await response.Content.ReadFromJsonAsync<WorkItem>();
+        ThrowIfNull(workItem);
 
-        return workItem;
+        return workItem!;
     }
 
     public async Task<List<WorkItem>> GetCurrent()
     {
         var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem/Current");
-        if (workItems is null)
-        {
-            throw new Exception("Failed to de-serialize list of work items.");
-        }
+        ThrowIfNull(workItems);
 
-        return workItems;
+        return workItems!;
     }
 
     public async Task<List<WorkItem>> GetAllAsync()
     {
         var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
-        if (workItems is null)
-        {
-            throw new Exception("Failed to de-serialize list of work items.");
-        }
+        ThrowIfNull(workItems);
 
-        return workItems;
+        return workItems!;
     }
 
     public async Task<WorkItem> GetAsync(int id)
     {
         var workItem = await _httpClient.GetFromJsonAsync<WorkItem>($"api/WorkItem/{id}");
-        if (workItem is null)
-        {
-            throw new Exception("Failed to de-serialize work item.");
-        }
+        ThrowIfNull(workItem);
 
-        return workItem;
+        return workItem!;
     }
 
     public async Task<WorkItem> PostAsync(WorkItem workItem)
@@ -63,12 +57,9 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
         CheckResponse(response);
 
         var workItemResp = await response.Content.ReadFromJsonAsync<WorkItem>();
-        if (workItemResp is null)
-        {
-            throw new Exception("Failed to de-serialize work item.");
-        }
+        ThrowIfNull(workItemResp);
 
-        return workItemResp;
+        return workItemResp!;
     }
 
     public async Task PutAsync(WorkItem workItem)
@@ -88,11 +79,8 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
     {
         var encodedTerm = HttpUtility.UrlEncode(term);
         var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>($"api/WorkItem/Search?term={encodedTerm}");
-        if (workItems is null)
-        {
-            throw new Exception("Failed to de-serialize list of work items.");
-        }
+        ThrowIfNull(workItems);
 
-        return workItems;
+        return workItems!;
     }
 }

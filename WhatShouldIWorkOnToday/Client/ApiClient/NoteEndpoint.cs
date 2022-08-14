@@ -1,5 +1,5 @@
-﻿using System.Net.Http;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
+using WhatShouldIWorkOnToday.Client.ApiClient.Interfaces;
 using WhatShouldIWorkOnToday.Client.Models;
 
 namespace WhatShouldIWorkOnToday.Client.ApiClient;
@@ -16,12 +16,8 @@ public class NoteEndpoint : Endpoint, INoteEndpoint
     public async Task<List<Note>> GetAsync(int workItemId)
     {
         var notes = await _httpClient.GetFromJsonAsync<List<Note>>($"api/Note/{workItemId}");
-        if (notes is null)
-        {
-            throw new Exception("Failed to de-serialize work item.");
-        }
-
-        return notes;
+        ThrowIfNull(notes);
+        return notes!;
     }
 
     public async Task<Note> PostNote(Note note)
@@ -30,11 +26,7 @@ public class NoteEndpoint : Endpoint, INoteEndpoint
         CheckResponse(response);
 
         var noteResp = await response.Content.ReadFromJsonAsync<Note>();
-        if (noteResp is null)
-        {
-            throw new Exception("Failed to de-serialize note.");
-        }
-
-        return noteResp;
+        ThrowIfNull(noteResp);
+        return noteResp!;
     }
 }

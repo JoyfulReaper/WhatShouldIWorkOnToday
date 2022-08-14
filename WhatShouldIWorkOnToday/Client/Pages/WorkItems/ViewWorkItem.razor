@@ -127,7 +127,7 @@
         {
             _workItem = await _workItemData.UpdateWorkedOn(WorkItemId);
         }
-        catch
+        catch (Exception ex)
         {
             _errorMessage = "An Error occured while attempting to contact the API";
         }

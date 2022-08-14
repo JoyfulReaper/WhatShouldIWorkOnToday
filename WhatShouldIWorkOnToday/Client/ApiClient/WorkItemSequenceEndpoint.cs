@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using WhatShouldIWorkOnToday.Client.ApiClient.Interfaces;
 using WhatShouldIWorkOnToday.Client.Models;
 
 namespace WhatShouldIWorkOnToday.Client.ApiClient;
@@ -15,23 +16,17 @@ public class WorkItemSequenceEndpoint : Endpoint, IWorkItemSequenceEndpoint
     public async Task<WorkItemSequence> GetWorkItemSequenceAsync(int workSequenceNumberId)
     {
         var wis = await _httpClient.GetFromJsonAsync<WorkItemSequence>($"api/WorkItemSequence/{workSequenceNumberId}");
-        if (wis is null)
-        {
-            throw new Exception("Failed to de-serialize work item sequence.");
-        }
+        ThrowIfNull(wis);
 
-        return wis;
+        return wis!;
     }
 
     public async Task<List<WorkItemSequence>> GetAllWorkItemSequenceAsync()
     {
         var seqItems = await _httpClient.GetFromJsonAsync<List<WorkItemSequence>>("api/WorkItemSequence");
-        if (seqItems is null)
-        {
-            throw new Exception("Failed to de-serialize work sequence list.");
-        }
+        ThrowIfNull(seqItems);
 
-        return seqItems;
+        return seqItems!;
     }
 
     public async Task<WorkSequenceNumber> PostAsync(WorkSequenceNumber workSequenceNumber)
@@ -40,12 +35,9 @@ public class WorkItemSequenceEndpoint : Endpoint, IWorkItemSequenceEndpoint
         CheckResponse(response);
 
         var workItemResp = await response.Content.ReadFromJsonAsync<WorkSequenceNumber>();
-        if (workItemResp is null)
-        {
-            throw new Exception("Failed to de-serialize work item.");
-        }
+        ThrowIfNull(workItemResp);
 
-        return workItemResp;
+        return workItemResp!;
     }
 
     public async Task PutAsync(WorkSequenceNumber workSequenceNumber)

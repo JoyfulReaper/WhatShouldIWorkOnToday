@@ -59,8 +59,8 @@ public class WorkItemController : ControllerBase
 
 
 
-    [HttpGet("UpdateWorkedOn/{Id}")]
-    public async Task<ActionResult<WorkItem>> UpdateWorkedOn(int Id)
+    [HttpPost("UpdateWorkedOn")]
+    public async Task<ActionResult<WorkItem>> UpdateWorkedOn([FromBody]int Id)
     {
         var workItem = await _workItemData.GetAsync(Id);
         if (workItem == null)
