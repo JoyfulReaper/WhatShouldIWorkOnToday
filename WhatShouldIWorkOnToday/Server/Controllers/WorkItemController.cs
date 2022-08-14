@@ -5,6 +5,7 @@ using WhatShouldIWorkOnToday.Server.DataAccess;
 using WhatShouldIWorkOnToday.Server.DTOs;
 using WhatShouldIWorkOnToday.Server.Authentication;
 using System.Web;
+using AutoMapper;
 
 namespace WhatShouldIWorkOnToday.Server.Controllers;
 
@@ -15,19 +16,22 @@ public class WorkItemController : ControllerBase
 {
     private readonly IWorkItemData _workItemData;
     private readonly ICurrentSequenceNumberData _currentSequenceNumberData;
+    private readonly IMapper _mapper;
 
     public WorkItemController(IWorkItemData workItemData,
-        ICurrentSequenceNumberData currentSequenceNumberData)
+        ICurrentSequenceNumberData currentSequenceNumberData,
+        IMapper mapper)
     {
         _workItemData = workItemData;
         _currentSequenceNumberData = currentSequenceNumberData;
+        _mapper = mapper;
     }
 
     [HttpGet]
     public async Task<List<WorkItemDto>> GetAll()
     {
         return (await _workItemData.GetAllAsync())
-            .Select(x => WorkItemToDto(x))
+            .Select(x => _mapper.Map<WorkItemDto>(x))
             .ToList();
     }
 
@@ -35,7 +39,7 @@ public class WorkItemController : ControllerBase
     public async Task<List<WorkItemDto>> GetAllCompleted()
     {
         return (await _workItemData.GetCompleteAsync())
-            .Select(x => WorkItemToDto(x))
+            .Select(x => _mapper.Map<WorkItemDto>(x))
             .ToList();
     }
 
@@ -45,7 +49,7 @@ public class WorkItemController : ControllerBase
         var seqNum = await _currentSequenceNumberData.GetAsync();
 
         return (await _workItemData.GetBySequeunceNumber(seqNum.CurrentSequence))
-            .Select(x => WorkItemToDto(x))
+            .Select(x => _mapper.Map<WorkItemDto>(x))
             .ToList();
     }
 
@@ -53,11 +57,9 @@ public class WorkItemController : ControllerBase
     public async Task<List<WorkItemDto>> GetAllIncomplete()
     {
         return (await _workItemData.GetIncompleteAsync())
-            .Select(x => WorkItemToDto(x))
+            .Select(x => _mapper.Map<WorkItemDto>(x))
             .ToList();
     }
-
-
 
     [HttpPost("UpdateWorkedOn")]
     public async Task<ActionResult<WorkItem>> UpdateWorkedOn([FromBody]int Id)
@@ -83,13 +85,13 @@ public class WorkItemController : ControllerBase
             return NotFound();
         }
 
-        return WorkItemToDto(workItem);
+        return _mapper.Map<WorkItemDto>(workItem);
     }
 
     [HttpPost]
     public async Task<ActionResult<WorkItemDto>> Post([FromBody] WorkItemDto workItemDto)
     {
-        var workItem = DtoToWorkItem(workItemDto);
+        var workItem = _mapper.Map<WorkItem>(workItemDto);
         workItem.DateWorkedOn = null;
 
         await _workItemData.SaveAsync(workItem);
@@ -98,8 +100,8 @@ public class WorkItemController : ControllerBase
         {
             return BadRequest();
         }
-
-        return WorkItemToDto(savedItem);
+        
+        return CreatedAtAction(nameof(Get), new { id = savedItem.WorkItemId }, _mapper.Map<WorkItemDto>(savedItem));
     }
 
     [HttpPut("{id}")]
@@ -142,44 +144,12 @@ public class WorkItemController : ControllerBase
     }
 
     [HttpGet("Search")]
-    public async Task <ActionResult<IEnumerable<WorkItem>>> Search(string term)
+    public async Task <IEnumerable<WorkItemDto>> Search(string term)
     {
         var decodeTerm = HttpUtility.UrlDecode(term);
         var items = await _workItemData.GetAllAsync();
         var matchingItems = items.Where(i => i.Name.ToUpper().Contains(term.ToUpper())).ToList();
 
-        return matchingItems;
-    }
-
-    private WorkItemDto WorkItemToDto(WorkItem workItem)
-    {
-        var dto = new WorkItemDto()
-        {
-            WorkItemId = workItem.WorkItemId,
-            Name = workItem.Name,
-            Description = workItem.Description,
-            Url = workItem.Url,
-            DateCreated = workItem.DateCreated,
-            DateCompleted = workItem.DateCompleted,
-            DateWorkedOn = workItem.DateWorkedOn,
-        };
-
-        return dto;
-    }
-
-    private WorkItem DtoToWorkItem(WorkItemDto dto)
-    {
-        var workItem = new WorkItem()
-        {
-            WorkItemId = dto.WorkItemId,
-            Name = dto.Name,
-            Description = dto.Description,
-            Url = dto.Url,
-            DateCreated = dto.DateCreated,
-            DateWorkedOn = dto.DateWorkedOn,
-            DateCompleted = dto.DateCompleted
-        };
-
-        return workItem;
+        return _mapper.Map<IEnumerable<WorkItemDto>>(matchingItems);
     }
 }

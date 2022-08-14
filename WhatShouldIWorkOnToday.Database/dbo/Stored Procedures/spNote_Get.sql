@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[spNote_Get]
-	@WorkItemId INT
+	@NoteId INT
 AS
 BEGIN
 	SELECT
@@ -8,9 +8,7 @@ BEGIN
 		,[Text]
 		,[DateCreated]
 	FROM
-		Note
+		[Note]
 	WHERE
-		WorkItemId = @WorkItemId
-	ORDER BY
-		DateCreated DESC;
+		NoteId = @NoteId
 END
