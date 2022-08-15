@@ -1,0 +1,50 @@
+﻿@page "/completed-items"
+
+@inject IWorkItemEndpoint _workItemData
+
+<div class="row">
+    <div class="col">
+        <ErrorMessage Error="@_errorMessage" />
+        @if(_completedItems is null)
+        {
+            <Loading />
+        }
+        else
+        {
+            <h1 class="text-center display-6">Completed Items</h1>
+            
+            <div>
+                @foreach (var item in _completedItems)
+                {
+                    <div class="card mt-2">
+                        <div class="card-header">
+                            Current Item - <span class="text-muted">Completed: @(item.DateCompleted?.ToShortDateString() ?? "Never")</span>
+                        </div>
+                        <div class="card-body">
+                            <a href="view-work-item/@item.WorkItemId">@item.Name</a>
+                            <div class="mt-1">@item.Description</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<WorkItem>? _completedItems = null;
+    private string? _errorMessage = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _completedItems = await _workItemData.GetCompleted();
+            _errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

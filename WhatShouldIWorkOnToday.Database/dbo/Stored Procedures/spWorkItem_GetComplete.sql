@@ -6,6 +6,6 @@ BEGIN
 	FROM
 		WorkItem
 	WHERE
-		DateCompleted IS NULL
+		DateCompleted IS NOT NULL
 	AND DateDeleted IS NULL
 END

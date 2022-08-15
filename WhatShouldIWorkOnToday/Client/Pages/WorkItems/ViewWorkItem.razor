@@ -22,8 +22,10 @@
                         @_workItem.Description
                         @if (_workItem.DateCompleted.HasValue)
                         {
-                            <br />
-                            <span>Completed: @_workItem.DateCompleted.Value.ToShortDateString()</span>
+                            <div class="mt-2">
+                                <span class="fw-bold">Completed:</span> @_workItem.DateCompleted.Value.ToShortDateString()
+                            </div>
+
                         }
                     </p>
 
@@ -35,7 +37,10 @@
                     }
                     <div class="mt-2">
                         <button type="button" class="btn btn-sm btn-primary" @onclick="MarkWorked">Mark Worked</button>
-                        <button type="button" class="btn btn-sm btn-success" @onclick="Complete">Complete</button>
+                        <button type="button" class="btn btn-sm @(_workItem.DateCompleted == null ? "btn-success" : "btn-outline-danger")"
+                            @onclick="ToggleComplete">
+                            @(_workItem.DateCompleted == null ? "Complete" : "Incomplete")
+                            </button>
                         <button type="button" class="btn btn-sm btn-warning" @onclick="() => {_editing = true;}">Edit</button>
                         <button type="button" class="btn btn-sm btn-danger" @onclick="Delete">Delete</button>
                     </div>
@@ -113,9 +118,9 @@
             _workItem = await _workItemData.GetAsync(WorkItemId);
             _notes = await _noteData.GetAsync(WorkItemId);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            _errorMessage = "An Error occured while attempting to contact the API";
+            _errorMessage = $"An Error occured while attempting to contact the API: {ex.Message}{Environment.NewLine}{ex.StackTrace}";
         }
 
         StateHasChanged();
@@ -155,11 +160,19 @@
         _nav.NavigateTo("work-items", false, true);
     }
 
-    private async Task Complete()
+    private async Task ToggleComplete()
     {
         //TODO: Confirm Complete
 
-        _workItem!.DateCompleted = DateTime.UtcNow;
+        if (_workItem.DateCompleted is null)
+        {
+            _workItem!.DateCompleted = DateTime.UtcNow;
+        }
+        else
+        {
+            _workItem.DateCompleted = null;
+        }
+
         try
         {
             await _workItemData.PutAsync(_workItem);

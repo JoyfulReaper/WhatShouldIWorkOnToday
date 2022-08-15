@@ -148,7 +148,11 @@ public class WorkItemController : ControllerBase
     {
         var decodeTerm = HttpUtility.UrlDecode(term);
         var items = await _workItemData.GetAllAsync();
-        var matchingItems = items.Where(i => i.Name.ToUpper().Contains(term.ToUpper())).ToList();
+        var matchingItems = items
+            .Where(i => i.Name
+                .ToUpper()
+                .Contains(term.ToUpper()) && i.DateDeleted is null)
+            .ToList();
 
         return _mapper.Map<IEnumerable<WorkItemDto>>(matchingItems);
     }

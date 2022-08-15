@@ -35,6 +35,14 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
         return workItems!;
     }
 
+    public async Task<List<WorkItem>> GetCompleted()
+    {
+        var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem/Complete");
+        ThrowIfNull(workItems);
+
+        return workItems!;
+    }
+
     public async Task<List<WorkItem>> GetAllAsync()
     {
         var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem");
