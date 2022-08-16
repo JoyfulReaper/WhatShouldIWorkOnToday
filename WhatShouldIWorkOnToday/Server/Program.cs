@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.ResponseCompression;
 using WhatShouldIWorkOnToday.Server.Authentication;
 using WhatShouldIWorkOnToday.Server.DataAccess;
+using WhatShouldIWorkOnToday.Server.DataAccess.Interfaces;
 using WhatShouldIWorkOnToday.Server.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,7 @@ builder.Services.AddScoped<IWorkItemData, WorkItemData>();
 builder.Services.AddScoped<IWorkSequenceNumberData, WorkSequenceNumberData>();
 builder.Services.AddScoped<ICurrentSequenceNumberData, CurrentSequenceNumberData>();
 builder.Services.AddScoped<INoteData, NoteData>();
+builder.Services.AddScoped<IPinnedWorkItemData, PinnedWorkItemData>();
 
 var app = builder.Build();
 

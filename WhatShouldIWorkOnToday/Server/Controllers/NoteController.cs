@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WhatShouldIWorkOnToday.Server.Authentication;
-using WhatShouldIWorkOnToday.Server.DataAccess;
+using WhatShouldIWorkOnToday.Server.DataAccess.Interfaces;
 using WhatShouldIWorkOnToday.Server.Models;
 
 namespace WhatShouldIWorkOnToday.Server.Controllers;

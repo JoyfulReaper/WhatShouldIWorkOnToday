@@ -10,5 +10,6 @@ public class WhatShouldIWorkOnTodayProfile : Profile
 	{
 		CreateMap<WorkItem, WorkItemDto>();
 		CreateMap<WorkItemDto, WorkItem>();
+		CreateMap<PinnedWorkItem, PinnedWorkItemDto>();
 	}
 }

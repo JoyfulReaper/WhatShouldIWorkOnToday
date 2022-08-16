@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using WhatShouldIWorkOnToday.Server.DataAccess.Interfaces;
 
 namespace WhatShouldIWorkOnToday.Server.DataAccess;
 

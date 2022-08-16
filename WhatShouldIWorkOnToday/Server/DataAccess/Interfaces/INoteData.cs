@@ -1,6 +1,6 @@
 ﻿using WhatShouldIWorkOnToday.Server.Models;
 
-namespace WhatShouldIWorkOnToday.Server.DataAccess;
+namespace WhatShouldIWorkOnToday.Server.DataAccess.Interfaces;
 public interface INoteData
 {
     Task<Note?> GetAsync(int noteId);

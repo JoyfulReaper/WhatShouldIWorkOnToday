@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WhatShouldIWorkOnToday.Server.Models;
-using WhatShouldIWorkOnToday.Server.DataAccess;
 using WhatShouldIWorkOnToday.Server.DTOs;
 using WhatShouldIWorkOnToday.Server.Authentication;
 using System.Web;
 using AutoMapper;
+using WhatShouldIWorkOnToday.Server.DataAccess.Interfaces;
 
 namespace WhatShouldIWorkOnToday.Server.Controllers;
 

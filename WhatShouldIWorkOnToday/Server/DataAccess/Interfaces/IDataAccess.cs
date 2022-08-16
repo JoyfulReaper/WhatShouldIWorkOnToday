@@ -1,4 +1,4 @@
-﻿namespace WhatShouldIWorkOnToday.Server.DataAccess;
+﻿namespace WhatShouldIWorkOnToday.Server.DataAccess.Interfaces;
 
 public interface IDataAccess
 {
