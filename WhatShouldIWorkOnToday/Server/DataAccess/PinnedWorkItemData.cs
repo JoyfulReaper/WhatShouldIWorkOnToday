@@ -23,6 +23,11 @@ public class PinnedWorkItemData : IPinnedWorkItemData
         return await _dataAccess.LoadDataAsync<PinnedWorkItem, dynamic>("spPinnedWorkItem_GetAll", new { }, "WSIWOT");
     }
 
+    public async Task<List<WorkItem>> GetPinnedWorkItems()
+    {
+        return await _dataAccess.LoadDataAsync<WorkItem, dynamic>("spGetPinnedWorkItems", new { }, "WSIWOT");
+    }
+
     public async Task Pin(int workItemId)
     {
         await _dataAccess.SaveDataAsync("spPinnedWorkItem_Pin", new

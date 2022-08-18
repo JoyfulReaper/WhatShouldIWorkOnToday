@@ -10,13 +10,13 @@ namespace WhatShouldIWorkOnToday.Server.Controllers;
 [ApiController]
 public class PinnedWorkItemController : ControllerBase
 {
-	private readonly IPinnedWorkItemData _pinnedWorkItemData;
+    private readonly IPinnedWorkItemData _pinnedWorkItemData;
     private readonly IMapper _mapper;
 
     public PinnedWorkItemController(IPinnedWorkItemData pinnedWorkItemData,
         IMapper mapper)
-	{
-		_pinnedWorkItemData = pinnedWorkItemData;
+    {
+        _pinnedWorkItemData = pinnedWorkItemData;
         _mapper = mapper;
     }
 
@@ -26,6 +26,12 @@ public class PinnedWorkItemController : ControllerBase
         var pinned = await _pinnedWorkItemData.GetAllAsync();
         return pinned.Select(p => _mapper.Map<PinnedWorkItemDto>(p))
             .ToList();
+    }
+
+    [HttpGet("Pinned")] 
+    public async Task<List<WorkItem>> GetAllPinnedWorkItems()
+    {
+        return await _pinnedWorkItemData.GetPinnedWorkItems();
     }
 
     [HttpPost("PinWorkItem/{workItemId}")]

@@ -13,5 +13,6 @@ builder.Services.AddScoped<IWorkItemEndpoint, WorkItemEndpoint>();
 builder.Services.AddScoped<IWorkItemSequenceEndpoint, WorkItemSequenceEndpoint>();
 builder.Services.AddScoped<ISequenceNumberEndpoint, SequenceNumberEndpoint>();
 builder.Services.AddScoped<INoteEndpoint, NoteEndpoint>();
+builder.Services.AddScoped<IPinnedWorkItemEndpoint, PinnedWorkItemEndpoint>();
 
 await builder.Build().RunAsync();

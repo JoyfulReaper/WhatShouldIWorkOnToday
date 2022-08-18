@@ -87,6 +87,7 @@
     <Build Include="dbo\Stored Procedures\spPinnedWorkItem_Get.sql" />
     <Build Include="dbo\Stored Procedures\spPinnedWorkItem_Pin.sql" />
     <Build Include="dbo\Stored Procedures\spPinnedWorkItem_Unpin.sql" />
+    <Build Include="dbo\Stored Procedures\spGetPinnedWorkItems.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="WhatShouldIWorkOnToday.Database.refactorlog" />

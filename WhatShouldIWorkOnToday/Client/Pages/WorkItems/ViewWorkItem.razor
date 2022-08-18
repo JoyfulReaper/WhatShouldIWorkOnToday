@@ -1,6 +1,7 @@
 ﻿@page "/view-work-item/{WorkItemId:int}"
 @inject IWorkItemEndpoint _workItemData
 @inject INoteEndpoint _noteData
+@inject IPinnedWorkItemEndpoint _pins
 @inject NavigationManager _nav
 
 <PageTitle>WSIWOT: Work Item</PageTitle>
@@ -43,6 +44,9 @@
                             </button>
                         <button type="button" class="btn btn-sm btn-warning" @onclick="() => {_editing = true;}">Edit</button>
                         <button type="button" class="btn btn-sm btn-danger" @onclick="Delete">Delete</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="TogglePin">
+                            @(_isPinned ? "Unpin" : "Pin")
+                        </button>
                     </div>
                 </div>
                 <div class="card-footer text-muted">
@@ -102,6 +106,7 @@
     private WorkItem? _workItem { get; set; }
     private Note _note { get; set; } = new();
     private List<Note> _notes { get; set; } = new();
+    private bool _isPinned;
 
     private string? _errorMessage;
     private bool _editing;
@@ -117,6 +122,9 @@
         {
             _workItem = await _workItemData.GetAsync(WorkItemId);
             _notes = await _noteData.GetAsync(WorkItemId);
+            _isPinned = (await _pins.GetAllAsync())
+                .Where(z => z.WorkItemId == _workItem.WorkItemId)
+                .Any();
         }
         catch (Exception ex)
         {
@@ -201,5 +209,26 @@
             _errorMessage = "An Error occured while attempting to contact the API";
         }
 
+    }
+
+    private async Task TogglePin()
+    {
+        try
+        {
+            if (_isPinned)
+            {
+                await _pins.UnpinWorkItem(_workItem!.WorkItemId);
+            }
+            else
+            {
+                await _pins.PinWorkItem(_workItem!.WorkItemId);
+            }
+            _isPinned = !_isPinned;
+            _errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An Error occured while attempting to contact the API";
+        }
     }
 }
