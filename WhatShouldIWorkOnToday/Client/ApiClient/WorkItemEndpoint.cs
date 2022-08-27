@@ -16,7 +16,7 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
         _httpClient = httpClient;
     }
     
-    public async Task<WorkItem> UpdateWorkedOn(int workItemId)
+    public async Task<WorkItem> UpdateWorkedOnAsync(int workItemId)
     {
         var response = await _httpClient.PostAsync("api/WorkItem/UpdateWorkedOn", 
             new StringContent(JsonSerializer.Serialize(workItemId), Encoding.UTF8, "application/json"));
@@ -27,7 +27,7 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
         return workItem!;
     }
 
-    public async Task<List<WorkItem>> GetCurrent()
+    public async Task<List<WorkItem>> GetCurrentAsync()
     {
         var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem/Current");
         ThrowIfNull(workItems);
@@ -35,7 +35,7 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
         return workItems!;
     }
 
-    public async Task<List<WorkItem>> GetCompleted()
+    public async Task<List<WorkItem>> GetCompletedAsync()
     {
         var workItems = await _httpClient.GetFromJsonAsync<List<WorkItem>>("api/WorkItem/Complete");
         ThrowIfNull(workItems);
@@ -92,7 +92,7 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
         return workItems!;
     }
 
-    public async Task<IEnumerable<WorkItemHistory>> GetHistory(int workItemId)
+    public async Task<IEnumerable<WorkItemHistory>> GetHistoryAsync(int workItemId)
     {
         var history = await _httpClient.GetFromJsonAsync<IEnumerable<WorkItemHistory>>($"api/WorkItem/WorkedOnHistory/{workItemId}");
         ThrowIfNull(history);

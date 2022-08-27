@@ -35,6 +35,7 @@ builder.Services.AddScoped<INoteData, NoteData>();
 builder.Services.AddScoped<IPinnedWorkItemData, PinnedWorkItemData>();
 builder.Services.AddScoped<IWorkItemData, WorkItemData>();
 builder.Services.AddScoped<IWorkItemHistoryData, WorkItemHistoryData>();
+builder.Services.AddScoped<ITodoItemData, TodoItemData>();
 
 var app = builder.Build();
 

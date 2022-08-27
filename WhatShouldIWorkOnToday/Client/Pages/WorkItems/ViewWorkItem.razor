@@ -48,6 +48,7 @@
                             @(_isPinned ? "Unpin" : "Pin")
                         </button>
                         <a href="work-history/@WorkItemId" class="btn btn-sm btn-info">History</a>
+                        <a href="todos/@WorkItemId" class="btn btn-sm btn-outline-info">Todo Items</a>
                     </div>
                 </div>
                 <div class="card-footer text-muted">
@@ -139,7 +140,7 @@
     {
         try
         {
-            _workItem = await _workItemData.UpdateWorkedOn(WorkItemId);
+            _workItem = await _workItemData.UpdateWorkedOnAsync(WorkItemId);
         }
         catch (Exception ex)
         {

@@ -39,7 +39,7 @@
     {
         try
         {
-            _completedItems = await _workItemData.GetCompleted();
+            _completedItems = await _workItemData.GetCompletedAsync();
             _errorMessage = null;
         }
         catch (Exception ex)

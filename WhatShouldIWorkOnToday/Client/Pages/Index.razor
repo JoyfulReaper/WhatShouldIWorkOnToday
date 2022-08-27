@@ -153,7 +153,7 @@
     {
         try
         {
-            _currentItems = await _workItemData.GetCurrent();
+            _currentItems = await _workItemData.GetCurrentAsync();
             _currentSequence = await _sequenceNumberData.Get();
             _errorMessage = null;
             _pins = await _pinData.GetAllPinnedWorkItems();
