@@ -17,14 +17,17 @@ public class WorkItemController : ControllerBase
     private readonly IWorkItemData _workItemData;
     private readonly ICurrentSequenceNumberData _currentSequenceNumberData;
     private readonly IMapper _mapper;
+    private readonly IWorkItemHistoryData _workItemHistoryData;
 
     public WorkItemController(IWorkItemData workItemData,
         ICurrentSequenceNumberData currentSequenceNumberData,
-        IMapper mapper)
+        IMapper mapper,
+        IWorkItemHistoryData workItemHistoryData)
     {
         _workItemData = workItemData;
         _currentSequenceNumberData = currentSequenceNumberData;
         _mapper = mapper;
+        _workItemHistoryData = workItemHistoryData;
     }
 
     [HttpGet]
@@ -72,8 +75,15 @@ public class WorkItemController : ControllerBase
 
         workItem.DateWorkedOn = DateTime.UtcNow;
         await _workItemData.SaveAsync(workItem);
+        await _workItemHistoryData.Save(workItem.WorkItemId);
 
         return workItem;
+    }
+
+    [HttpGet("WorkedOnHistory/{id}")]
+    public async Task<IEnumerable<WorkItemHistory>> GetWorkedOnHistory(int id)
+    {
+        return await _workItemHistoryData.Get(id);
     }
 
     [HttpGet("{id}")]

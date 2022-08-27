@@ -91,4 +91,11 @@ public class WorkItemEndpoint : Endpoint, IWorkItemEndpoint
 
         return workItems!;
     }
+
+    public async Task<IEnumerable<WorkItemHistory>> GetHistory(int workItemId)
+    {
+        var history = await _httpClient.GetFromJsonAsync<IEnumerable<WorkItemHistory>>($"api/WorkItem/WorkedOnHistory/{workItemId}");
+        ThrowIfNull(history);
+        return history!;
+    }
 }

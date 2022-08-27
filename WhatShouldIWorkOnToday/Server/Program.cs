@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthentication()
     .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication",
@@ -32,6 +33,8 @@ builder.Services.AddScoped<IWorkSequenceNumberData, WorkSequenceNumberData>();
 builder.Services.AddScoped<ICurrentSequenceNumberData, CurrentSequenceNumberData>();
 builder.Services.AddScoped<INoteData, NoteData>();
 builder.Services.AddScoped<IPinnedWorkItemData, PinnedWorkItemData>();
+builder.Services.AddScoped<IWorkItemData, WorkItemData>();
+builder.Services.AddScoped<IWorkItemHistoryData, WorkItemHistoryData>();
 
 var app = builder.Build();
 
@@ -47,7 +50,11 @@ else
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication();
 

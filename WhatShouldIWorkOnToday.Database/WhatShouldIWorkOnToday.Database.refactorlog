@@ -42,4 +42,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="PinnedWorkItemId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="87427a3b-1b61-45e7-8596-00a2d44eddec" ChangeDateTime="08/27/2022 14:59:07">
+    <Property Name="ElementName" Value="[dbo].[WorkItemHistory].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[WorkItemHistory]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="WorkItemHistoryId" />
+  </Operation>
 </Operations>
