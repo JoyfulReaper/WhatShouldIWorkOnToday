@@ -27,7 +27,13 @@ public class TodoItemEndpoint : Endpoint, ITodoItemEndpoint
 		CheckResponse(response);
 	}
 
-	public async Task<TodoItem> PostAsync(TodoItem item)
+    public async Task UnCompleteAsync(int todoItemId)
+    {
+        using var response = await _httpClient.PostAsJsonAsync($"/api/TodoItem/UnComplete/{todoItemId}", todoItemId);
+        CheckResponse(response);
+    }
+
+    public async Task<TodoItem> PostAsync(TodoItem item)
 	{
 		using var response = await _httpClient.PostAsJsonAsync("/api/TodoItem", item);
 		CheckResponse(response);

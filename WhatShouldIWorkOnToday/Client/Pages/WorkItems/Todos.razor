@@ -36,6 +36,9 @@
                                 Task
                             </th>
                             <th>
+                                Date Completed
+                            </th>
+                            <th>
                             </th>
                         </tr>
                     </thead>
@@ -46,11 +49,20 @@
                                 <td>
                                     <span class="@(item.DateCompleted is null ? "" : "text-decoration-line-through")">@item.Task</span>
                                 </td>
+                                <td>
+                                    @item.DateCompleted?.ToShortDateString()
+                                </td>
                                 <td class="text-center">
                                     @if (item.DateCompleted is null)
                                     {
                                         <button class="btn btn-sm btn-warning" @onclick="() => CompleteItem(item.TodoItemId)">
                                             Complete
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                         <button class="btn btn-sm btn-danger" @onclick="() => UnCompleteItem(item.TodoItemId)">
+                                            Un-Complete
                                         </button>
                                     }
                                 </td>
@@ -96,6 +108,20 @@
         try
         {
             await _todoItemData.CompleteAsync(todoItemId);
+            _errorMessage = null;
+            await UpdateData();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "API Error: " + ex.Message;
+        }
+    }
+
+    private async Task UnCompleteItem(int todoItemId)
+    {
+        try
+        {
+            await _todoItemData.UnCompleteAsync(todoItemId);
             _errorMessage = null;
             await UpdateData();
         }

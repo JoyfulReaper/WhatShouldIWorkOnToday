@@ -48,4 +48,18 @@ public class TodoItemController : ControllerBase
 		return NoContent();
 	}
 
+    [HttpPost("UnComplete/{todoItemId}")]
+    public async Task<IActionResult> UnComplete(int todoItemId)
+    {
+        var item = await _todoItemData.Get(todoItemId);
+        if (item is null)
+        {
+            return NotFound();
+        }
+        item.DateCompleted = null;
+        await _todoItemData.Save(item);
+
+        return NoContent();
+    }
+
 }
