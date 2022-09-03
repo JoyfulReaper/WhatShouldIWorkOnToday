@@ -6,7 +6,6 @@ BEGIN
 		[PinnedWorkItemId]
 		,[WorkItemId]
 		,[DatePinned]
-		,[DateUnpinned] 
 	FROM 
 		[dbo].[PinnedWorkItem]
 	WHERE

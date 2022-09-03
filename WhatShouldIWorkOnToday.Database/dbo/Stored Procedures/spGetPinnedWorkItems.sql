@@ -13,7 +13,6 @@ BEGIN
 		,[pwi].[PinnedWorkItemId]
 		,[pwi].[WorkItemId]
 		,[pwi].[DatePinned]
-		,[pwi].[DateUnpinned]
 	FROM
 		WorkItem wi INNER JOIN
 		PinnedWorkItem pwi ON wi.WorkItemId = pwi.WorkItemId;

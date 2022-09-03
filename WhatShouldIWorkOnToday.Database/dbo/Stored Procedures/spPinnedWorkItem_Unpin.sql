@@ -2,8 +2,8 @@
 	@WorkItemId INT
 AS
 BEGIN
-	UPDATE PinnedWorkItem
-		SET DateUnpinned = GETUTCDATE()
+	DELETE FROM
+		PinnedWorkItem
 	WHERE
 		WorkItemId = @WorkItemId;
 END

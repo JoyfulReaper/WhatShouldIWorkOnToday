@@ -5,9 +5,6 @@ BEGIN
 		[PinnedWorkItemId]
 		,[WorkItemId]
 		,[DatePinned]
-		,[DateUnpinned] 
 	FROM 
-		[dbo].[PinnedWorkItem]
-	WHERE
-		DateUnpinned IS NULL;
+		[dbo].[PinnedWorkItem];
 END
