@@ -35,4 +35,9 @@ public class TodoItemData : ITodoItemData
         return (await _dataAccess.LoadDataAsync<TodoItem, dynamic>("spTodoItem_Get", new { todoItemId }, "WSIWOT"))
             .SingleOrDefault();
     }
+
+    public async Task Delete(int todoItemId)
+    {
+        await _dataAccess.SaveDataAsync("spTodoItem_Delete", new { todoItemId }, "WSIWOT");
+    }
 }

@@ -43,4 +43,16 @@ public class TodoItemEndpoint : Endpoint, ITodoItemEndpoint
 
 		return itemResp!;
 	}
+
+	public async Task Edit(TodoItem todoItem)
+	{
+		using var response = await _httpClient.PutAsJsonAsync($"/api/TodoItem/Edit/{todoItem.TodoItemId}", todoItem);
+		CheckResponse(response);
+	}
+
+    public async Task Delete(int todoItemId)
+    {
+        using var response = await _httpClient.DeleteAsync($"/api/TodoItem/{todoItemId}");
+        CheckResponse(response);
+    }
 }

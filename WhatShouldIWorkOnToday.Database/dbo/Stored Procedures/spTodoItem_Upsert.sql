@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[spTodoItem_Upsert]
+﻿CREATE PROCEDURE [dbo].[spToDoItem_Upsert]
 	@TodoItemId INT,
 	@WorkItemId INT,
 	@Task VARCHAR(300),
@@ -28,7 +28,7 @@ BEGIN
 				[Task] = @Task,
 				[DateCompleted] = @DateCompleted
 			WHERE
-				TodoItemId = @ToDoItemId;
+				TodoItemId = @TodoItemId;
 		END
 		ELSE
 		BEGIN

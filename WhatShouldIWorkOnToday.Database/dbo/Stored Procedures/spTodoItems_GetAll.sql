@@ -1,11 +1,11 @@
-﻿CREATE PROCEDURE [dbo].[spTodoItems_GetAll]
+﻿CREATE PROCEDURE [dbo].[spToDoItems_GetAll]
 	@WorkItemId INT
 AS
 BEGIN
 	SET NOCOUNT ON;
 
 	SELECT
-		[ToDoItemId],
+		[TodoItemId],
 		[WorkItemId],
 		[Task],
 		[DateAdded],
@@ -13,5 +13,6 @@ BEGIN
 	FROM
 		TodoItem
 	WHERE
-		WorkItemId = @WorkItemId;
+		WorkItemId = @WorkItemId
+	AND DateDeleted IS NULL;
 END

@@ -9,5 +9,6 @@ BEGIN
 	FROM
 		WorkItemHistory
 	WHERE
-		WorkItemId = @WorkItemId;
+		WorkItemId = @WorkItemId
+	ORDER BY DateWorkedOn DESC;
 END

@@ -1,9 +1,9 @@
-﻿CREATE PROCEDURE [dbo].[spTodoItem_Get]
+﻿CREATE PROCEDURE [dbo].[spToDoItem_Get]
 	@TodoItemId INT
 AS
 BEGIN
 	SELECT
-		[ToDoItemId]
+		[TodoItemId]
 		,[WorkItemId]
 		,[Task]
 		,[DateAdded]
@@ -12,4 +12,5 @@ BEGIN
 		TodoItem
 	WHERE
 		TodoItemId = @TodoItemId
+	AND DateDeleted IS NULL;
 END

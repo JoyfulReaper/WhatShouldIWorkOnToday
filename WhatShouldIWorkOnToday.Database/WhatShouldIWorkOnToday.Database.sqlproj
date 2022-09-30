@@ -95,6 +95,7 @@
     <Build Include="dbo\Stored Procedures\spTodoItem_Upsert.sql" />
     <Build Include="dbo\Stored Procedures\spTodoItems_GetAll.sql" />
     <Build Include="dbo\Stored Procedures\spTodoItem_Get.sql" />
+    <Build Include="dbo\Stored Procedures\spT odoItem_Delete.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="WhatShouldIWorkOnToday.Database.refactorlog" />

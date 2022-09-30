@@ -21,10 +21,16 @@
             </div>
 
             <div class="mt-2 mb-2">
-                <input type="text" class="form-control form-control-sm w-auto" @bind="_task" />
+                <input type="text" class="form-control form-control-sm w-auto" @bind="_todoItem.Task" />
                 <button class="btn btn-primary mt-1" @onclick="AddTask">
-                    Add Item
+                    @(_editing ? "Edit Item" : "Add Item")
                 </button>
+                @if(_editing)
+                {
+                    <button class="btn btn-warning ms-1 mt-1" type="button" @onclick="() => { _editing = false; _todoItem.Task = string.Empty; }">
+                        Cancel
+                    </button>
+                }
             </div>
 
             <h4 class="text-center mt-4">Task List</h4>
@@ -55,16 +61,22 @@
                                 <td class="text-center">
                                     @if (item.DateCompleted is null)
                                     {
-                                        <button class="btn btn-sm btn-warning" @onclick="() => CompleteItem(item.TodoItemId)">
+                                        <button class="btn btn-sm btn-warning" type="button"  @onclick="() => CompleteItem(item.TodoItemId)">
                                             Complete
                                         </button>
                                     }
                                     else
                                     {
-                                         <button class="btn btn-sm btn-danger" @onclick="() => UnCompleteItem(item.TodoItemId)">
+                                         <button class="btn btn-sm btn-danger" type="button" @onclick="() => UnCompleteItem(item.TodoItemId)">
                                             Un-Complete
                                         </button>
                                     }
+                                    <button class="btn btn-sm btn-outline-warning ms-1" type="button" @onclick="() => Edit(item)">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1" type="button" @onclick="() => Delete(item.TodoItemId)">
+                                        Delete
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -81,8 +93,10 @@
 
     private IEnumerable<TodoItem>? _todoItems = null;
     private string? _errorMessage = null;
-    private string _task = string.Empty;
     private WorkItem? _workItem;
+    private TodoItem _todoItem = new();
+
+    private bool _editing = false;
 
     protected async override Task OnParametersSetAsync()
     {
@@ -95,6 +109,7 @@
         {
             _todoItems = await _todoItemData.GetAsync(WorkItemId);
             _workItem = await _workItemData.GetAsync(WorkItemId);
+            _todoItem.WorkItemId = _workItem.WorkItemId;
             _errorMessage = null;
         }
         catch (Exception ex)
@@ -133,19 +148,47 @@
 
     private async Task AddTask()
     {
-        if (string.IsNullOrWhiteSpace(_task))
+        if (string.IsNullOrWhiteSpace(_todoItem.Task))
         {
             _errorMessage = "Empty tasks not allowed";
             return;
         }
         try
         {
-            await _todoItemData.PostAsync(new TodoItem
-                {
-                    WorkItemId = WorkItemId,
-                    Task = _task
-                });
-            _task = string.Empty;
+            if(_editing)
+            {
+                await _todoItemData.Edit(_todoItem);
+                _todoItem.Task = string.Empty;
+                _editing = false;
+            }
+            else
+            {
+                await _todoItemData.PostAsync(_todoItem);
+                _todoItem.Task = string.Empty;
+            }
+
+            _errorMessage = null;
+
+            await UpdateData();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "API Error: " + ex.Message;
+        }
+    }
+
+    private void Edit(TodoItem item)
+    {
+        _editing = true;
+        _todoItem.Task = item.Task;
+        _todoItem.TodoItemId = item.TodoItemId;
+    }
+
+    private async Task Delete(int todoItemId)
+    {
+        try
+        {
+            await _todoItemData.Delete(todoItemId);
             _errorMessage = null;
             await UpdateData();
         }

@@ -12,4 +12,5 @@ public class TodoItem
 
     public DateTime DateAdded { get; set; }
     public DateTime? DateCompleted { get; set; }
+    public DateTime? DateDeleted { get; set; }
 }
