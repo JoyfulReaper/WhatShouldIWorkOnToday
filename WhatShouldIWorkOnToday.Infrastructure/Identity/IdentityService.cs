@@ -124,6 +124,6 @@ public class IdentityService : IIdentityService
             return Errors.User.IdNotFound;
         }
 
-        return new User(user.Id, user.FirstName, user.LastName, user.Email);
+        return new User(user.Id, user.Email, user.FirstName, user.LastName, user.Email);
     }
 }

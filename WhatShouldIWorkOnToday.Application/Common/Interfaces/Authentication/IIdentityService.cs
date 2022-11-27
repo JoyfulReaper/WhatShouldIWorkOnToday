@@ -11,7 +11,7 @@ public interface IIdentityService
 
     Task<bool> AuthorizeAsync(string userId, string policyName);
 
-    Task<ErrorOr<string>> CreateUserAsync(string userName, string password, string email);
+    Task<ErrorOr<string>> CreateUserAsync(string firstName, string lastName, string userName, string password, string email);
 
     Task<ErrorOr<bool>> DeleteUserAsync(string userId);
     Task<ErrorOr<string>> LoginUserAsync(string username, string password);

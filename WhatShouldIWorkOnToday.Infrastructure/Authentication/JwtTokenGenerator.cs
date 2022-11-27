@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Services;
+using WhatShouldIWorkOnToday.Application.Common.Models;
 
 namespace WhatShouldIWorkOnToday.Infrastructure.Authentication;
 public class JwtTokenGenerator : IJwtTokenGenerator
@@ -24,7 +25,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
         _jwtSettings = jwtSettings.Value;
     }
 
-    public string GenerateToken(Guid userId, string firstName, string lastName)
+    public string GenerateToken(User user)
     {
         var signingCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(
@@ -33,9 +34,11 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.GivenName, firstName),
-            new Claim(JwtRegisteredClaimNames.FamilyName, lastName),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+            new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
+            new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 

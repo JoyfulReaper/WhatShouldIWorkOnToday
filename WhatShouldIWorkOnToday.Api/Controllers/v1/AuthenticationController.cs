@@ -1,11 +1,10 @@
-﻿using ErrorOr;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
-using WhatShouldIWorkOnToday.Application.Common.Models;
+using WhatShouldIWorkOnToday.Application.Authentication.Commands.Register;
+using WhatShouldIWorkOnToday.Application.Authentication.Common;
+using WhatShouldIWorkOnToday.Application.Authentication.Queries;
 using WhatShouldIWorkOnToday.Contracts.Authentication;
-using WhatShouldIWorkOnToday.Domain.Common.Errors;
 
 namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 
@@ -14,36 +13,43 @@ namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 [AllowAnonymous]
 public class AuthenticationController : ApiController
 {
-    private readonly IIdentityService _identityService;
+    private readonly ISender _mediator;
 
-    public AuthenticationController(IIdentityService identityService)
+    public AuthenticationController(ISender mediator)
     {
-        _identityService = identityService;
+        _mediator = mediator;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var result = await _identityService.CreateUserAsync(request.Email, request.Password, request.Email);
+        var command = new RegisterCommand(request.FirstName, request.LastName, request.Email, request.Password);
+        var authResult = await _mediator.Send(command);
 
-        return result.Match(
-            result => Ok(MapToAuthResponse(result)),
+        return authResult.Match(
+            authResult => Ok(MapAuthResponse(authResult)),
             errors => Problem(errors));
     }
 
-    private async AuthenticationResponse MapToAuthResponse(string token)
-    {
-        var user = await _identityService.GetUser()
-        return new AuthenticationResponse(user.Id, user.FirstName, user.LastName, user.Email, token);
-    }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var result = await _identityService.LoginUserAsync(request.Email, request.Password);
+        var querry = new LoginQuery(request.Email, request.Password);
+        var authResult = await _mediator.Send(querry);
 
-        return result.Match(
-            authResult => NoContent(),
+        return authResult.Match(
+            authResult => Ok(MapAuthResponse(authResult)),
             errors => Problem(errors));
+    }
+
+    private static AuthenticationResponse MapAuthResponse(AuthenticationResult result)
+    {
+        return new AuthenticationResponse(
+            result.User.Id,
+            result.User.FirstName,
+            result.User.LastName,
+            result.User.Email,
+            result.Token);
     }
 }
