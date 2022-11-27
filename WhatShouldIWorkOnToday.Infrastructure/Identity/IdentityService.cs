@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
+using WhatShouldIWorkOnToday.Application.Common.Models;
 using WhatShouldIWorkOnToday.Domain.Common.Errors;
 
 namespace WhatShouldIWorkOnToday.Infrastructure.Identity;
@@ -57,10 +58,12 @@ public class IdentityService : IIdentityService
         return Errors.Authentication.InvalidCredentials;
     }
 
-    public async Task<ErrorOr<string>> CreateUserAsync(string userName, string password, string email)
+    public async Task<ErrorOr<string>> CreateUserAsync(string firstName, string lastName, string userName, string password, string email)
     {
         var user = new ApplicationUser
         {
+            FirstName = firstName,
+            LastName = lastName,
             UserName = userName,
             Email = email,
         };
@@ -111,5 +114,16 @@ public class IdentityService : IIdentityService
         var user = _userManager.Users.SingleOrDefault(u => u.Id == userId);
 
         return user != null && await _userManager.IsInRoleAsync(user, role);
+    }
+
+    public async Task<ErrorOr<User>> GetUser(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if(user is null)
+        {
+            return Errors.User.IdNotFound;
+        }
+
+        return new User(user.Id, user.FirstName, user.LastName, user.Email);
     }
 }

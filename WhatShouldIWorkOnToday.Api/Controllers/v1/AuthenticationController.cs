@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
+using WhatShouldIWorkOnToday.Application.Common.Models;
 using WhatShouldIWorkOnToday.Contracts.Authentication;
 using WhatShouldIWorkOnToday.Domain.Common.Errors;
 
@@ -26,8 +27,14 @@ public class AuthenticationController : ApiController
         var result = await _identityService.CreateUserAsync(request.Email, request.Password, request.Email);
 
         return result.Match(
-            result => NoContent(),
+            result => Ok(MapToAuthResponse(result)),
             errors => Problem(errors));
+    }
+
+    private async AuthenticationResponse MapToAuthResponse(string token)
+    {
+        var user = await _identityService.GetUser()
+        return new AuthenticationResponse(user.Id, user.FirstName, user.LastName, user.Email, token);
     }
 
     [HttpPost("login")]

@@ -1,5 +1,5 @@
 ﻿using ErrorOr;
-
+using WhatShouldIWorkOnToday.Application.Common.Models;
 
 namespace WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
 
@@ -15,4 +15,5 @@ public interface IIdentityService
 
     Task<ErrorOr<bool>> DeleteUserAsync(string userId);
     Task<ErrorOr<string>> LoginUserAsync(string username, string password);
+    Task<ErrorOr<User>> GetUser(string userId);
 }
