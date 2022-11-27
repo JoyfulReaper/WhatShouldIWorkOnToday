@@ -15,7 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Common\Errors\" />
+    <Folder Include="Common\Models\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

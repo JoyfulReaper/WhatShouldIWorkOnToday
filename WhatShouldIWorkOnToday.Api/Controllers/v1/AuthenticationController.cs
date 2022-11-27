@@ -5,9 +5,10 @@ using WhatShouldIWorkOnToday.Application.Services.Authentication;
 using WhatShouldIWorkOnToday.Contracts.Authentication;
 using WhatShouldIWorkOnToday.Domain.Common.Errors;
 
-namespace WhatShouldIWorkOnToday.Api.Controllers;
+namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 
-[Route("auth")]
+[Route("api/v{version:apiVersion}/auth")]
+[ApiVersion("1.0")]
 public class AuthenticationController : ApiController
 {
     private readonly IAuthenticationService _authenticationService;
@@ -46,7 +47,7 @@ public class AuthenticationController : ApiController
     {
         var authResult = _authenticationService.Login(request.Email, request.Password);
 
-        if(authResult.IsError && authResult.FirstError == Errors.Authentication.InvalidCredentials)
+        if (authResult.IsError && authResult.FirstError == Errors.Authentication.InvalidCredentials)
         {
             return Problem(statusCode: StatusCodes.Status401Unauthorized, title: authResult.FirstError.Description);
         }

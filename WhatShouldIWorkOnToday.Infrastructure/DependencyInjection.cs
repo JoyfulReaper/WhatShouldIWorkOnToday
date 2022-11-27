@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Services;
+using WhatShouldIWorkOnToday.Application.Services.Authentication;
 using WhatShouldIWorkOnToday.Infrastructure.Authentication;
 using WhatShouldIWorkOnToday.Infrastructure.Identity;
 using WhatShouldIWorkOnToday.Infrastructure.Persistence;
@@ -18,6 +19,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services,
         ConfigurationManager configuration)
     {
+
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         // Entity Framework
         services.AddScoped<AuditableEntitySaveChangesInterceptor>();
