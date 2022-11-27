@@ -1,7 +1,8 @@
 ﻿using ErrorOr;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WhatShouldIWorkOnToday.Application.Services.Authentication;
+using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
 using WhatShouldIWorkOnToday.Contracts.Authentication;
 using WhatShouldIWorkOnToday.Domain.Common.Errors;
 
@@ -9,51 +10,33 @@ namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 
 [Route("api/v{version:apiVersion}/auth")]
 [ApiVersion("1.0")]
+[AllowAnonymous]
 public class AuthenticationController : ApiController
 {
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IIdentityService _identityService;
 
-    public AuthenticationController(IAuthenticationService authenticationService)
+    public AuthenticationController(IIdentityService identityService)
     {
-        _authenticationService = authenticationService;
+        _identityService = identityService;
     }
 
     [HttpPost("register")]
-    public IActionResult Register(RegisterRequest request)
+    public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var authResult = _authenticationService.Register(
-            request.FirstName,
-            request.LastName,
-            request.Email,
-            request.Password);
+        var result = await _identityService.CreateUserAsync(request.Email, request.Password, request.Email);
 
-        return authResult.Match(
-            authResult => Ok(MapAuthResponse(authResult)),
+        return result.Match(
+            result => NoContent(),
             errors => Problem(errors));
     }
 
-    private static AuthenticationResponse MapAuthResponse(AuthenticationResult authResult)
-    {
-        return new AuthenticationResponse(
-                    authResult.Id,
-                    authResult.FirstName,
-                    authResult.LastName,
-                    authResult.Email,
-                    authResult.Token);
-    }
-
     [HttpPost("login")]
-    public IActionResult Login(LoginRequest request)
+    public async Task<IActionResult> Login(LoginRequest request)
     {
-        var authResult = _authenticationService.Login(request.Email, request.Password);
+        var result = await _identityService.LoginUserAsync(request.Email, request.Password);
 
-        if (authResult.IsError && authResult.FirstError == Errors.Authentication.InvalidCredentials)
-        {
-            return Problem(statusCode: StatusCodes.Status401Unauthorized, title: authResult.FirstError.Description);
-        }
-
-        return authResult.Match(
-            authResult => Ok(MapAuthResponse(authResult)),
+        return result.Match(
+            authResult => NoContent(),
             errors => Problem(errors));
     }
 }

@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Services;
-using WhatShouldIWorkOnToday.Application.Services.Authentication;
 using WhatShouldIWorkOnToday.Infrastructure.Authentication;
 using WhatShouldIWorkOnToday.Infrastructure.Identity;
 using WhatShouldIWorkOnToday.Infrastructure.Persistence;
@@ -19,9 +18,21 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services,
         ConfigurationManager configuration)
     {
+        services.AddEntityFrameworkCore();
+        services.AddIdentity();
+        services.AddTransient<IIdentityService, IdentityService>();
 
-        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        // Jwt Tokens
+        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
+        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddEntityFrameworkCore(this IServiceCollection services)
+    {
         // Entity Framework
         services.AddScoped<AuditableEntitySaveChangesInterceptor>();
         services.AddDbContext<ApplicationDbContext>(options =>
@@ -35,18 +46,11 @@ public static class DependencyInjection
         //        options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
         //            builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-        // Jwt Tokens
-        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
-        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
-
-        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-
         return services;
     }
 
     public static IServiceCollection AddIdentity(
-        this IServiceCollection services, 
-        ConfigurationManager configuration)
+        this IServiceCollection services)
     {
         // Identity
         services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
