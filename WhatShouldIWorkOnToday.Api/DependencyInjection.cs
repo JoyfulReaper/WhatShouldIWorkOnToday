@@ -9,6 +9,8 @@ public static class DependencyInjection
     {
         services.AddSingleton<ICurrentUserService, CurrentUserService>();
 
+        services.AddHttpContextAccessor();
+
         return services;
     }
 }
