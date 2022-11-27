@@ -1,9 +1,11 @@
-﻿using System;
+﻿using ErrorOr;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
+using WhatShouldIWorkOnToday.Domain.Common.Errors;
 
 namespace WhatShouldIWorkOnToday.Application.Services.Authentication;
 public class AuthenticationService : IAuthenticationService
@@ -15,8 +17,12 @@ public class AuthenticationService : IAuthenticationService
         _jwtTokenGenerator = jwtTokenGenerator;
     }
 
-    public AuthenticationResult Login(string email, string password)
+    public ErrorOr<AuthenticationResult> Login(string email, string password)
     {
+        return Errors.Authentication.InvalidCredentials;
+
+        //var token = _jwtTokenGenerator.GenerateToken(user);
+
         return new AuthenticationResult(
             Guid.NewGuid(),
             "firstName",
@@ -25,9 +31,10 @@ public class AuthenticationService : IAuthenticationService
             "token");
     }
 
-    public AuthenticationResult Register(string firstName, string lastName, string email, string password)
+    public ErrorOr<AuthenticationResult> Register(string firstName, string lastName, string email, string password)
     {
         // Check if user already exists
+        return Errors.User.DuplicateEmail;
 
         // Create a user
 

@@ -7,8 +7,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
-        services.AddSingleton<ICurrentUserService, CurrentUserService>();
+    
 
+        services.AddSingleton<ICurrentUserService, CurrentUserService>();
         services.AddHttpContextAccessor();
 
         return services;
