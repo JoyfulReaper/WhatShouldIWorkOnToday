@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,14 +19,15 @@ public static class DependencyInjection
     {
         services.AddEntityFrameworkCore();
         services.AddIdentity();
+
         services.AddTransient<IIdentityService, IdentityService>();
+        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         // Jwt Tokens
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
-        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-
+        
         return services;
     }
 

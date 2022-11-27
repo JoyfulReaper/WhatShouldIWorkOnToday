@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace WhatShouldIWorkOnToday.Infrastructure.Authentication;
 
-namespace WhatShouldIWorkOnToday.Infrastructure.Authentication;
 public class JwtSettings
 {
     public const string SectionName = "JwtSettings";

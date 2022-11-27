@@ -7,7 +7,6 @@ using WhatShouldIWorkOnToday.Infrastructure.Persistence.Interceptors;
 
 namespace WhatShouldIWorkOnToday.Infrastructure.Persistence;
 
-
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
 {
     private readonly AuditableEntitySaveChangesInterceptor _auditableEntitySaveChangesInterceptor;
