@@ -1,8 +1,8 @@
-﻿using MediatR;
+﻿using MapsterMapper;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WhatShouldIWorkOnToday.Application.Authentication.Commands.Register;
-using WhatShouldIWorkOnToday.Application.Authentication.Common;
 using WhatShouldIWorkOnToday.Application.Authentication.Queries;
 using WhatShouldIWorkOnToday.Contracts.Authentication;
 
@@ -14,20 +14,22 @@ namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 public class AuthenticationController : ApiController
 {
     private readonly ISender _mediator;
+    private readonly IMapper _mapper;
 
-    public AuthenticationController(ISender mediator)
+    public AuthenticationController(ISender mediator, IMapper mapper)
     {
         _mediator = mediator;
+        _mapper = mapper;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var command = new RegisterCommand(request.FirstName, request.LastName, request.Email, request.Password);
+        var command = _mapper.Map<RegisterCommand>(request);
         var authResult = await _mediator.Send(command);
 
         return authResult.Match(
-            authResult => Ok(MapAuthResponse(authResult)),
+            authResult => Ok(_mapper.Map<AuthenticationResponse>(authResult)),
             errors => Problem(errors));
     }
 
@@ -35,21 +37,11 @@ public class AuthenticationController : ApiController
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var querry = new LoginQuery(request.Email, request.Password);
-        var authResult = await _mediator.Send(querry);
+        var query = _mapper.Map<LoginQuery>(request);
+        var authResult = await _mediator.Send(query);
 
         return authResult.Match(
-            authResult => Ok(MapAuthResponse(authResult)),
+            authResult => Ok(_mapper.Map<AuthenticationResponse>(authResult)),
             errors => Problem(errors));
-    }
-
-    private static AuthenticationResponse MapAuthResponse(AuthenticationResult result)
-    {
-        return new AuthenticationResponse(
-            result.User.Id,
-            result.User.FirstName,
-            result.User.LastName,
-            result.User.Email,
-            result.Token);
     }
 }

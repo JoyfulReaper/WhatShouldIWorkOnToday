@@ -2,6 +2,7 @@
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using WhatShouldIWorkOnToday.Api.Common.Errors;
+using WhatShouldIWorkOnToday.Api.Common.Mapping;
 using WhatShouldIWorkOnToday.Api.Services;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Services;
 
@@ -12,10 +13,12 @@ public static class DependencyInjection
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
         services.AddControllers();
+
         services.AddSingleton<ProblemDetailsFactory, WsiwotProblemDetailsFactory>();
         services.AddSingleton<ICurrentUserService, CurrentUserService>();
         services.AddHttpContextAccessor();
 
+        services.AddMappings();
         services.AddSwagger();
 
         return services;
