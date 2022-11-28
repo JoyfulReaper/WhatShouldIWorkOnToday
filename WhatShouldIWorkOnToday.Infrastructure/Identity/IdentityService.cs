@@ -50,12 +50,13 @@ public class IdentityService : IIdentityService
         }
 
         SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, password, true);
-        if(result.Succeeded)
+        if(!result.Succeeded)
         {
-            return user.Id;
+            // TODO better errors
+            return Errors.Authentication.InvalidCredentials;
         }
 
-        return Errors.Authentication.InvalidCredentials;
+        return user.Id;
     }
 
     public async Task<ErrorOr<string>> CreateUserAsync(string firstName, string lastName, string userName, string password, string email)
@@ -71,12 +72,11 @@ public class IdentityService : IIdentityService
         var result = await _userManager.CreateAsync(user, password);
         if(!result.Succeeded)
         {
-            if(result.Errors.Any(e => e.Code == "PasswordRequiresNonAlphanumeric"))
-            {
-                return Errors.Authentication.PasswordRequiresNonAlpha;
-            }
+            var errors = result.Errors
+            .Select(identityError => Error.Validation(identityError.Code, identityError.Description))
+            .ToList();
 
-            return Errors.Authentication.Unknown;
+            return errors;
         }
 
         return user.Id;
