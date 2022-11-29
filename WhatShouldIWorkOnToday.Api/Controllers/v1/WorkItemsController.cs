@@ -8,6 +8,7 @@ namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 public class WorkItemsController : ApiController
 {
     [HttpGet]
+    [Authorize]
     public IActionResult ListWorkItems()
     {
         var test = HttpContext.User.Identity.IsAuthenticated;

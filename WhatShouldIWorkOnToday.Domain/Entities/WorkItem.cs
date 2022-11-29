@@ -12,7 +12,7 @@ public class WorkItem : BaseAuditableEntity
     public DateTime? LastDateWorkedOn { get; set; }
     public DateTime? DateCompleted { get; set; }
 
-    public IList<TodoItem> Notes { get; private set;} = new List<TodoItem>();
+    public IList<Note> Notes { get; private set;} = new List<Note>();
     public IList<ToDoItem> TodoItems { get; private set; } = new List<ToDoItem>();
     public IList<WorkItemHistory> WorkItemHistories { get; private set; } = new List<WorkItemHistory>();
 }

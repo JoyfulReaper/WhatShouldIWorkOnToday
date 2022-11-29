@@ -4,13 +4,10 @@ using WhatShouldIWorkOnToday.Domain.Entities;
 
 namespace WhatShouldIWorkOnToday.Infrastructure.Persistence.Configurations;
 
-public class NoteConfiguration : IEntityTypeConfiguration<TodoItem>
+public class NoteConfiguration : IEntityTypeConfiguration<Note>
 {
-    public void Configure(EntityTypeBuilder<TodoItem> builder)
+    public void Configure(EntityTypeBuilder<Note> builder)
     {
-        builder
-            .HasKey(n => n.Id);
-
         builder.Property(n => n.Text)
             .HasMaxLength(2000)
             .IsRequired();
