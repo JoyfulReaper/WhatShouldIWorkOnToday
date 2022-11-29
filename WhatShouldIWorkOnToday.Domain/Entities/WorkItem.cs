@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WhatShouldIWorkOnToday.Domain.Common;
+﻿using WhatShouldIWorkOnToday.Domain.Common;
 
 namespace WhatShouldIWorkOnToday.Domain.Entities;
+
 public class WorkItem : BaseAuditableEntity
 {
     public string Name { get; set; } = null!;
@@ -18,4 +14,5 @@ public class WorkItem : BaseAuditableEntity
 
     public IList<TodoItem> Notes { get; private set;} = new List<TodoItem>();
     public IList<ToDoItem> TodoItems { get; private set; } = new List<ToDoItem>();
+    public IList<WorkItemHistory> WorkItemHistories { get; private set; } = new List<WorkItemHistory>();
 }
