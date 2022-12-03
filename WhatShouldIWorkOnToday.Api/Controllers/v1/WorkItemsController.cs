@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 
@@ -10,7 +9,6 @@ public class WorkItemsController : ApiController
     [HttpGet]
     public IActionResult ListWorkItems()
     {
-        var test = HttpContext.User.Identity.IsAuthenticated;
         return Ok(Array.Empty<string>());
     }
 }

@@ -63,29 +63,6 @@ public static class DependencyInjection
                     Encoding.UTF8.GetBytes(jwtSettings.Secret)
                 )
                 };
-                options.Events = new JwtBearerEvents
-                {
-                    OnChallenge = context =>
-                    {
-                        Console.WriteLine("OnChallange: ");
-                        return Task.CompletedTask;
-                    },
-                    OnAuthenticationFailed = context =>
-                    {
-                        Console.WriteLine("OnAuthenticationFailed:");
-                        return Task.CompletedTask;
-                    },
-                    OnMessageReceived = context =>
-                    {
-                        Console.WriteLine("OnMessageReceived:");
-                        return Task.CompletedTask;
-                    },
-                    OnTokenValidated = context =>
-                    {
-                        Console.WriteLine("OnTokenValidated:");
-                        return Task.CompletedTask;
-                    },
-                };
             });
 
         return services;
