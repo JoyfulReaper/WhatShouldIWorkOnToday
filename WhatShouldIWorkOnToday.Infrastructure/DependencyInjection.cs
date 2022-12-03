@@ -22,10 +22,10 @@ public static class DependencyInjection
         this IServiceCollection services,
         ConfigurationManager configuration)
     {
-        services.AddAuth(configuration);
         services.AddEntityFrameworkCore();
         services.AddIdentity();
-
+        services.AddAuth(configuration);
+        
         services.AddTransient<IIdentityService, IdentityService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
@@ -43,7 +43,12 @@ public static class DependencyInjection
         services.AddSingleton(Options.Create(jwtSettings));
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
-        services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -85,7 +90,7 @@ public static class DependencyInjection
 
         return services;
     }
-    
+
     public static IServiceCollection AddEntityFrameworkCore(this IServiceCollection services)
     {
         // Entity Framework
@@ -108,11 +113,9 @@ public static class DependencyInjection
         this IServiceCollection services)
     {
         // Identity
-        services.AddIdentity<ApplicationUser, IdentityRole>(opts =>
-        {
-            opts.SignIn.RequireConfirmedAccount = false;
-        }).AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders();
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
         return services;
     }
