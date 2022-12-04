@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WhatShouldIWorkOnToday.Domain.Entities;
+using WhatShouldIWorkOnToday.Domain.WorkItem;
 
 namespace WhatShouldIWorkOnToday.Infrastructure.Persistence.Configurations;
 

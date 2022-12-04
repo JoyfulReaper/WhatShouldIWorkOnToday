@@ -1,7 +1,6 @@
-﻿
-using WhatShouldIWorkOnToday.Domain.Common;
+﻿using WhatShouldIWorkOnToday.Domain.Common;
 
-namespace WhatShouldIWorkOnToday.Domain.Entities;
+namespace WhatShouldIWorkOnToday.Domain.WorkItem.Entities;
 
 public class ToDoItem : BaseAuditableEntity
 {
