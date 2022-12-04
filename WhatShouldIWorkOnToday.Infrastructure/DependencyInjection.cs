@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Authentication;
+using WhatShouldIWorkOnToday.Application.Common.Interfaces.Persistence;
 using WhatShouldIWorkOnToday.Application.Common.Interfaces.Services;
 using WhatShouldIWorkOnToday.Infrastructure.Authentication;
 using WhatShouldIWorkOnToday.Infrastructure.Identity;
@@ -28,6 +29,16 @@ public static class DependencyInjection
         
         services.AddTransient<IIdentityService, IdentityService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+        services.AddPersistance();
+
+        return services;
+    }
+
+    public static IServiceCollection AddPersistance(
+        this IServiceCollection services)
+    {
+        services.AddScoped<IWorkItemRepository, WorkItemRepository>();
 
         return services;
     }

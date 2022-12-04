@@ -7,7 +7,5 @@ public record CreateWorkItemRequest (
     string? Description,
     string? Url,
     bool Pinned,
-    int SequenceNumber,
-    DateTime? LastDateWorkedOn,
-    DateTime? DateCompleted
+    int SequenceNumber
     );

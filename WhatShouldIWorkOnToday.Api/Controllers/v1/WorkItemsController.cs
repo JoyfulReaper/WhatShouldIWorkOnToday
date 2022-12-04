@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MapsterMapper;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using WhatShouldIWorkOnToday.Application.WorkItems.Commands.CreateWorkItem;
+using WhatShouldIWorkOnToday.Contracts.WorkItems;
 
 namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 
@@ -6,10 +10,25 @@ namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 [ApiVersion("1.0")]
 public class WorkItemsController : ApiController
 {
-    [HttpPost]
-    public async Task<IActionResult> AddWorkItem()
-    {
+    private readonly IMapper _mapper;
+    private readonly ISender _mediator;
 
+    public WorkItemsController(IMapper mapper, ISender mediator)
+    {
+        _mapper = mapper;
+        _mediator = mediator;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateWorkItem(CreateWorkItemRequest request)
+    {
+        var command = _mapper.Map<CreateWorkItemCommand>(request);
+        var createWorkItemResult = await _mediator.Send(command);
+
+        return createWorkItemResult.Match(
+            workItem => Ok(createWorkItemResult),
+            errors => Problem(errors)
+            );
     }
 
     [HttpGet]

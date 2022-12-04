@@ -34,7 +34,7 @@ public sealed class WorkItem : AggregateRoot
     public int SequenceNumber { get; set; }
     public DateTime? LastDateWorkedOn { get; set; }
     public DateTime? DateCompleted { get; set; }
-    public DateTime? DateDeleted = null;
+    public DateTime? DateDeleted {get; set; }
 
 
     public static WorkItem Create(
