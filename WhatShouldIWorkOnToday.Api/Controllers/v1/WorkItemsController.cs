@@ -6,6 +6,12 @@ namespace WhatShouldIWorkOnToday.Api.Controllers.v1;
 [ApiVersion("1.0")]
 public class WorkItemsController : ApiController
 {
+    [HttpPost]
+    public async Task<IActionResult> AddWorkItem()
+    {
+
+    }
+
     [HttpGet]
     public IActionResult ListWorkItems()
     {

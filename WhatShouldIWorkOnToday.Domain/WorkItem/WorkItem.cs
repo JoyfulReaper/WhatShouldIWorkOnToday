@@ -13,7 +13,8 @@ public sealed class WorkItem : AggregateRoot
         bool pinned,
         int sequenceNumber,
         DateTime? lastDateWorkedOn,
-        DateTime? dateCompleted
+        DateTime? dateCompleted,
+        DateTime? dateDeleted
         )
     {
         Name = name;
@@ -21,8 +22,9 @@ public sealed class WorkItem : AggregateRoot
         Url = url;
         Pinned = pinned;
         SequenceNumber = sequenceNumber;
-        LastDateWorkedOn= lastDateWorkedOn;
-        DateCompleted= dateCompleted;
+        LastDateWorkedOn = lastDateWorkedOn;
+        DateCompleted = dateCompleted;
+        DateDeleted = dateDeleted;
     }
 
     public string Name { get; set; } = null!;
@@ -32,6 +34,7 @@ public sealed class WorkItem : AggregateRoot
     public int SequenceNumber { get; set; }
     public DateTime? LastDateWorkedOn { get; set; }
     public DateTime? DateCompleted { get; set; }
+    public DateTime? DateDeleted = null;
 
 
     public static WorkItem Create(
@@ -41,7 +44,8 @@ public sealed class WorkItem : AggregateRoot
         bool pinned,
         int sequenceNumber,
         DateTime? lastDateWorkedOn,
-        DateTime? dateCompleted
+        DateTime? dateCompleted,
+        DateTime? dateDeleted
         )
     {
         return new WorkItem(
@@ -51,7 +55,8 @@ public sealed class WorkItem : AggregateRoot
             pinned,
             sequenceNumber,
             lastDateWorkedOn,
-            dateCompleted
+            dateCompleted,
+            dateDeleted
             );
     }
 
