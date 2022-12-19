@@ -26,7 +26,7 @@ public class WorkItemsController : ApiController
         var createWorkItemResult = await _mediator.Send(command);
 
         return createWorkItemResult.Match(
-            workItem => Ok(createWorkItemResult),
+            workItem => Ok(_mapper.Map<WorkItemResponse>(workItem)),
             errors => Problem(errors)
             );
     }

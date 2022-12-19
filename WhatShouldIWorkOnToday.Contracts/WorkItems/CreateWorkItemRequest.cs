@@ -1,6 +1,4 @@
-﻿
-
-namespace WhatShouldIWorkOnToday.Contracts.WorkItems;
+﻿namespace WhatShouldIWorkOnToday.Contracts.WorkItems;
 
 public record CreateWorkItemRequest (
     string Name,
