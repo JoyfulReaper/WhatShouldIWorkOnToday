@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[spToDoItems_GetAll]
+﻿CREATE PROCEDURE [dbo].[spTodoItems_GetAll]
 	@WorkItemId INT
 AS
 BEGIN

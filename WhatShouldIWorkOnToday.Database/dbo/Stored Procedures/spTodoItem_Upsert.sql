@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[spToDoItem_Upsert]
+﻿CREATE PROCEDURE [dbo].[spTodoItem_Upsert]
 	@TodoItemId INT,
 	@WorkItemId INT,
 	@Task VARCHAR(300),

@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[spToDoItem_Get]
+﻿CREATE PROCEDURE [dbo].[spTodoItem_Get]
 	@TodoItemId INT
 AS
 BEGIN

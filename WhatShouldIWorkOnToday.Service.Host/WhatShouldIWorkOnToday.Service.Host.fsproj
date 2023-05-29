@@ -9,7 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Giraffe" Version="6.0.0" />
+    <ProjectReference Include="..\WhatShouldIWorkOnToday.Domain\WhatShouldIWorkOnToday.Domain.fsproj" />
+    <ProjectReference Include="..\WhatShouldIWorkOnToday.Service\WhatShouldIWorkOnToday.Service.fsproj" />
   </ItemGroup>
 
 </Project>

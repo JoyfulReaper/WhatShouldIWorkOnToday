@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[spTodoItem_Delete]
+﻿CREATE PROCEDURE [dbo].[spToDoItem_Delete]
 	@TodoItemId INT
 AS
 BEGIN
