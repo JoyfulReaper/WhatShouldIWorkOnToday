@@ -2,9 +2,9 @@
 AS
 BEGIN
 	SELECT
-		[CurrentSequenceNumberId]
+		[SettingsId]
 		,[CurrentSequence]
 		,[DateSet]
 	FROM
-		CurrentSequenceNumber;
+		Settings;
 END

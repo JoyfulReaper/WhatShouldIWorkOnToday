@@ -3,6 +3,7 @@
 	@Name NVARCHAR(300),
 	@Description NVARCHAR(500),
 	@Url NVARCHAR(300),
+	@Pinned BIT,
 	@DateDeleted DATETIME2(7),
 	@DateCompleted DATETIME2(7),
 	@DateWorkedOn DATETIME2(7)
@@ -15,6 +16,7 @@ BEGIN
 		([Name]
 		,[Description]
 		,[Url]
+		,[Pinned]
 		,[DateDeleted]
 		,[DateCompleted]
 		,[DateWorkedOn])
@@ -22,6 +24,7 @@ BEGIN
 		@Name
 		,@Description
 		,@Url
+		,@Pinned
 		,@DateDeleted
 		,@DateCompleted
 		,@DateWorkedOn
@@ -38,6 +41,7 @@ BEGIN
 			[Name] = @Name
 			,[Description] = @Description
 			,[Url] = @Url
+			,[Pinned] = @Pinned
 			,[DateDeleted] = @DateDeleted
 			,[DateCompleted] = @DateCompleted
 			,[DateWorkedOn] = @DateWorkedOn

@@ -56,4 +56,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ToDoItemId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="08e354f6-c9ac-4fd0-bb46-934ca0a9893f" ChangeDateTime="05/29/2023 19:59:58">
+    <Property Name="ElementName" Value="[dbo].[CurrentSequenceNumber].[CurrentSequenceNumberId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[CurrentSequenceNumber]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="SettingsId" />
+  </Operation>
 </Operations>

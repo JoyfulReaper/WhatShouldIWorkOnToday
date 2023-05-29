@@ -2,7 +2,15 @@
 AS
 BEGIN
 	SELECT
-		[WorkItemId], [Name], [Description], [Url], [DateCreated], [DateWorkedOn], [DateDeleted], [DateCompleted]
+		[WorkItemId], 
+		[Name],
+		[Description], 
+		[Url],
+		[Pinned],
+		[DateCreated],
+		[DateWorkedOn],
+		[DateDeleted], 
+		[DateCompleted]
 	FROM
 		WorkItem
 	WHERE

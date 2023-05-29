@@ -5,13 +5,13 @@ AS
 BEGIN
 	BEGIN TRANSACTION;
 	
-		UPDATE dbo.CurrentSequenceNumber WITH (UPDLOCK, SERIALIZABLE)
+		UPDATE dbo.Settings WITH (UPDLOCK, SERIALIZABLE)
 		SET CurrentSequence = @CurrentSequence,
 			DateSet = @DateSet;
 			
 		IF @@ROWCOUNT = 0
 		BEGIN
-			INSERT dbo.CurrentSequenceNumber
+			INSERT dbo.Settings
 			(CurrentSequence, DateSet)
 			VALUES (@CurrentSequence, @DateSet)
 		END

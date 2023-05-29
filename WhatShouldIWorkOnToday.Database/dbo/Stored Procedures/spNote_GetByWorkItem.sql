@@ -11,6 +11,7 @@ BEGIN
 		Note
 	WHERE
 		WorkItemId = @WorkItemId
+	AND DateDeleted IS NULL
 	ORDER BY
 		DateCreated DESC;
 END

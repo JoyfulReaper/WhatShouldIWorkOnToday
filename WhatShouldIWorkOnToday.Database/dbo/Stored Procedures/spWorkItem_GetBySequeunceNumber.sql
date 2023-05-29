@@ -3,7 +3,15 @@
 AS
 BEGIN
 	SELECT
-		[wi].[WorkItemId], [wi].[Name], [wi].[Description], [wi].[Url], [wi].[DateCreated], [wi].[DateWorkedOn], [wi].[DateDeleted], [wi].[DateCompleted]
+		[wi].[WorkItemId],
+		[wi].[Name],
+		[wi].[Description],
+		[wi].[Url],
+		[wi].[Pinned],
+		[wi].[DateCreated],
+		[wi].[DateWorkedOn], 
+		[wi].[DateDeleted],
+		[wi].[DateCompleted]
 	FROM
 		WorkSequenceNumber wsn INNER JOIN
 		WorkItem wi on wsn.WorkItemId = wi.WorkItemId

@@ -9,6 +9,7 @@ BEGIN
 		,[Name]
 		,[Description]
 		,[Url]
+		,[Pinned]
 		,[DateCreated]
 		,[DateWorkedOn]
 		,[DateCompleted]
