@@ -65,7 +65,7 @@
   <ItemGroup>
     <Build Include="dbo\Tables\WorkItem.sql" />
     <Build Include="dbo\Tables\WorkSequenceNumber.sql" />
-    <Build Include="dbo\Tables\Settings.sql" />
+    <Build Include="dbo\Tables\Setting.sql" />
     <Build Include="dbo\Stored Procedures\spWorkItem_GetAll.sql" />
     <Build Include="dbo\Stored Procedures\spWorkItem_Upsert.sql" />
     <Build Include="dbo\Stored Procedures\spWorkItem_Get.sql" />

@@ -1,6 +1,6 @@
-﻿CREATE TABLE [dbo].[Settings]
+﻿CREATE TABLE [dbo].[Setting]
 (
-	[SettingsId] INT NOT NULL PRIMARY KEY IDENTITY, 
+	[SettingId] INT NOT NULL PRIMARY KEY IDENTITY, 
     [CurrentSequence] INT NOT NULL, 
     [DateSet] DATE NOT NULL DEFAULT GETUTCDATE()
 )

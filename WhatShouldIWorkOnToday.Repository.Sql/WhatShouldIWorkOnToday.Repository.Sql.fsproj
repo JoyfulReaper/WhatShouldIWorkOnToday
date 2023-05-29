@@ -6,7 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Library.fs" />
+    <Compile Include="WorkItemRepository.fs" />
+    <Compile Include="ToDoItemRepository.fs" />
+    <Compile Include="NoteRepository.fs" />
+    <Compile Include="SettingRepository.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WhatShouldIWorkOnToday.Repository\WhatShouldIWorkOnToday.Repository.fsproj" />
   </ItemGroup>
 
 </Project>

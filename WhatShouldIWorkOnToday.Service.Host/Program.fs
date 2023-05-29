@@ -2,8 +2,10 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
-open WhatShouldIWorkOnToday.Service.WorkItemService
 open Giraffe
+open WorkItemService
+open SettingRepository
+open WhatShouldIWorkOnToday.Repository
 
 let webApp =
     choose [
@@ -23,6 +25,7 @@ let configureApp (app : IApplicationBuilder) =
 let configureServices (services : IServiceCollection) =
     // Add Giraffe dependencies
     services.AddGiraffe() |> ignore
+    services.AddSingleton<ISettingRepository, SqlSettingRepository>() |> ignore
 
 [<EntryPoint>]
 let main _ =
