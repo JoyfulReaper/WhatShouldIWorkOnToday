@@ -58,7 +58,6 @@
     <Folder Include="Properties" />
     <Folder Include="dbo" />
     <Folder Include="dbo\Tables" />
-    <Folder Include="dbo\Stored Procedures" />
     <Folder Include="PublishProfiles" />
     <Folder Include="Scripts" />
   </ItemGroup>
@@ -66,37 +65,14 @@
     <Build Include="dbo\Tables\WorkItem.sql" />
     <Build Include="dbo\Tables\WorkSequenceNumber.sql" />
     <Build Include="dbo\Tables\Setting.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItem_GetAll.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItem_Upsert.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItem_Get.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItem_GetComplete.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItem_GetIncomplete.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItemSequence_GetAll.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkSequenceNumber_Upsert.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItemSequence_Get.sql" />
-    <Build Include="dbo\Stored Procedures\spCurrentSequenceNumber_Get.sql" />
-    <Build Include="dbo\Stored Procedures\spCurrentSequenceNumber_Update.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItem_GetBySequeunceNumber.sql" />
-    <Build Include="dbo\Stored Procedures\spGetMaxSequenceNumber.sql" />
     <Build Include="dbo\Tables\Note.sql" />
-    <Build Include="dbo\Stored Procedures\spNote_GetByWorkItem.sql" />
-    <Build Include="dbo\Stored Procedures\spNote_Upsert.sql" />
-    <Build Include="dbo\Stored Procedures\spNote_Get.sql" />
-    <Build Include="dbo\Stored Procedures\spGetPinnedWorkItems.sql" />
     <Build Include="dbo\Tables\WorkItemHistory.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItemHistory_Insert.sql" />
-    <Build Include="dbo\Stored Procedures\spWorkItemHistory_GetAll.sql" />
     <Build Include="dbo\Tables\ToDoItem.sql" />
-    <Build Include="dbo\Stored Procedures\spTodoItem_Upsert.sql" />
-    <Build Include="dbo\Stored Procedures\spTodoItems_GetAll.sql" />
-    <Build Include="dbo\Stored Procedures\spTodoItem_Get.sql" />
-    <Build Include="dbo\Stored Procedures\spTodoItem_Delete.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="WhatShouldIWorkOnToday.Database.refactorlog" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PublishProfiles\WhatShouldIWorkOnToday.Database.publish.xml" />
     <None Include="Scripts\InitialSetUp.sql" />
   </ItemGroup>
 </Project>
