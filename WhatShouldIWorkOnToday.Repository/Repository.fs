@@ -1,6 +1,5 @@
 ﻿namespace WhatShouldIWorkOnToday.Repository
-
-open Dtos
+open WhatShouldIWorkOnToday.Models
 
 type ISettingRepository =
     abstract member GetSequenceNumber : unit -> int

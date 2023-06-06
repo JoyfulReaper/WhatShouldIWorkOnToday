@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Domain.fs" />
+    <Compile Include="Wsiwot.Dtos.fs" />
+    <Compile Include="Wsiwot.Models.fs" />
   </ItemGroup>
 
 </Project>

@@ -9,7 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WhatShouldIWorkOnToday.Domain\WhatShouldIWorkOnToday.Domain.fsproj" />
     <ProjectReference Include="..\WhatShouldIWorkOnToday.Repository.Sql\WhatShouldIWorkOnToday.Repository.Sql.fsproj" />
     <ProjectReference Include="..\WhatShouldIWorkOnToday.Repository\WhatShouldIWorkOnToday.Repository.fsproj" />
     <ProjectReference Include="..\WhatShouldIWorkOnToday.Service\WhatShouldIWorkOnToday.Service.fsproj" />
