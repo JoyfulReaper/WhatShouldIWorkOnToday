@@ -20,7 +20,9 @@ let getSequenceNumber(context : SqlDbContext) =
 
 let getMaxSequenceNumber(context : SqlDbContext) =
     async {
-        return! context.WorkSequenceNumbers.MaxAsync(fun ws -> ws.SequenceNumber) |> Async.AwaitTask
+        let! maxSequenceNumber = context.WorkItems.MaxAsync(fun ws -> ws.SequenceNumber) |> Async.AwaitTask
+        let result = defaultArg (Option.ofNullable maxSequenceNumber) 0
+        return result
     }
 
 let setSequenceNumber(context : SqlDbContext) (sequenceNumber : int) =

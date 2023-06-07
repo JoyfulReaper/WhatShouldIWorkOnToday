@@ -26,8 +26,6 @@ public partial class SqlDbContext : DbContext
 
     public virtual DbSet<WorkItemHistory> WorkItemHistories { get; set; }
 
-    public virtual DbSet<WorkSequenceNumber> WorkSequenceNumbers { get; set; }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=.;Database=Wsiwot;Trusted_Connection=True;TrustServerCertificate=true");
@@ -36,7 +34,7 @@ public partial class SqlDbContext : DbContext
     {
         modelBuilder.Entity<Note>(entity =>
         {
-            entity.HasKey(e => e.NoteId).HasName("PK__Note__EACE355FE081AB90");
+            entity.HasKey(e => e.NoteId).HasName("PK__Note__EACE355F4AC0F4C9");
 
             entity.ToTable("Note");
 
@@ -51,7 +49,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<Setting>(entity =>
         {
-            entity.HasKey(e => e.SettingId).HasName("PK__Setting__54372B1DD38494C5");
+            entity.HasKey(e => e.SettingId).HasName("PK__Setting__54372B1DB9F52130");
 
             entity.ToTable("Setting");
 
@@ -62,7 +60,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<ToDoItem>(entity =>
         {
-            entity.HasKey(e => e.ToDoItemId).HasName("PK__ToDoItem__F05DDEC7620D94EF");
+            entity.HasKey(e => e.ToDoItemId).HasName("PK__ToDoItem__F05DDEC72360FC35");
 
             entity.ToTable("ToDoItem");
 
@@ -79,7 +77,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<WorkItem>(entity =>
         {
-            entity.HasKey(e => e.WorkItemId).HasName("PK__WorkItem__A10D1B453AB23595");
+            entity.HasKey(e => e.WorkItemId).HasName("PK__WorkItem__A10D1B451237D695");
 
             entity.ToTable("WorkItem");
 
@@ -91,7 +89,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<WorkItemHistory>(entity =>
         {
-            entity.HasKey(e => e.WorkItemHistoryId).HasName("PK__WorkItem__A11122F0BF7D2472");
+            entity.HasKey(e => e.WorkItemHistoryId).HasName("PK__WorkItem__A11122F0107622B0");
 
             entity.ToTable("WorkItemHistory");
 
@@ -101,18 +99,6 @@ public partial class SqlDbContext : DbContext
                 .HasForeignKey(d => d.WorkItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_WorkItemHistory_WorkItem");
-        });
-
-        modelBuilder.Entity<WorkSequenceNumber>(entity =>
-        {
-            entity.HasKey(e => e.WorkSequenceNumberId).HasName("PK__WorkSequ__FEDEFAB73D6A18CE");
-
-            entity.ToTable("WorkSequenceNumber");
-
-            entity.HasOne(d => d.WorkItem).WithMany(p => p.WorkSequenceNumbers)
-                .HasForeignKey(d => d.WorkItemId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_WorkSequenceNumber_WorkItem");
         });
 
         OnModelCreatingPartial(modelBuilder);

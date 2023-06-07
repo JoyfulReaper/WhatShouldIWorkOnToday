@@ -15,6 +15,8 @@ public partial class WorkItem
 
     public bool Pinned { get; set; }
 
+    public int? SequenceNumber { get; set; }
+
     public DateTime DateCreated { get; set; }
 
     public DateTime? DateWorkedOn { get; set; }
@@ -28,6 +30,4 @@ public partial class WorkItem
     public virtual ICollection<ToDoItem> ToDoItems { get; set; } = new List<ToDoItem>();
 
     public virtual ICollection<WorkItemHistory> WorkItemHistories { get; set; } = new List<WorkItemHistory>();
-
-    public virtual ICollection<WorkSequenceNumber> WorkSequenceNumbers { get; set; } = new List<WorkSequenceNumber>();
 }

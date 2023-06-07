@@ -34,7 +34,7 @@ type WorkItemDto =
      Description: string
      Url: string
      Pinned: bool
-     SequenceNumber: int
+     SequenceNumber: Nullable<int>
      DateCreated: DateTime
      DateWorkedOn: Nullable<DateTime>
      DateCompleted: Nullable<DateTime> }

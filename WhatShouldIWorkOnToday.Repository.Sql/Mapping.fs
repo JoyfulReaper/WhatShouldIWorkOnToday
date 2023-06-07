@@ -10,6 +10,7 @@ module WorkItem =
             Description = dto.Description,
             Url = dto.Url,
             Pinned = dto.Pinned,
+            SequenceNumber = dto.SequenceNumber,
             DateCreated = dto.DateCreated,
             DateCompleted = dto.DateCompleted)
 
@@ -23,7 +24,9 @@ module WorkItem =
                 | null -> None
                 | x -> Some x
           Pinned = entity.Pinned
-          SequenceNumber = entity.SequenceNumber
+          SequenceNumber = match entity.SequenceNumber with
+                           | sn when sn.HasValue -> Some (sn.Value)
+                           | _ -> None
           DateCreated = entity.DateCreated
           DateWorkedOn = match entity.DateWorkedOn with
                          | dwo when dwo.HasValue -> Some (dwo.Value)

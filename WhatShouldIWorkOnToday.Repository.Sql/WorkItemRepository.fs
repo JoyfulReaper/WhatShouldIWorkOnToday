@@ -6,6 +6,7 @@ open WhatShouldIWorkOnToday.Repository.Sql.Mapping
 open Microsoft.EntityFrameworkCore
 open WhatShouldIWorkOnToday.Models
 open System.Linq
+open System
 
 let getWorkItem(context : SqlDbContext) (id : int) =
     async {
@@ -22,15 +23,15 @@ let getAllWorkItems(context : SqlDbContext) =
 let getWorkItemsBySequenceNumber (context: SqlDbContext) (sequenceNumber: int) =
     async {
         let query = context.WorkItems.AsQueryable()
-        let filteredQuery = query.Where(fun wi -> wi.SequenceNumber = sequenceNumber).ToListAsync() |> Async.AwaitTask
-        return filteredQuery |> List.ofSeq
+        let! filteredQuery = query.Where(fun wi -> wi.SequenceNumber = Nullable sequenceNumber).ToListAsync() |> Async.AwaitTask
+        return filteredQuery |> List.ofSeq |> List.map WorkItem.toModel
     }
 
 type SqlWorkItemRepository(context: SqlDbContext) =
     interface IWorkItemRepository with
         member this.GetAll(): Async<WhatShouldIWorkOnToday.Models.WorkItem.WorkItem list> = 
             getAllWorkItems context
-        member this.GetBySequenceNumber(seqeunceNumber: int): Async<WhatShouldIWorkOnToday.Models.WorkItem.WorkItem option> = 
+        member this.GetBySequenceNumber(seqeunceNumber: int): Async<WhatShouldIWorkOnToday.Models.WorkItem.WorkItem list> = 
             getWorkItemsBySequenceNumber context seqeunceNumber
         member this.GetCompleted(): Async<WhatShouldIWorkOnToday.Models.WorkItem.WorkItem list> = 
             raise (System.NotImplementedException())
