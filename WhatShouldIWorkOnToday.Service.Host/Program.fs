@@ -4,22 +4,27 @@ open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.EntityFrameworkCore
 open Giraffe
-open WorkItemService
-open SettingRepository
 open WhatShouldIWorkOnToday.Repository
 open WhatShouldIWorkOnToday.Repository.Sql.Entities
 open Microsoft.Extensions.Configuration
+open SettingRepository
 
 let webApp =
-    choose [
-        route "/ping"   >=> text "pong"
-        route "/"       >=> text "You got root..." 
-        route "/hello"  >=> sayHelloWorld "fred" 
-        subRoute "/WorkItem" 
-            (choose [
-                route "" >=> GET >=> warbler ( fun _ -> 
-                    (getWorkItemHandler))
-            ])]
+    subRoute "/api" (choose [
+        subRoute "/v1" (choose [
+            subRoute "/settings" (choose [
+                GET >=>
+                    choose [
+                        route "/sequenceNumber" >=>
+                            warbler (fun _ -> SettingService.getSeqeunceNumberHandler)
+                    ]
+            ])
+        ])
+        subRoute "/v2" (choose [
+            route "/foo" >=> text "Foo"
+            route "/bar" >=> text "Bar"
+        ])
+    ])
 
 let configureApp (app : IApplicationBuilder) =
     // Add Giraffe to the ASP.NET Core pipeline
@@ -31,7 +36,7 @@ let configureServices (services : IServiceCollection) =
 
     // Add Giraffe dependencies
     services.AddGiraffe() |> ignore
-    services.AddSingleton<ISettingRepository, SqlSettingRepository>() |> ignore
+    services.AddTransient<ISettingRepository, SqlSettingRepository>() |> ignore
 
     services.AddDbContext<SqlDbContext>(fun builder ->
         builder.UseSqlServer(configuration.GetConnectionString("Default")) |> ignore
