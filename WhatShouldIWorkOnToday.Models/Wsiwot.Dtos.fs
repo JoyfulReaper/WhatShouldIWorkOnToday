@@ -36,7 +36,6 @@ type WorkItemDto =
      Pinned: bool
      SequenceNumber: Nullable<int>
      DateCreated: DateTime
-     DateWorkedOn: Nullable<DateTime>
      DateCompleted: Nullable<DateTime> }
 
 [<CLIMutable>]

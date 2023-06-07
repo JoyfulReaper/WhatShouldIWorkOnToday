@@ -7,7 +7,6 @@
     [Pinned] BIT NOT NULL DEFAULT 0,
     [SequenceNumber] INT NULL,
     [DateCreated] DATETIME2 NOT NULL DEFAULT GETUTCDATE(), 
-    [DateWorkedOn] DATETIME2 NULL, 
     [DateDeleted] DATETIME2 NULL, 
     [DateCompleted] DATETIME2 NULL
 )

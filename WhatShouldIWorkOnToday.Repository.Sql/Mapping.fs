@@ -1,18 +1,17 @@
 ﻿namespace WhatShouldIWorkOnToday.Repository.Sql.Mapping
 open WhatShouldIWorkOnToday.Repository.Sql.Entities.Entities
 open WhatShouldIWorkOnToday.Models
+open System
 
 module WorkItem =
-    let toEntity(dto: WorkItemDto) : WorkItem =
-        WorkItem(
-            WorkItemId = dto.WorkItemId,
-            Name = dto.Name,
-            Description = dto.Description,
-            Url = dto.Url,
-            Pinned = dto.Pinned,
-            SequenceNumber = dto.SequenceNumber,
-            DateCreated = dto.DateCreated,
-            DateCompleted = dto.DateCompleted)
+    let toEntity(workItem: WorkItem.WorkItem) : WorkItem =
+        WorkItem(Name = workItem.Name,
+                 Description = Option.toObj workItem.Description, // HOW TO DO IT WITHOUT A MATCH!! -FINDME-
+                 Url = Option.toObj workItem.Url,
+                 Pinned = workItem.Pinned,
+                 SequenceNumber = Option.toNullable workItem.SequenceNumber,
+                 DateCreated = workItem.DateCreated,
+                 DateCompleted = Option.toNullable workItem.DateCompleted)
 
     let toModel(entity: WorkItem) : WorkItem.WorkItem =
         { WorkItemId = entity.WorkItemId
@@ -28,9 +27,6 @@ module WorkItem =
                            | sn when sn.HasValue -> Some (sn.Value)
                            | _ -> None
           DateCreated = entity.DateCreated
-          DateWorkedOn = match entity.DateWorkedOn with
-                         | dwo when dwo.HasValue -> Some (dwo.Value)
-                         | _ -> None
           DateCompleted = match entity.DateCompleted with
                           | dc when dc.HasValue -> Some (dc.Value)
                           | _ -> None

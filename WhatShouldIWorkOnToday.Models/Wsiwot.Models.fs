@@ -63,7 +63,6 @@ module WorkItem =
           Pinned: bool
           SequenceNumber: int option
           DateCreated: System.DateTime
-          DateWorkedOn: System.DateTime option
           DateCompleted: System.DateTime option }
 
     let toDto (workItem: WorkItem) : WorkItemDto =
@@ -80,9 +79,6 @@ module WorkItem =
                            | None -> System.Nullable()
                            | Some x -> System.Nullable(x)
           DateCreated = workItem.DateCreated
-          DateWorkedOn = match workItem.DateWorkedOn with
-                         | None -> System.Nullable()
-                         | Some x -> System.Nullable(x)
           DateCompleted = match workItem.DateCompleted with
                           | None -> System.Nullable()
                           | Some x -> System.Nullable(x)
@@ -102,9 +98,6 @@ module WorkItem =
                            | sn when sn.HasValue -> Some (sn.Value)
                            | _ -> None
           DateCreated = workItemDto.DateCreated
-          DateWorkedOn = match workItemDto.DateWorkedOn with
-                         | dc when dc.HasValue -> Some (dc.Value)
-                         | _ -> None
           DateCompleted = match workItemDto.DateCompleted with
                           | dc when dc.HasValue -> Some (dc.Value)
                           | _ -> None

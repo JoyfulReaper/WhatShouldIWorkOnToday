@@ -34,7 +34,7 @@ public partial class SqlDbContext : DbContext
     {
         modelBuilder.Entity<Note>(entity =>
         {
-            entity.HasKey(e => e.NoteId).HasName("PK__Note__EACE355F4AC0F4C9");
+            entity.HasKey(e => e.NoteId).HasName("PK__Note__EACE355FE2381320");
 
             entity.ToTable("Note");
 
@@ -49,7 +49,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<Setting>(entity =>
         {
-            entity.HasKey(e => e.SettingId).HasName("PK__Setting__54372B1DB9F52130");
+            entity.HasKey(e => e.SettingId).HasName("PK__Setting__54372B1D8DFAB45C");
 
             entity.ToTable("Setting");
 
@@ -60,7 +60,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<ToDoItem>(entity =>
         {
-            entity.HasKey(e => e.ToDoItemId).HasName("PK__ToDoItem__F05DDEC72360FC35");
+            entity.HasKey(e => e.ToDoItemId).HasName("PK__ToDoItem__F05DDEC755263142");
 
             entity.ToTable("ToDoItem");
 
@@ -77,7 +77,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<WorkItem>(entity =>
         {
-            entity.HasKey(e => e.WorkItemId).HasName("PK__WorkItem__A10D1B451237D695");
+            entity.HasKey(e => e.WorkItemId).HasName("PK__WorkItem__A10D1B4548AA8A86");
 
             entity.ToTable("WorkItem");
 
@@ -89,7 +89,7 @@ public partial class SqlDbContext : DbContext
 
         modelBuilder.Entity<WorkItemHistory>(entity =>
         {
-            entity.HasKey(e => e.WorkItemHistoryId).HasName("PK__WorkItem__A11122F0107622B0");
+            entity.HasKey(e => e.WorkItemHistoryId).HasName("PK__WorkItem__A11122F03433EA2B");
 
             entity.ToTable("WorkItemHistory");
 

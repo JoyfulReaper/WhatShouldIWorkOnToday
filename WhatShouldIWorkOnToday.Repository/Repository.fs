@@ -20,6 +20,6 @@ type IToDoItemRepository =
 type IWorkItemRepository =
     abstract member Get : int -> Async<WorkItem.WorkItem option>
     abstract member GetAll : unit -> Async<WorkItem.WorkItem list>
-    abstract member Save : WorkItem.WorkItem -> Async<WorkItem.WorkItem>
+    abstract member Save : WorkItem.WorkItem -> Async<WorkItem.WorkItem option>
     abstract member GetCompleted : unit -> Async<WorkItem.WorkItem list>
     abstract member GetBySequenceNumber : int -> Async<WorkItem.WorkItem list>

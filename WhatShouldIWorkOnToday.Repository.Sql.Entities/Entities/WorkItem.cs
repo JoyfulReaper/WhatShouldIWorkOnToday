@@ -19,8 +19,6 @@ public partial class WorkItem
 
     public DateTime DateCreated { get; set; }
 
-    public DateTime? DateWorkedOn { get; set; }
-
     public DateTime? DateDeleted { get; set; }
 
     public DateTime? DateCompleted { get; set; }
