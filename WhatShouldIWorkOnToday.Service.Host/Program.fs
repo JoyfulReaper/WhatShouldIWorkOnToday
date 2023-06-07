@@ -2,10 +2,13 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.EntityFrameworkCore
 open Giraffe
 open WorkItemService
 open SettingRepository
 open WhatShouldIWorkOnToday.Repository
+open WhatShouldIWorkOnToday.Repository.Sql.Entities
+open Microsoft.Extensions.Configuration
 
 let webApp =
     choose [
@@ -23,9 +26,16 @@ let configureApp (app : IApplicationBuilder) =
     app.UseGiraffe webApp
 
 let configureServices (services : IServiceCollection) =
+
+    let configuration = services.BuildServiceProvider().GetService<IConfiguration>()
+
     // Add Giraffe dependencies
     services.AddGiraffe() |> ignore
     services.AddSingleton<ISettingRepository, SqlSettingRepository>() |> ignore
+
+    services.AddDbContext<SqlDbContext>(fun builder ->
+        builder.UseSqlServer(configuration.GetConnectionString("Default")) |> ignore
+    ) |> ignore
 
 [<EntryPoint>]
 let main _ =

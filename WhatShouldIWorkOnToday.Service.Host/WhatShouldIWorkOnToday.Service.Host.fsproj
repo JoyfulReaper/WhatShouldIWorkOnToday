@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WhatShouldIWorkOnToday.Repository.Sql.Entities\WhatShouldIWorkOnToday.Repository.Sql.Entities.csproj" />
     <ProjectReference Include="..\WhatShouldIWorkOnToday.Repository.Sql\WhatShouldIWorkOnToday.Repository.Sql.fsproj" />
     <ProjectReference Include="..\WhatShouldIWorkOnToday.Repository\WhatShouldIWorkOnToday.Repository.fsproj" />
     <ProjectReference Include="..\WhatShouldIWorkOnToday.Service\WhatShouldIWorkOnToday.Service.fsproj" />
