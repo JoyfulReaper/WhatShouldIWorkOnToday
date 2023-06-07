@@ -23,6 +23,7 @@ module WorkItem =
                 | null -> None
                 | x -> Some x
           Pinned = entity.Pinned
+          SequenceNumber = entity.SequenceNumber
           DateCreated = entity.DateCreated
           DateWorkedOn = match entity.DateWorkedOn with
                          | dwo when dwo.HasValue -> Some (dwo.Value)

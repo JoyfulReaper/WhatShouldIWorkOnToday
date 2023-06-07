@@ -63,7 +63,6 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\WorkItem.sql" />
-    <Build Include="dbo\Tables\WorkSequenceNumber.sql" />
     <Build Include="dbo\Tables\Setting.sql" />
     <Build Include="dbo\Tables\Note.sql" />
     <Build Include="dbo\Tables\WorkItemHistory.sql" />

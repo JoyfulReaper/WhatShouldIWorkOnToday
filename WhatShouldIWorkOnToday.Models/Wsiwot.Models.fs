@@ -61,6 +61,7 @@ module WorkItem =
           Description: string option
           Url: string option
           Pinned: bool
+          SequenceNumber: int
           DateCreated: System.DateTime
           DateWorkedOn: System.DateTime option
           DateCompleted: System.DateTime option }
@@ -75,6 +76,7 @@ module WorkItem =
                 | None -> null
                 | Some x -> x
           Pinned = workItem.Pinned
+          SequenceNumber = workItem.SequenceNumber
           DateCreated = workItem.DateCreated
           DateWorkedOn = match workItem.DateWorkedOn with
                          | None -> System.Nullable()
@@ -94,6 +96,7 @@ module WorkItem =
                 | null -> None
                 | x -> Some x
           Pinned = workItemDto.Pinned
+          SequenceNumber = workItemDto.SequenceNumber
           DateCreated = workItemDto.DateCreated
           DateWorkedOn = match workItemDto.DateWorkedOn with
                          | dc when dc.HasValue -> Some (dc.Value)
