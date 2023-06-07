@@ -10,27 +10,29 @@ open System
 
 let getWorkItem(context : SqlDbContext) (id : int) =
     async {
-        let! workItem = context.WorkItems.SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id) |> Async.AwaitTask
+        let! workItem = context.WorkItems.AsNoTracking()
+                                         .SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id && wi.DateDeleted = Nullable()) |> Async.AwaitTask
         return workItem |> Option.ofObj |> Option.map WorkItem.toModel
     }
 
 let getAllWorkItems(context : SqlDbContext) =
     async {
-        let workItems = context.WorkItems |> List.ofSeq
-        return workItems |> List.map WorkItem.toModel
+        let query = context.WorkItems.AsNoTracking().AsQueryable()
+        let! workItems = query.Where(fun wi -> wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
+        return workItems |> List.ofSeq |> List.map WorkItem.toModel
     }
 
 let getWorkItemsBySequenceNumber (context: SqlDbContext) (sequenceNumber: int) =
     async {
-        let query = context.WorkItems.AsQueryable()
-        let! filteredQuery = query.Where(fun wi -> wi.SequenceNumber = Nullable sequenceNumber).ToListAsync() |> Async.AwaitTask
+        let query = context.WorkItems.AsNoTracking().AsQueryable()
+        let! filteredQuery = query.Where(fun wi -> wi.SequenceNumber = Nullable sequenceNumber && wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
         return filteredQuery |> List.ofSeq |> List.map WorkItem.toModel
     }
 
 let getAllCompletedWorkItems (context: SqlDbContext) =
     async {
         let query = context.WorkItems.AsQueryable()
-        let! filteredQuery = query.Where(fun wi -> wi.DateCompleted.HasValue).ToListAsync() |> Async.AwaitTask
+        let! filteredQuery = query.Where(fun wi -> wi.DateCompleted.HasValue && wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
         return filteredQuery |> List.ofSeq |> List.map WorkItem.toModel
     }
 
@@ -39,6 +41,13 @@ let saveNewWorkItem (context : SqlDbContext) (workItem : WorkItem.WorkItem) =
         context.WorkItems.Add(workItem |> WorkItem.toEntity) |> ignore
         context.SaveChangesAsync() |> Async.AwaitTask |> ignore
         return getWorkItem context workItem.WorkItemId |> Async.RunSynchronously
+    }
+
+let deleteWorkItem (context : SqlDbContext) (id: int) =
+    async {
+        let! workItem = context.WorkItems.SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id) |> Async.AwaitTask
+        workItem.DateDeleted <- DateTime.Now
+        context.SaveChangesAsync() |> Async.AwaitTask |> ignore
     }
 
 type SqlWorkItemRepository(context: SqlDbContext) =
@@ -53,3 +62,5 @@ type SqlWorkItemRepository(context: SqlDbContext) =
            saveNewWorkItem context workItem
         member __.Get(id) =
             getWorkItem context id
+        member __.Delete(id) =
+            deleteWorkItem context id
