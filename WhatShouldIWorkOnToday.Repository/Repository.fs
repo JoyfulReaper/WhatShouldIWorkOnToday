@@ -7,20 +7,19 @@ type ISettingRepository =
     abstract member SetSequenceNumber : int -> Async<unit>
 
 type INoteRepository =
-    abstract member Get : int -> Async<NoteDto option>
-    abstract member GetByWorkItemId : int -> Async<NoteDto list> 
-    abstract member Save : Note.Note -> Async<NoteDto>
+    abstract member Get : int -> Async<Note.Note option>
+    abstract member GetByWorkItemId : int -> Async<Note.Note list> 
+    abstract member Save : Note.Note -> Async<Note.Note>
 
 type IToDoItemRepository =
-    abstract member Get : int -> Async<ToDoItemDto option>
-    abstract member GetByWorkItemId : int -> Async<ToDoItemDto list>
-    abstract member Save : ToDoItem.ToDoItem -> Async<ToDoItemDto>
+    abstract member Get : int -> Async<ToDoItem.ToDoItem option>
+    abstract member GetByWorkItemId : int -> Async<ToDoItem.ToDoItem list>
+    abstract member Save : ToDoItem.ToDoItem -> Async<ToDoItem.ToDoItem>
     abstract member Delete : int -> Async<unit>
 
 type IWorkItemRepository =
-    abstract member Get : int -> Async<WorkItemDto option>
-    abstract member GetAll : unit -> Async<WorkItemDto list>
-    abstract member Save : WorkItem.WorkItem -> Async<WorkItemDto>
-    abstract member GetCompleted : unit -> Async<WorkItemDto list>
-    abstract member GetIncomplete : unit -> Async<WorkItemDto list>
-    abstract member GetBySequenceNumber : int -> Async<WorkItemDto option>
+    abstract member Get : int -> Async<WorkItem.WorkItem option>
+    abstract member GetAll : unit -> Async<WorkItem.WorkItem list>
+    abstract member Save : WorkItem.WorkItem -> Async<WorkItem.WorkItem>
+    abstract member GetCompleted : unit -> Async<WorkItem.WorkItem list>
+    abstract member GetBySequenceNumber : int -> Async<WorkItem.WorkItem option>

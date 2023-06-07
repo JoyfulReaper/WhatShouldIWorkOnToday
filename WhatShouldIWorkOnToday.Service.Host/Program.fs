@@ -10,17 +10,23 @@ open Microsoft.Extensions.Configuration
 open SettingRepository
 
 let webApp =
-    subRoute "/api" (choose [
-        subRoute "/v1" (choose [
-            subRoute "/settings" (choose [
+    subRouteCi "/api" (choose [
+        subRouteCi "/v1" (choose [
+            subRouteCi "/SequenceNumber" (choose [
                 GET >=>
                     choose [
-                        route "/sequenceNumber" >=>
+                        routeCi "/" >=>
                             warbler (fun _ -> SettingService.getSeqeunceNumberHandler)
+                        routeCi "/max" >=>
+                            warbler (fun _ -> SettingService.getMaxSequenceNumberHandler)
+                    ]
+                POST >=>
+                    choose [
+                        routeCif "/set/%i" (fun seqNum -> warbler (fun _ -> SettingService.setSequenceNumberHandler seqNum))
                     ]
             ])
         ])
-        subRoute "/v2" (choose [
+        subRouteCi "/v2" (choose [
             route "/foo" >=> text "Foo"
             route "/bar" >=> text "Bar"
         ])

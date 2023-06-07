@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Mapping.fs" />
     <Compile Include="WorkItemRepository.fs" />
     <Compile Include="ToDoItemRepository.fs" />
     <Compile Include="NoteRepository.fs" />
