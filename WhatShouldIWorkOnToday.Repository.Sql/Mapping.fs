@@ -47,3 +47,16 @@ module ToDoItem =
           DateAddded = entity.DateAdded
           DateCompleted = Option.ofNullable entity.DateCompleted
         }
+
+module Note =
+    let toEntity (note: Note.Note) : Note =
+        Note(WorkItemId = note.WorkItemId,
+             Text = note.Text,
+             DateCreated = note.DateCreated)
+
+    let toModel (entity : Note) : Note.Note =
+        { NoteId = entity.NoteId
+          WorkItemId = entity.WorkItemId
+          Text = entity.Text
+          DateCreated = entity.DateCreated
+        }
