@@ -1,4 +1,5 @@
 ﻿namespace WhatShouldIWorkOnToday.Repository.Sql.Mapping
+
 open WhatShouldIWorkOnToday.Repository.Sql.Entities.Entities
 open WhatShouldIWorkOnToday.Models
 open System
@@ -30,4 +31,19 @@ module WorkItem =
           DateCompleted = match entity.DateCompleted with
                           | dc when dc.HasValue -> Some (dc.Value)
                           | _ -> None
+        }
+
+module ToDoItem =
+    let toEntity (todoItem : ToDoItem.ToDoItem) : ToDoItem = 
+        ToDoItem(WorkItemId = todoItem.WorkItemId,
+                 Task = todoItem.Task,
+                 DateAdded = todoItem.DateAddded,
+                 DateCompleted = Option.toNullable todoItem.DateCompleted)
+
+    let toModel (entity : ToDoItem) : ToDoItem.ToDoItem =
+        { ToDoItemId = entity.ToDoItemId
+          WorkItemId = entity.WorkItemId
+          Task = entity.Task
+          DateAddded = entity.DateAdded
+          DateCompleted = Option.ofNullable entity.DateCompleted
         }

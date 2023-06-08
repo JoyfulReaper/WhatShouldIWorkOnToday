@@ -9,12 +9,12 @@ type ISettingRepository =
 type INoteRepository =
     abstract member Get : int -> Async<Note.Note option>
     abstract member GetByWorkItemId : int -> Async<Note.Note list> 
-    abstract member Save : Note.Note -> Async<Note.Note>
+    abstract member Save : Note.Note -> Async<Note.Note option>
 
 type IToDoItemRepository =
     abstract member Get : int -> Async<ToDoItem.ToDoItem option>
     abstract member GetByWorkItemId : int -> Async<ToDoItem.ToDoItem list>
-    abstract member Save : ToDoItem.ToDoItem -> Async<ToDoItem.ToDoItem>
+    abstract member Save : ToDoItem.ToDoItem -> Async<ToDoItem.ToDoItem option>
     abstract member Delete : int -> Async<unit>
 
 type IWorkItemRepository =
