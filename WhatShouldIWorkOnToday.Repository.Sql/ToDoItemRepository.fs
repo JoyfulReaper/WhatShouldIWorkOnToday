@@ -9,8 +9,9 @@ open System.Linq
 
 let getToDoItem (context : SqlDbContext) (id : int) =
     async {
-        let! entity = context.ToDoItems.FindAsync(id).AsTask() |> Async.AwaitTask
-        return entity  |> Option.ofObj |> Option.map ToDoItem.toModel
+        let! entity = context.ToDoItems.Where(fun tdi -> tdi.ToDoItemId = id && tdi.DateDeleted = Nullable()).SingleOrDefaultAsync() 
+                      |> Async.AwaitTask
+        return entity |> Option.ofObj |> Option.map ToDoItem.toModel
     }
 
 let deleteToDoItem (context : SqlDbContext) (id: int) =
@@ -27,7 +28,7 @@ let deleteToDoItem (context : SqlDbContext) (id: int) =
 let getToDoItemsByWorkItemId (context : SqlDbContext) (workItemId : int) =
     async {
         let! entities = context.ToDoItems.AsNoTracking()
-                                         .Where(fun wi -> wi.WorkItemId = workItemId && wi.DateDeleted = Nullable())
+                                         .Where(fun ti -> ti.WorkItemId = workItemId && ti.DateDeleted = Nullable())
                                          .ToListAsync() |> Async.AwaitTask
         return entities |> List.ofSeq |> List.map ToDoItem.toModel
     }

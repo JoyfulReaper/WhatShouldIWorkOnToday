@@ -10,6 +10,7 @@ type INoteRepository =
     abstract member Get : int -> Async<Note.Note option>
     abstract member GetByWorkItemId : int -> Async<Note.Note list> 
     abstract member Save : Note.Note -> Async<Note.Note option>
+    abstract member Delete : int -> Async<unit>
 
 type IToDoItemRepository =
     abstract member Get : int -> Async<ToDoItem.ToDoItem option>
