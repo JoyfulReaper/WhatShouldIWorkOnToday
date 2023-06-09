@@ -17,7 +17,7 @@ let getWorkItemHistory (context : SqlDbContext) (workItemHistoryId: int) =
 type SqlWorkItemHistoryRepository(context : SqlDbContext) =
     interface IWorkItemHistoryRepository with
         member this.Get(workItemHistoryId: int): Async<WhatShouldIWorkOnToday.Models.WorkItemHistory.WorkItemHistory option> = 
-            raise (System.NotImplementedException())
+            getWorkItemHistory context workItemHistoryId
         member this.GetByWorkItemId(workItemId: int): Async<WhatShouldIWorkOnToday.Models.WorkItemHistory.WorkItemHistory list> = 
             raise (System.NotImplementedException())
         member this.Save(workItemHistory: WhatShouldIWorkOnToday.Models.WorkItemHistory.WorkItemHistory): Async<WhatShouldIWorkOnToday.Models.WorkItemHistory.WorkItemHistory option> = 

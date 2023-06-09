@@ -11,6 +11,7 @@ open SettingRepository
 open NoteRepository
 open ToDoItemRepository
 open WorkItemRepository
+open WorkItemHistoryRepository
 
 let webApp =
     subRouteCi "/api" (choose [
@@ -49,7 +50,7 @@ let configureServices (services : IServiceCollection) =
     services.AddTransient<INoteRepository, SqlNoteRepository>() |> ignore
     services.AddTransient<IToDoItemRepository, SqlToDoRepository>() |> ignore
     services.AddTransient<IWorkItemRepository, SqlWorkItemRepository>() |> ignore
-    services.AddTransient<IWor
+    services.AddTransient<IWorkItemHistoryRepository, SqlWorkItemHistoryRepository>() |> ignore
 
     services.AddDbContext<SqlDbContext>(fun builder ->
         builder.UseSqlServer(configuration.GetConnectionString("Default")) |> ignore
