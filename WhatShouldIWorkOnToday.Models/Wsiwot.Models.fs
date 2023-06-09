@@ -102,3 +102,10 @@ module WorkItem =
                           | dc when dc.HasValue -> Some (dc.Value)
                           | _ -> None
         }
+
+module WorkItemHistory =
+    type WorkItemHistory =
+        { WorkItemHistoryId: int
+          WorkItemId: int
+          DateWorkedOn: System.DateTime
+        }

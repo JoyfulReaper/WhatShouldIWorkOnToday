@@ -8,6 +8,9 @@ open WhatShouldIWorkOnToday.Repository
 open WhatShouldIWorkOnToday.Repository.Sql.Entities
 open Microsoft.Extensions.Configuration
 open SettingRepository
+open NoteRepository
+open ToDoItemRepository
+open WorkItemRepository
 
 let webApp =
     subRouteCi "/api" (choose [
@@ -43,6 +46,10 @@ let configureServices (services : IServiceCollection) =
     // Add Giraffe dependencies
     services.AddGiraffe() |> ignore
     services.AddTransient<ISettingRepository, SqlSettingRepository>() |> ignore
+    services.AddTransient<INoteRepository, SqlNoteRepository>() |> ignore
+    services.AddTransient<IToDoItemRepository, SqlToDoRepository>() |> ignore
+    services.AddTransient<IWorkItemRepository, SqlWorkItemRepository>() |> ignore
+    services.AddTransient<IWor
 
     services.AddDbContext<SqlDbContext>(fun builder ->
         builder.UseSqlServer(configuration.GetConnectionString("Default")) |> ignore

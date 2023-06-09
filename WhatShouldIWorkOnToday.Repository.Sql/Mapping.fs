@@ -60,3 +60,14 @@ module Note =
           Text = entity.Text
           DateCreated = entity.DateCreated
         }
+
+module WorkItemHistory =
+    let toEntity (workItemHistory: WorkItemHistory.WorkItemHistory) : WorkItemHistory =
+        WorkItemHistory(WorkItemId = workItemHistory.WorkItemId,
+                        DateWorkedOn = workItemHistory.DateWorkedOn)
+
+    let toModel (entity : WorkItemHistory) : WorkItemHistory.WorkItemHistory =
+        { WorkItemHistoryId = entity.WorkItemHistoryId
+          WorkItemId = entity.WorkItemId
+          DateWorkedOn = entity.DateWorkedOn
+        }
