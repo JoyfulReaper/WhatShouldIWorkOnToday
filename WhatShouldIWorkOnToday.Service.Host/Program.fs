@@ -16,6 +16,21 @@ open WorkItemHistoryRepository
 let webApp =
     subRouteCi "/api" (choose [
         subRouteCi "/v1" (choose [
+            subRouteCi "/WorkItem" (choose [
+                GET >=>
+                    choose [
+                        routeCi "/" >=>
+                            warbler (fun _ -> WorkItemService.getAllWorkItemsHandler)
+                        routeCif "/%i" (fun workItemId ->
+                            warbler (fun _ -> WorkItemService.getWorkItemHandler workItemId))
+
+                    ]
+                POST >=>
+                    choose [
+                        routeCi "/" >=>
+                            warbler (fun _ -> WorkItemService.createWorkItemHandler)
+                    ]
+            ])
             subRouteCi "/SequenceNumber" (choose [
                 GET >=>
                     choose [

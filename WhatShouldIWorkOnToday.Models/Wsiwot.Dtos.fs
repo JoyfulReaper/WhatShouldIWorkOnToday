@@ -44,3 +44,7 @@ type WorkItemRequest =
       Description: string
       Url: string
       Pinned: bool }
+
+[<CLIMutable>]
+type ErrorResponse =
+    { Message: string }

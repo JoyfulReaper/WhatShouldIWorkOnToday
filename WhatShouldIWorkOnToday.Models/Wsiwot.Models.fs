@@ -103,6 +103,16 @@ module WorkItem =
                           | _ -> None
         }
 
+    let fromWorkItemRequest (request : WorkItemRequest) : WorkItem =
+        { WorkItemId = 0
+          Name = request.Name
+          Description = Some request.Description
+          Url = Some request.Url
+          Pinned = request.Pinned
+          SequenceNumber = None
+          DateCreated = System.DateTime.Now
+          DateCompleted = None }
+
 module WorkItemHistory =
     type WorkItemHistory =
         { WorkItemHistoryId: int

@@ -1,9 +1,37 @@
 ﻿module WorkItemService
-    open Giraffe
+open Giraffe
+open Microsoft.AspNetCore.Http
+open WhatShouldIWorkOnToday.Repository
+open WhatShouldIWorkOnToday.Models
 
-    let getWorkItemHandler : HttpHandler =
-        text "Hello World"
+let getWorkItemHandler workItemId : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            let! workItem = workItemRepo.Get workItemId
+            match workItem with
+                | None -> return! RequestErrors.NOT_FOUND { Message = sprintf "Work item: (id: %i) not found" workItemId } next ctx
+                | Some workItem -> return! json (workItem |> WorkItem.toDto) next ctx
+        }
 
-    let sayHelloWorld (name : string) : HttpHandler =
-        let greeting = sprintf "Hello World, from %s" name
-        text greeting
+let getAllWorkItemsHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            let! workItems = workItemRepo.GetAll()
+            return! json (workItems |> List.map WorkItem.toDto) next ctx
+        }
+
+let createWorkItemHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            let! workItem = ctx.BindJsonAsync<WorkItemRequest>()
+            let! savedWorkItem = workItemRepo.Save(workItem |> WorkItem.fromWorkItemRequest)
+
+            match savedWorkItem with
+            | None -> return! RequestErrors.BAD_REQUEST { Message = "Failed to save work item" } next ctx
+            | Some savedWorkItem ->
+                ctx.SetHttpHeader("Location", sprintf "/api/v1/WorkItem/%s" (savedWorkItem.WorkItemId.ToString()))
+                return! json (savedWorkItem |> WorkItem.toDto) next ctx
+        }
