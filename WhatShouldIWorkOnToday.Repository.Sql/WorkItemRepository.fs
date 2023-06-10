@@ -38,9 +38,11 @@ let getAllCompletedWorkItems (context: SqlDbContext) =
 
 let saveNewWorkItem (context : SqlDbContext) (workItem : WorkItem.WorkItem) =
     async {
-        context.WorkItems.Add(workItem |> WorkItem.toEntity) |> ignore
+        let entity = workItem |> WorkItem.toEntity
+        context.WorkItems.Add(entity) |> ignore
         context.SaveChangesAsync() |> Async.AwaitTask |> ignore
-        return getWorkItem context workItem.WorkItemId |> Async.RunSynchronously
+        context.Entry(entity).ReloadAsync() |> Async.AwaitTask |> ignore
+        return entity |> WorkItem.toModel |> Some
     }
 
 let deleteWorkItem (context : SqlDbContext) (id: int) =
