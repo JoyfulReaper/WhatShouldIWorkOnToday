@@ -32,7 +32,7 @@ let getWorkItemsBySequenceNumber (context: SqlDbContext) (sequenceNumber: int) =
 let getAllCompletedWorkItems (context: SqlDbContext) =
     async {
         let query = context.WorkItems.AsQueryable()
-        let! filteredQuery = query.Where(fun wi -> wi.DateCompleted.HasValue && wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
+        let! filteredQuery = query.Where(fun wi -> wi.DateCompleted <> Nullable() && wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
         return filteredQuery |> List.ofSeq |> List.map WorkItem.toModel
     }
 
