@@ -22,6 +22,22 @@ let getAllWorkItemsHandler : HttpHandler =
             return! json (workItems |> List.map WorkItem.toDto) next ctx
         }
 
+let getWorkItemsBySeqeunceNumberHandler seqeunceNumber : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            let! workItems = workItemRepo.GetBySequenceNumber(seqeunceNumber)
+            return! json (workItems |> List.map WorkItem.toDto) next ctx
+        }
+
+let getCompletedWorkItemsHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            let! workItems = workItemRepo.GetCompleted()
+            return! json (workItems |> List.map WorkItem.toDto) next ctx
+        }
+
 let createWorkItemHandler : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
         task {

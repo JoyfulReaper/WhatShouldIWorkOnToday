@@ -19,11 +19,14 @@ let webApp =
             subRouteCi "/WorkItem" (choose [
                 GET >=>
                     choose [
+                        routeCi "/Completed" >=>
+                            warbler (fun _ -> WorkItemService.getCompletedWorkItemsHandler)
                         routeCi "/" >=>
                             warbler (fun _ -> WorkItemService.getAllWorkItemsHandler)
                         routeCif "/%i" (fun workItemId ->
                             warbler (fun _ -> WorkItemService.getWorkItemHandler workItemId))
-
+                        routeCif "/SequenceNumber/%i" (fun seqNum ->
+                            warbler (fun _ -> WorkItemService.getWorkItemsBySeqeunceNumberHandler seqNum))
                     ]
                 POST >=>
                     choose [
