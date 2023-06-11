@@ -13,6 +13,7 @@ public static class DependencyInjection
             configuration.GetSection(nameof(WsiwotClientOptions)));
 
         services.AddHttpClient<ISequenceClient, SequenceClient>();
+        services.AddHttpClient<IWorkItemClient, WorkItemClient>();
 
         return services;
     }
