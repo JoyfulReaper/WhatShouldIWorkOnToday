@@ -44,6 +44,13 @@ let webApp =
                             warbler (fun _ -> WorkItemService.deleteWorkItemHandler workItemId))
                     ]
             ])
+            subRouteCi "/Note" (choose [
+                GET >=> 
+                    choose [
+                        routeCif "/%i" (fun noteId -> 
+                            warbler (fun _ -> NoteService.getNoteHandler noteId))
+                    ]
+            ])
             subRouteCi "/SequenceNumber" (choose [
                 GET >=>
                     choose [

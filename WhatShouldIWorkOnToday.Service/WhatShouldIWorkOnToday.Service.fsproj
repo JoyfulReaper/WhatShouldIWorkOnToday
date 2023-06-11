@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="NoteService.fs" />
     <Compile Include="SettingService.fs" />
     <Compile Include="WorkItemService.fs" />
   </ItemGroup>

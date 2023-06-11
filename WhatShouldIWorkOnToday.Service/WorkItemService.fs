@@ -11,7 +11,7 @@ let getWorkItemHandler workItemId : HttpHandler =
             let! workItem = workItemRepo.Get workItemId
             match workItem with
                 | None -> return! RequestErrors.NOT_FOUND { Message = sprintf "Work item: (id: %i) not found" workItemId } next ctx
-                | Some workItem -> return! json (workItem |> WorkItem.toDto) next ctx
+                | Some workItem -> return! Successful.OK (workItem |> WorkItem.toDto) next ctx
         }
 
 let getAllWorkItemsHandler : HttpHandler =
@@ -19,7 +19,7 @@ let getAllWorkItemsHandler : HttpHandler =
         task {
             let workItemRepo = ctx.GetService<IWorkItemRepository>()
             let! workItems = workItemRepo.GetAll()
-            return! json (workItems |> List.map WorkItem.toDto) next ctx
+            return! Successful.OK (workItems |> List.map WorkItem.toDto) next ctx
         }
 
 let getWorkItemsBySeqeunceNumberHandler seqeunceNumber : HttpHandler =
@@ -27,7 +27,7 @@ let getWorkItemsBySeqeunceNumberHandler seqeunceNumber : HttpHandler =
         task {
             let workItemRepo = ctx.GetService<IWorkItemRepository>()
             let! workItems = workItemRepo.GetBySequenceNumber(seqeunceNumber)
-            return! json (workItems |> List.map WorkItem.toDto) next ctx
+            return! Successful.OK (workItems |> List.map WorkItem.toDto) next ctx
         }
 
 let getCompletedWorkItemsHandler : HttpHandler =
@@ -35,7 +35,7 @@ let getCompletedWorkItemsHandler : HttpHandler =
         task {
             let workItemRepo = ctx.GetService<IWorkItemRepository>()
             let! workItems = workItemRepo.GetCompleted()
-            return! json (workItems |> List.map WorkItem.toDto) next ctx
+            return! Successful.OK (workItems |> List.map WorkItem.toDto) next ctx
         }
 
 let createWorkItemHandler : HttpHandler =
@@ -46,10 +46,11 @@ let createWorkItemHandler : HttpHandler =
             let! savedWorkItem = workItemRepo.Save(workItem |> WorkItem.fromWorkItemRequest)
 
             match savedWorkItem with
-            | None -> return! RequestErrors.BAD_REQUEST { Message = "Failed to save work item" } next ctx
+            | None -> 
+                return! RequestErrors.BAD_REQUEST { Message = "Failed to save work item" } next ctx
             | Some savedWorkItem ->
                 ctx.SetHttpHeader("Location", sprintf "/api/v1/WorkItem/%s" (savedWorkItem.WorkItemId.ToString()))
-                return! json (savedWorkItem |> WorkItem.toDto) next ctx
+                return! Successful.CREATED (savedWorkItem |> WorkItem.toDto) next ctx
         }
 
 let deleteWorkItemHandler workItemId : HttpHandler =
@@ -66,5 +67,5 @@ let updateWorkItemHandler : HttpHandler =
             let workItemRepo = ctx.GetService<IWorkItemRepository>()
             let! workItem = ctx.BindJsonAsync<WorkItemDto>()
             let! updatedWorkItem = workItemRepo.Update(workItem |> WorkItem.fromDto)
-            return! json (updatedWorkItem |> WorkItem.toDto) next ctx
+            return! Successful.OK (updatedWorkItem |> WorkItem.toDto) next ctx
         }

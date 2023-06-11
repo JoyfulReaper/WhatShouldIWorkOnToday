@@ -18,6 +18,12 @@ module Note =
           WorkItemId = noteDto.WorkItemId
           Text = noteDto.Text
           DateCreated = noteDto.DateCreated }
+
+    let fromNoteRequest (noteRequest : NoteRequest) : Note =
+        { NoteId = 0
+          WorkItemId = noteRequest.WorkItemId
+          Text = noteRequest.Text
+          DateCreated = System.DateTime.Now }
         
 
 module ToDoItem =
