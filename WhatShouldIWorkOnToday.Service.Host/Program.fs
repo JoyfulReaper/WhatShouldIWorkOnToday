@@ -49,6 +49,18 @@ let webApp =
                     choose [
                         routeCif "/%i" (fun noteId -> 
                             warbler (fun _ -> NoteService.getNoteHandler noteId))
+                        routeCif "/SequenceNumber/%i" (fun seqNum ->
+                            warbler (fun _ -> NoteService.gotNoteByWorkItemIdHandler seqNum))
+                    ]
+                POST >=>
+                    choose [
+                        routeCi "/" >=>
+                            warbler (fun _ -> NoteService.saveNoteHandler)
+                            ]
+                DELETE >=>
+                    choose [
+                        routeCif "/%i" (fun noteId -> 
+                            warbler (fun _ -> NoteService.deleteNoteHandler noteId))
                     ]
             ])
             subRouteCi "/SequenceNumber" (choose [
