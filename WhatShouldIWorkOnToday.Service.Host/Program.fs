@@ -52,7 +52,7 @@ let webApp =
                         routeCi "/max" >=>
                             warbler (fun _ -> SettingService.getMaxSequenceNumberHandler)
                     ]
-                POST >=>
+                PUT >=>
                     choose [
                         routeCif "/set/%i" (fun seqNum -> warbler (fun _ -> SettingService.setSequenceNumberHandler seqNum))
                     ]

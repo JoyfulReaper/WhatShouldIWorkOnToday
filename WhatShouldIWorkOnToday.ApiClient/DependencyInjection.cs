@@ -7,12 +7,12 @@ namespace WhatShouldIWorkOnToday.ApiClient;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddTaskClient(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddWsiwotClient(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<WsiwotClientOptions>(
             configuration.GetSection(nameof(WsiwotClientOptions)));
 
-        services.AddHttpClient<ISettingsClient, SettingsClient>();
+        services.AddHttpClient<ISequenceClient, SequenceClient>();
 
         return services;
     }
