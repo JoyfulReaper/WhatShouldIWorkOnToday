@@ -33,6 +33,16 @@ let webApp =
                         routeCi "/" >=>
                             warbler (fun _ -> WorkItemService.createWorkItemHandler)
                     ]
+                PUT >=>
+                    choose [
+                        routeCi "/" >=>
+                            warbler (fun _ -> WorkItemService.updateWorkItemHandler)
+                    ]
+                DELETE >=>
+                    choose [
+                        routeCif "/%i" (fun workItemId ->
+                            warbler (fun _ -> WorkItemService.deleteWorkItemHandler workItemId))
+                    ]
             ])
             subRouteCi "/SequenceNumber" (choose [
                 GET >=>

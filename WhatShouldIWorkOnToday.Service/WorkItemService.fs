@@ -51,3 +51,20 @@ let createWorkItemHandler : HttpHandler =
                 ctx.SetHttpHeader("Location", sprintf "/api/v1/WorkItem/%s" (savedWorkItem.WorkItemId.ToString()))
                 return! json (savedWorkItem |> WorkItem.toDto) next ctx
         }
+
+let deleteWorkItemHandler workItemId : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            do! workItemRepo.Delete(workItemId)
+            return! Successful.NO_CONTENT next ctx
+        }
+
+let updateWorkItemHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            let! workItem = ctx.BindJsonAsync<WorkItemDto>()
+            let! updatedWorkItem = workItemRepo.Update(workItem |> WorkItem.fromDto)
+            return! json (updatedWorkItem |> WorkItem.toDto) next ctx
+        }

@@ -52,8 +52,29 @@ let deleteWorkItem (context : SqlDbContext) (id: int) =
         context.SaveChangesAsync() |> Async.AwaitTask |> ignore
     }
 
+let updateWorkItem (context: SqlDbContext) (workItem: WorkItem.WorkItem) =
+    async {
+        let! entity = context.WorkItems.SingleOrDefaultAsync(fun wi -> wi.WorkItemId = workItem.WorkItemId) |> Async.AwaitTask
+
+        entity.WorkItemId <- workItem.WorkItemId
+        entity.Name <- workItem.Name
+        entity.Description <- Option.toObj workItem.Description
+        entity.Url <- Option.toObj workItem.Url
+        entity.Pinned <- workItem.Pinned
+        entity.SequenceNumber <- match workItem.SequenceNumber with
+                                 | Some seqNum -> Nullable seqNum
+                                 | None -> 0
+        entity.DateCreated <- workItem.DateCreated
+        entity.DateCompleted <- Option.toNullable workItem.DateCompleted
+
+        context.SaveChangesAsync() |> Async.AwaitTask |> ignore
+        return entity |> WorkItem.toModel
+    }
+
 type SqlWorkItemRepository(context: SqlDbContext) =
     interface IWorkItemRepository with
+        member this.Update(workItem: WorkItem.WorkItem): Async<WorkItem.WorkItem> = 
+            updateWorkItem context workItem
         member this.GetAll(): Async<WhatShouldIWorkOnToday.Models.WorkItem.WorkItem list> = 
             getAllWorkItems context
         member this.GetBySequenceNumber(seqeunceNumber: int): Async<WhatShouldIWorkOnToday.Models.WorkItem.WorkItem list> = 
