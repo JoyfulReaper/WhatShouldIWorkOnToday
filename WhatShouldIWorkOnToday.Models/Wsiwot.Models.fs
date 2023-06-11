@@ -33,9 +33,7 @@ module ToDoItem =
           WorkItemId = todoItem.WorkItemId
           Task = todoItem.Task
           DateAddded = todoItem.DateAddded
-          DateCompleted = match todoItem.DateCompleted with
-                          | None -> System.Nullable() 
-                          | Some x -> System.Nullable(x)
+          DateCompleted = Option.toNullable todoItem.DateCompleted
         }
 
     let fromDto (todoItemDto: ToDoItemDto) : ToDoItem =
@@ -43,9 +41,7 @@ module ToDoItem =
               WorkItemId = todoItemDto.WorkItemId
               Task = todoItemDto.Task
               DateAddded = todoItemDto.DateAddded
-              DateCompleted = match todoItemDto.DateCompleted with
-                              | dc  when dc.HasValue -> Some (dc.Value)
-                              | _ -> None
+              DateCompleted = Option.ofNullable todoItemDto.DateCompleted
             }
 
 module Setting =
@@ -75,9 +71,7 @@ module WorkItem =
                 | None -> null
                 | Some x -> x
           Pinned = workItem.Pinned
-          SequenceNumber = match workItem.SequenceNumber with
-                           | None -> System.Nullable()
-                           | Some x -> System.Nullable(x)
+          SequenceNumber = Option.toNullable workItem.SequenceNumber
           DateCreated = workItem.DateCreated
           DateCompleted = match workItem.DateCompleted with
                           | None -> System.Nullable()
