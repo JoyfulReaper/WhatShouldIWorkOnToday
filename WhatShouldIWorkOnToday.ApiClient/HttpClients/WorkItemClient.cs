@@ -68,4 +68,10 @@ public class WorkItemClient : IWorkItemClient
         var result = await response.Content.ReadFromJsonAsync<WorkItem>();
         return result;
     }
+
+    public async Task MarkAsWorked(int workItemId, CancellationToken cancellationToken)
+    {
+        var response = await _client.PutAsync(_client.BaseAddress + $"WorkItem/MarkWorked/{workItemId}", null, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
 }

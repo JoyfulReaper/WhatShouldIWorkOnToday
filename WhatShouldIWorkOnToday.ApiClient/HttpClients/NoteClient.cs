@@ -25,25 +25,28 @@ public class NoteClient : INoteClient
 
     public async Task<Note> CreateAsync(Note note, CancellationToken cancellationToken = default)
     {
-        var response = await _client.PostAsJsonAsync(_client.BaseAddress + "/Note", note);
+        var response = await _client.PostAsJsonAsync(_client.BaseAddress + "Note/", note, cancellationToken);
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<Note>();
+        var result = await response.Content.ReadFromJsonAsync<Note>(cancellationToken: cancellationToken);
 
         return result;
     }
 
-    public Task DeleteAsync(int noteId, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(int noteId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var response = await _client.DeleteAsync(_client.BaseAddress + $"Note/{noteId}");
+        response.EnsureSuccessStatusCode();
     }
 
-    public Task<Note?> GetAsync(int noteId, CancellationToken cancellationToken = default)
+    public async Task<Note?> GetAsync(int noteId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var response = await _client.GetFromJsonAsync<Note>(_client.BaseAddress + $"Note/{noteId}", cancellationToken);
+        return response;
     }
 
-    public Task<List<Note>> GetByWorkItemAsync(int workItemId, CancellationToken cancellationToken = default)
+    public async Task<List<Note>> GetByWorkItemAsync(int workItemId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var response = await _client.GetFromJsonAsync<List<Note>>(_client.BaseAddress + $"Note/WorkItem/{workItemId}", cancellationToken);
+        return response;
     }
 }

@@ -3,6 +3,7 @@ open Giraffe
 open Microsoft.AspNetCore.Http
 open WhatShouldIWorkOnToday.Repository
 open WhatShouldIWorkOnToday.Models
+open System
 
 let getWorkItemHandler workItemId : HttpHandler =
     fun (next : HttpFunc) (ctx : HttpContext) ->
@@ -68,4 +69,21 @@ let updateWorkItemHandler : HttpHandler =
             let! workItem = ctx.BindJsonAsync<WorkItemDto>()
             let! updatedWorkItem = workItemRepo.Update(workItem |> WorkItem.fromDto)
             return! Successful.OK (updatedWorkItem |> WorkItem.toDto) next ctx
+        }
+
+let markAsWorkedHandler workItemId : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemHistoryRepo = ctx.GetService<IWorkItemHistoryRepository>()
+            let workItemRepo = ctx.GetService<IWorkItemRepository>();
+
+            let! workItem = workItemRepo.Get workItemId
+            match workItem with
+            | None -> return! RequestErrors.NOT_FOUND { Message = sprintf "Work item: (id: %i) not found" workItemId } next ctx
+            | Some _ ->
+                let workItemHistory : WorkItemHistory.WorkItemHistory = { WorkItemId = workItemId
+                                                                          DateWorkedOn = DateTime.Now
+                                                                          WorkItemHistoryId = 0 }
+                workItemHistoryRepo.Save(workItemHistory) |> ignore
+                return! Successful.NO_CONTENT next ctx
         }

@@ -37,6 +37,8 @@ let webApp =
                     choose [
                         routeCi "/" >=>
                             warbler (fun _ -> WorkItemService.updateWorkItemHandler)
+                        routeCif "/MarkWorked/%i" (fun workItemId ->
+                            warbler (fun _ -> WorkItemService.markAsWorkedHandler)
                     ]
                 DELETE >=>
                     choose [
@@ -49,7 +51,7 @@ let webApp =
                     choose [
                         routeCif "/%i" (fun noteId -> 
                             warbler (fun _ -> NoteService.getNoteHandler noteId))
-                        routeCif "/SequenceNumber/%i" (fun seqNum ->
+                        routeCif "/WorkItem/%i" (fun seqNum ->
                             warbler (fun _ -> NoteService.gotNoteByWorkItemIdHandler seqNum))
                     ]
                 POST >=>
