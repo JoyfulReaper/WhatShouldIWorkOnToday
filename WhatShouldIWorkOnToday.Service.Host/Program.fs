@@ -38,7 +38,7 @@ let webApp =
                         routeCi "/" >=>
                             warbler (fun _ -> WorkItemService.updateWorkItemHandler)
                         routeCif "/MarkWorked/%i" (fun workItemId ->
-                            warbler (fun _ -> WorkItemService.markAsWorkedHandler)
+                            warbler (fun _ -> WorkItemService.markAsWorkedHandler workItemId))
                     ]
                 DELETE >=>
                     choose [
