@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddHttpClient<ISequenceClient, SequenceClient>();
         services.AddHttpClient<IWorkItemClient, WorkItemClient>();
         services.AddHttpClient<INoteClient, NoteClient>();
+        services.AddHttpClient<ITodoItemClient, ToDoItemClient>();
 
         return services;
     }

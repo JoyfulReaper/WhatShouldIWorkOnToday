@@ -46,6 +46,25 @@ let webApp =
                             warbler (fun _ -> WorkItemService.deleteWorkItemHandler workItemId))
                     ]
             ])
+            subRouteCi "/ToDo" (choose [
+                GET >=>
+                    choose [
+                        routeCif "/%i" (fun toDoItemId ->
+                            warbler (fun _ -> ToDoItemService.getToDoItemHandler toDoItemId))
+                        routeCif "/%i" (fun workItemId ->
+                            warbler (fun _ -> ToDoItemService.getToDoItemsByWorkItemHandler workItemId))
+                    ]
+                POST >=>
+                    choose [
+                        routeCi "/" >=>
+                            warbler (fun _ -> ToDoItemService.createToDoItemHandler)
+                    ]
+                PUT >=>
+                    choose [
+                        routeCif "/complete/%i" (fun toDoItemId ->
+                            warbler (fun _ -> ToDoItemService.completeToDoItemHandler toDoItemId))
+                    ]
+            ])
             subRouteCi "/Note" (choose [
                 GET >=> 
                     choose [

@@ -50,6 +50,13 @@ module ToDoItem =
               DateCompleted = Option.ofNullable todoItemDto.DateCompleted
             }
 
+    let fromTodoItemRequest (request : ToDoItemRequest) : ToDoItem =
+        { ToDoItemId = 0
+          WorkItemId = request.WorkItemId
+          Task = request.Task
+          DateAddded = System.DateTime.Now
+          DateCompleted = None }
+
 module Setting =
     type Setting =
         { SettingId: int
@@ -65,7 +72,8 @@ module WorkItem =
           Pinned: bool
           SequenceNumber: int option
           DateCreated: System.DateTime
-          DateCompleted: System.DateTime option }
+          DateCompleted: System.DateTime option
+          DateWorkedOn: System.DateTime option }
 
     let toDto (workItem: WorkItem) : WorkItemDto =
         { WorkItemId = workItem.WorkItemId
@@ -79,6 +87,7 @@ module WorkItem =
           Pinned = workItem.Pinned
           SequenceNumber = Option.toNullable workItem.SequenceNumber
           DateCreated = workItem.DateCreated
+          DateWorkedOn = Option.toNullable workItem.DateWorkedOn
           DateCompleted = match workItem.DateCompleted with
                           | None -> System.Nullable()
                           | Some x -> System.Nullable(x)
@@ -98,6 +107,7 @@ module WorkItem =
                            | sn when sn.HasValue -> Some (sn.Value)
                            | _ -> None
           DateCreated = workItemDto.DateCreated
+          DateWorkedOn = Option.ofNullable workItemDto.DateWorkedOn
           DateCompleted = match workItemDto.DateCompleted with
                           | dc when dc.HasValue -> Some (dc.Value)
                           | _ -> None
@@ -111,6 +121,7 @@ module WorkItem =
           Pinned = request.Pinned
           SequenceNumber = None
           DateCreated = System.DateTime.Now
+          DateWorkedOn = None
           DateCompleted = None }
 
 module WorkItemHistory =

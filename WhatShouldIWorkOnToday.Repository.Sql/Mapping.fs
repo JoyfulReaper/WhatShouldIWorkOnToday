@@ -14,7 +14,7 @@ module WorkItem =
                  DateCreated = workItem.DateCreated,
                  DateCompleted = Option.toNullable workItem.DateCompleted)
 
-    let toModel(entity: WorkItem) : WorkItem.WorkItem =
+    let toModel (dateWorkedOn: DateTime option) (entity: WorkItem) : WorkItem.WorkItem =
         { WorkItemId = entity.WorkItemId
           Name = entity.Name
           Description = match entity.Description with
@@ -28,6 +28,7 @@ module WorkItem =
                            | sn when sn.HasValue -> Some (sn.Value)
                            | _ -> None
           DateCreated = entity.DateCreated
+          DateWorkedOn = dateWorkedOn
           DateCompleted = match entity.DateCompleted with
                           | dc when dc.HasValue -> Some (dc.Value)
                           | _ -> None

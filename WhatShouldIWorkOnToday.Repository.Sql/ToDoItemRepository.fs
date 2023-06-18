@@ -9,8 +9,10 @@ open System.Linq
 
 let getToDoItem (context : SqlDbContext) (id : int) =
     async {
-        let! entity = context.ToDoItems.Where(fun tdi -> tdi.ToDoItemId = id && tdi.DateDeleted = Nullable()).SingleOrDefaultAsync() 
-                      |> Async.AwaitTask
+        let! entity = context.ToDoItems.AsNoTracking()
+                                       .Where(fun tdi -> tdi.ToDoItemId = id && tdi.DateDeleted = Nullable())
+                                       .SingleOrDefaultAsync() 
+                                       |> Async.AwaitTask
         return entity |> Option.ofObj |> Option.map ToDoItem.toModel
     }
 
@@ -38,6 +40,16 @@ let saveNewToDoItem (context : SqlDbContext) (todoItem) =
         context.ToDoItems.Add(todoItem |> ToDoItem.toEntity) |> ignore
         context.SaveChangesAsync() |> Async.AwaitTask |> ignore
         return getToDoItem context todoItem.ToDoItemId |> Async.RunSynchronously
+    }
+
+let completeToDoItem (context: SqlDbContext) (toDoItemId: int) =
+    async {
+        let item = context.ToDoItems.SingleOrDefault(fun tdi -> tdi.ToDoItemId = toDoItemId && tdi.DateDeleted = Nullable())
+        match item with
+        | null -> raise (System.Exception("ToDoItem not found"))
+        | _ ->
+            item.DateCompleted <- DateTime.Now
+            context.SaveChangesAsync() |> Async.AwaitTask |> ignore 
     }
 
 type SqlToDoRepository(context: SqlDbContext) =

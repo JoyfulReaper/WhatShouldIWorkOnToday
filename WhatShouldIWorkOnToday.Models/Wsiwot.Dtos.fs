@@ -36,7 +36,8 @@ type WorkItemDto =
      Pinned: bool
      SequenceNumber: Nullable<int>
      DateCreated: DateTime
-     DateCompleted: Nullable<DateTime> }
+     DateCompleted: Nullable<DateTime>
+     DateWorkedOn: Nullable<DateTime> }
 
 [<CLIMutable>]
 type WorkItemRequest =

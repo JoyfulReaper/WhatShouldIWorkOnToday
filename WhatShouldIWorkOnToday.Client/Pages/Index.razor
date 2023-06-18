@@ -1,7 +1,6 @@
 ﻿@page "/"
-@inject IWorkItemEndpoint _workItemData
-@inject ISequenceNumberEndpoint _sequenceNumberData
-@inject IPinnedWorkItemEndpoint _pinData
+@inject IWorkItemClient _workItemClient
+@inject ISequenceClient _sequenceClient
 
 <PageTitle>What Should I Work on Today?</PageTitle>
 
@@ -109,7 +108,7 @@
 @code {
     private List<WorkItem>? _currentItems = null;
     private WorkItem? _randomItem = null;
-    private CurrentSequenceNumber? _currentSequence = null;
+    private int _currentSequenceNumber = 0;
     private string? _errorMessage = null;
     private string _searchTerm = string.Empty;
     private List<WorkItem> _searchResults = new();

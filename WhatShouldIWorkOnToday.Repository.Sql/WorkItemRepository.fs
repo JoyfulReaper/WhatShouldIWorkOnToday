@@ -8,32 +8,57 @@ open WhatShouldIWorkOnToday.Models
 open System.Linq
 open System
 
+let getLastDateWorkedOn(workItem : Entities.WorkItem) =
+    let history = workItem.WorkItemHistories.Where(fun wih -> wih.WorkItemId = workItem.WorkItemId)
+                                            .OrderByDescending(fun wih -> wih.DateWorkedOn)
+                                            .FirstOrDefault()
+    match history with
+    | null -> None
+    | _ -> Some history.DateWorkedOn
+
 let getWorkItem(context : SqlDbContext) (id : int) =
     async {
+        (*let! workItem = context.WorkItems.AsNoTracking().Include(fun w -> w.WorkItemHistories)
+                                         .SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id && wi.DateDeleted = Nullable()) |> Async.AwaitTask*)
+
         let! workItem = context.WorkItems.AsNoTracking()
+                                         .Include(fun w -> w.WorkItemHistories)
                                          .SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id && wi.DateDeleted = Nullable()) |> Async.AwaitTask
-        return workItem |> Option.ofObj |> Option.map WorkItem.toModel
+        let dateWorkedOn = workItem |> getLastDateWorkedOn
+        
+        return workItem |> Option.ofObj |> Option.map (WorkItem.toModel dateWorkedOn)
     }
 
 let getAllWorkItems(context : SqlDbContext) =
     async {
-        let query = context.WorkItems.AsNoTracking().AsQueryable()
+        let query = context.WorkItems.AsNoTracking()
+                                     .Include(fun wi -> wi.WorkItemHistories)
+                                     .AsQueryable()
         let! workItems = query.Where(fun wi -> wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
-        return workItems |> List.ofSeq |> List.map WorkItem.toModel
+
+        return workItems |> List.ofSeq |> List.map (fun wi -> 
+            let dateWorkedOn = getLastDateWorkedOn wi
+            wi |> WorkItem.toModel dateWorkedOn)
     }
 
 let getWorkItemsBySequenceNumber (context: SqlDbContext) (sequenceNumber: int) =
     async {
         let query = context.WorkItems.AsNoTracking().AsQueryable()
         let! filteredQuery = query.Where(fun wi -> wi.SequenceNumber = Nullable sequenceNumber && wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
-        return filteredQuery |> List.ofSeq |> List.map WorkItem.toModel
+        let result = filteredQuery |> List.ofSeq |> List.map (fun wi ->
+            let dateLastWorkedOn = getLastDateWorkedOn wi
+            wi |> WorkItem.toModel dateLastWorkedOn
+        )
+        return result
     }
 
 let getAllCompletedWorkItems (context: SqlDbContext) =
     async {
         let query = context.WorkItems.AsQueryable()
         let! filteredQuery = query.Where(fun wi -> wi.DateCompleted <> Nullable() && wi.DateDeleted = Nullable()).ToListAsync() |> Async.AwaitTask
-        return filteredQuery |> List.ofSeq |> List.map WorkItem.toModel
+        return filteredQuery |> List.ofSeq |> List.map (fun wi -> 
+            let dateLastWorkedOn = getLastDateWorkedOn wi
+            wi |> WorkItem.toModel dateLastWorkedOn)
     }
 
 let saveNewWorkItem (context : SqlDbContext) (workItem : WorkItem.WorkItem) =
@@ -42,7 +67,9 @@ let saveNewWorkItem (context : SqlDbContext) (workItem : WorkItem.WorkItem) =
         context.WorkItems.Add(entity) |> ignore
         context.SaveChangesAsync() |> Async.AwaitTask |> ignore
         context.Entry(entity).ReloadAsync() |> Async.AwaitTask |> ignore
-        return entity |> WorkItem.toModel |> Some
+
+        let dateLastWorkedon = getLastDateWorkedOn entity
+        return entity |> WorkItem.toModel dateLastWorkedon |> Some
     }
 
 let deleteWorkItem (context : SqlDbContext) (id: int) =
@@ -68,7 +95,9 @@ let updateWorkItem (context: SqlDbContext) (workItem: WorkItem.WorkItem) =
         entity.DateCompleted <- Option.toNullable workItem.DateCompleted
 
         context.SaveChangesAsync() |> Async.AwaitTask |> ignore
-        return entity |> WorkItem.toModel
+
+        let dateLastWorkedon = getLastDateWorkedOn entity
+        return entity |> WorkItem.toModel dateLastWorkedon
     }
 
 type SqlWorkItemRepository(context: SqlDbContext) =
