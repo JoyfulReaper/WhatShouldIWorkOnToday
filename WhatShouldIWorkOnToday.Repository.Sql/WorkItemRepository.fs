@@ -18,9 +18,6 @@ let getLastDateWorkedOn(workItem : Entities.WorkItem) =
 
 let getWorkItem(context : SqlDbContext) (id : int) =
     async {
-        (*let! workItem = context.WorkItems.AsNoTracking().Include(fun w -> w.WorkItemHistories)
-                                         .SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id && wi.DateDeleted = Nullable()) |> Async.AwaitTask*)
-
         let! workItem = context.WorkItems.AsNoTracking()
                                          .Include(fun w -> w.WorkItemHistories)
                                          .SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id && wi.DateDeleted = Nullable()) |> Async.AwaitTask
@@ -100,8 +97,18 @@ let updateWorkItem (context: SqlDbContext) (workItem: WorkItem.WorkItem) =
         return entity |> WorkItem.toModel dateLastWorkedon
     }
 
+let searchWorkItems (context: SqlDbContext) (searchTerm: string) =
+    async {
+        let! entities = context.WorkItems.Where(fun wi -> EF.Functions.Like(wi.Name, "%" + searchTerm + "%")).ToListAsync() |> Async.AwaitTask
+        return entities |> List.ofSeq |> List.map (fun wi -> 
+            let dateLastWorkedOn = getLastDateWorkedOn wi
+            wi |> WorkItem.toModel dateLastWorkedOn)
+    }
+
 type SqlWorkItemRepository(context: SqlDbContext) =
     interface IWorkItemRepository with
+        member this.Search(searchTerm: string): Async<WorkItem.WorkItem list> = 
+            searchWorkItems context searchTerm
         member this.Update(workItem: WorkItem.WorkItem): Async<WorkItem.WorkItem> = 
             updateWorkItem context workItem
         member this.GetAll(): Async<WhatShouldIWorkOnToday.Models.WorkItem.WorkItem list> = 

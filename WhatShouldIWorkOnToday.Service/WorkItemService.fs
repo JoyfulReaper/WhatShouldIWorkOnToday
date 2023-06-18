@@ -87,3 +87,11 @@ let markAsWorkedHandler workItemId : HttpHandler =
                 workItemHistoryRepo.Save(workItemHistory) |> ignore
                 return! Successful.NO_CONTENT next ctx
         }
+
+let searchWorkItemsHandler searchTerm : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let workItemRepo = ctx.GetService<IWorkItemRepository>()
+            let! workItems = workItemRepo.Search(searchTerm)
+            return! Successful.OK (workItems |> List.map WorkItem.toDto) next ctx
+        }

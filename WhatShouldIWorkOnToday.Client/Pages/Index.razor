@@ -15,8 +15,7 @@
         {
             <h1 class="text-center display-6">What Should I Work on Today?</h1>
             <p>
-                The current sequence number is: @_currentSequence?.CurrentSequence <br />
-                Set on: @_currentSequence?.DateSet.ToShortDateString()
+                The current sequence number is: @_currentSequenceNumber <br />
             </p>
             <div>
                 <button type="button" class="btn btn-primary" @onclick="AdvanceSequence">
@@ -138,7 +137,7 @@
     {
         try
         {
-            _searchResults = await _workItemData.Search(_searchTerm);
+            _searchResults = await _workItemClient.SearchAsync(_searchTerm);
             _errorMessage = null;
         }
         catch (Exception x)
@@ -152,10 +151,10 @@
     {
         try
         {
-            _currentItems = await _workItemData.GetCurrentAsync();
-            _currentSequence = await _sequenceNumberData.Get();
+            _currentSequenceNumber = await _sequenceClient.GetSequenceNumberAsync();
+            _currentItems = await _workItemClient.GetBySequenceNumberAsync(_currentSequenceNumber);
+
             _errorMessage = null;
-            _pins = await _pinData.GetAllPinnedWorkItems();
         }
         catch
         {
@@ -169,19 +168,16 @@
     {
         try
         {
-            int maxSeq = await _sequenceNumberData.GetMaxSequenceNumber();
+            int maxSeq = await _sequenceClient.GetMaxSeqeunceNumberAsync();
 
-            if (_currentSequence.CurrentSequence >= maxSeq)
+            if (_currentSequenceNumber >= maxSeq)
             {
-                _currentSequence.CurrentSequence = 1;
+                _currentSequenceNumber = 1;
             }
             else
             {
-                _currentSequence.CurrentSequence++;
+                _currentSequenceNumber++;
             }
-
-            _currentSequence.DateSet = DateTime.UtcNow;
-            await _sequenceNumberData.Put(_currentSequence);
 
             _errorMessage = null;
         }
@@ -197,7 +193,7 @@
     {
         try
         {
-            var allItems = await _workItemData.GetAllAsync();
+            var allItems = await _workItemClient.GetAllAsync();
             _randomItem = allItems[_random.Next(allItems.Count)];
 
             _errorMessage = null;

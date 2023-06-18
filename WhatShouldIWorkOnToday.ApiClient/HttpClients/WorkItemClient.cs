@@ -74,4 +74,13 @@ public class WorkItemClient : IWorkItemClient
         var response = await _client.PutAsync(_client.BaseAddress + $"WorkItem/MarkWorked/{workItemId}", null, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task<List<WorkItem>> SearchAsync(string searchTerm, CancellationToken cancellationToken)
+    {
+        var response = await _client.GetAsync(_client.BaseAddress + $"WorkItem/Search/{searchTerm}", cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadFromJsonAsync<List<WorkItem>>();
+        return result ?? new List<WorkItem>();
+    }
 }

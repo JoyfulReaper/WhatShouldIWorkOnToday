@@ -19,4 +19,5 @@ public class WorkItem
     public int? SequenceNumber { get; set; }
     public DateTime DateCreated { get; set; }
     public DateTime? DateCompleted { get; set; }
+    public DateTime? DateWorkedOn { get; set; }
 }

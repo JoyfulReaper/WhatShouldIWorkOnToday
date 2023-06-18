@@ -27,6 +27,7 @@ type IWorkItemRepository =
     abstract member GetCompleted : unit -> Async<WorkItem.WorkItem list>
     abstract member GetBySequenceNumber : int -> Async<WorkItem.WorkItem list>
     abstract member Delete : int -> Async<unit>
+    abstract member Search : string -> Async<WorkItem.WorkItem list>
 
 type IWorkItemHistoryRepository =
     abstract member Get : int -> Async<WorkItemHistory.WorkItemHistory option>
