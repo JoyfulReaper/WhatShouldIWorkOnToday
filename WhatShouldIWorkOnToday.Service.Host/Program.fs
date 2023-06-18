@@ -53,7 +53,7 @@ let webApp =
                     choose [
                         routeCif "/%i" (fun toDoItemId ->
                             warbler (fun _ -> ToDoItemService.getToDoItemHandler toDoItemId))
-                        routeCif "/%i" (fun workItemId ->
+                        routeCif "/WorkItem/%i" (fun workItemId ->
                             warbler (fun _ -> ToDoItemService.getToDoItemsByWorkItemHandler workItemId))
                     ]
                 POST >=>
@@ -65,6 +65,11 @@ let webApp =
                     choose [
                         routeCif "/complete/%i" (fun toDoItemId ->
                             warbler (fun _ -> ToDoItemService.completeToDoItemHandler toDoItemId))
+                    ]
+                DELETE >=>
+                    choose [
+                        routeCif "/%i" (fun toDoItemId ->
+                            warbler (fun _ -> ToDoItemService.deleteToDoItemHandler toDoItemId))
                     ]
             ])
             subRouteCi "/Note" (choose [

@@ -1,4 +1,4 @@
-﻿@inject IWorkItemEndpoint _workItemData
+﻿@inject IWorkItemClient _workItemClient
 
 <EditForm Model="_workItem" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -50,7 +50,7 @@
     {
         if (WorkItemId != 0)
         {
-            _workItem = await _workItemData.GetAsync(WorkItemId);
+            _workItem = await _workItemClient.GetAsync(WorkItemId);
         }
     }
 
@@ -60,11 +60,11 @@
         {
             if (WorkItemId == 0)
             {
-                _workItem = await _workItemData.PostAsync(_workItem);
+                _workItem = await _workItemClient.CreateAsync(_workItem);
             }
             else
             {
-                await _workItemData.PutAsync(_workItem);
+                await _workItemClient.UpdateAsync(_workItem);
             }
         }
         catch (Exception)

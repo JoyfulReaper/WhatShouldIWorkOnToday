@@ -25,7 +25,7 @@ public class WorkItemClient : IWorkItemClient
 
     public async Task<WorkItem?> CreateAsync(WorkItem workItem, CancellationToken cancellationToken)
     {
-        var response = await _client.PostAsJsonAsync(_client.BaseAddress + "WorkItem/", workItem, cancellationToken);
+        using var response = await _client.PostAsJsonAsync(_client.BaseAddress + "WorkItem/", workItem, cancellationToken);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<WorkItem>();
         return result;
@@ -33,7 +33,7 @@ public class WorkItemClient : IWorkItemClient
 
     public async Task DeleteAsync(int workItemId, CancellationToken cancellationToken)
     {
-        var response = await _client.DeleteAsync(_client.BaseAddress + $"WorkItem/{workItemId}", cancellationToken);
+        using var response = await _client.DeleteAsync(_client.BaseAddress + $"WorkItem/{workItemId}", cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
@@ -63,7 +63,7 @@ public class WorkItemClient : IWorkItemClient
 
     public async Task<WorkItem> UpdateAsync(WorkItem workItem, CancellationToken cancellationToken)
     {
-        var response = await _client.PutAsJsonAsync(_client.BaseAddress + "WorkItem/", workItem, cancellationToken);
+        using var response = await _client.PutAsJsonAsync(_client.BaseAddress + "WorkItem/", workItem, cancellationToken);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<WorkItem>();
         return result;

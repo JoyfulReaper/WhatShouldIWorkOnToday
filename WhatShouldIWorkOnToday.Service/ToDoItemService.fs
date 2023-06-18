@@ -43,3 +43,12 @@ let completeToDoItemHandler toDoItemId : HttpHandler =
 
         return! Successful.NO_CONTENT next ctx
     }
+
+let deleteToDoItemHandler todoItemId : HttpHandler =
+    fun (next : HttpFunc) (ctx : HttpContext) ->
+        task {
+            let toDoItemRepo = ctx.GetService<IToDoItemRepository>()
+            do! toDoItemRepo.Delete todoItemId
+
+            return! Successful.NO_CONTENT next ctx
+        }

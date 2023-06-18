@@ -1,6 +1,6 @@
 ﻿@page "/todos/{workItemId:int}"
-@inject ITodoItemEndpoint _todoItemData
-@inject IWorkItemEndpoint _workItemData
+@inject ITodoItemClient _todoItemClient
+@inject IWorkItemClient _workItemClient
 
 <div class="row">
     <div class="col">
@@ -91,10 +91,10 @@
     [Parameter]
     public int WorkItemId { get; set; }
 
-    private IEnumerable<TodoItem>? _todoItems = null;
+    private IEnumerable<ToDoItem>? _todoItems = null;
     private string? _errorMessage = null;
     private WorkItem? _workItem;
-    private TodoItem _todoItem = new();
+    private ToDoItem _todoItem = new();
 
     private bool _editing = false;
 
@@ -107,8 +107,8 @@
     {
         try
         {
-            _todoItems = await _todoItemData.GetAsync(WorkItemId);
-            _workItem = await _workItemData.GetAsync(WorkItemId);
+            _todoItems = await _todoItemClient.GetByWorkItemAsync(WorkItemId);
+            _workItem = await _workItemClient.GetAsync(WorkItemId);
             _todoItem.WorkItemId = _workItem.WorkItemId;
             _errorMessage = null;
         }
@@ -122,7 +122,7 @@
     {
         try
         {
-            await _todoItemData.CompleteAsync(todoItemId);
+            await _todoItemClient.CompleteAsync(todoItemId);
             _errorMessage = null;
             await UpdateData();
         }
@@ -163,7 +163,7 @@
             }
             else
             {
-                await _todoItemData.PostAsync(_todoItem);
+                await _todoItemClient.CreateAsync(new ToDoItemRequest { Task = _todoItem.Task, WorkItemId = _todoItem.WorkItemId });
                 _todoItem.Task = string.Empty;
             }
 
@@ -188,7 +188,7 @@
     {
         try
         {
-            await _todoItemData.Delete(todoItemId);
+            await _todoItemClient.DeleteAsync(todoItemId);
             _errorMessage = null;
             await UpdateData();
         }

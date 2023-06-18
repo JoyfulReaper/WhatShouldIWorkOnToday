@@ -1,6 +1,6 @@
 ﻿@page "/completed-items"
 
-@inject IWorkItemEndpoint _workItemData
+@inject IWorkItemClient _workItemClient
 
 <div class="row">
     <div class="col">
@@ -39,7 +39,7 @@
     {
         try
         {
-            _completedItems = await _workItemData.GetCompletedAsync();
+            _completedItems = await _workItemClient.GetCompletedAsync();
             _errorMessage = null;
         }
         catch (Exception ex)

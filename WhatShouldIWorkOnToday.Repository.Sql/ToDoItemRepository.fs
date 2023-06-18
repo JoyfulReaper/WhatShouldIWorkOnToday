@@ -62,4 +62,5 @@ type SqlToDoRepository(context: SqlDbContext) =
             getToDoItemsByWorkItemId context workItemId
         member this.Save(toDoItem: WhatShouldIWorkOnToday.Models.ToDoItem.ToDoItem): Async<WhatShouldIWorkOnToday.Models.ToDoItem.ToDoItem option> = 
             saveNewToDoItem context toDoItem
-        
+        member this.Complete(toDoItemId: int): Async<unit> = 
+            completeToDoItem context toDoItemId

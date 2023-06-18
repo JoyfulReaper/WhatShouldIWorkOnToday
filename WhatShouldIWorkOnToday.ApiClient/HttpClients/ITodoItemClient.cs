@@ -12,4 +12,5 @@ public interface ITodoItemClient
     Task<List<ToDoItem>> GetByWorkItemAsync(int workItemId, CancellationToken cancellationToken = default);
     Task<ToDoItem> CreateAsync(ToDoItemRequest todoItemrequest, CancellationToken cancellationToken = default);
     Task CompleteAsync(int todoItemId, CancellationToken cancellationToken = default);
+    Task DeleteAsync(int todoItemId, CancellationToken cancellationToken = default);
 }

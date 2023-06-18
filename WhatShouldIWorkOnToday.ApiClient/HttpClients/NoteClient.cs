@@ -1,10 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 using WhatShouldIWorkOnToday.ApiClient.Common;
 using WhatShouldIWorkOnToday.ApiClient.Common.Options;
 using WhatShouldIWorkOnToday.ApiClient.Contracts;
@@ -25,7 +20,7 @@ public class NoteClient : INoteClient
 
     public async Task<Note> CreateAsync(Note note, CancellationToken cancellationToken = default)
     {
-        var response = await _client.PostAsJsonAsync(_client.BaseAddress + "Note/", note, cancellationToken);
+        using var response = await _client.PostAsJsonAsync(_client.BaseAddress + "Note/", note, cancellationToken);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<Note>(cancellationToken: cancellationToken);
 
@@ -34,7 +29,7 @@ public class NoteClient : INoteClient
 
     public async Task DeleteAsync(int noteId, CancellationToken cancellationToken = default)
     {
-        var response = await _client.DeleteAsync(_client.BaseAddress + $"Note/{noteId}");
+        using var response = await _client.DeleteAsync(_client.BaseAddress + $"Note/{noteId}");
         response.EnsureSuccessStatusCode();
     }
 

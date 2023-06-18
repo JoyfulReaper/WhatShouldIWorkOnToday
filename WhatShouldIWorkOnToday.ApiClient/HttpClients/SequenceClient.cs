@@ -33,7 +33,7 @@ public class SequenceClient : ISequenceClient
 
     public async Task<int> SetSequenceNumberAsync(int sequenceNumber, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PutAsync(_httpClient.BaseAddress + $"SequenceNumber/set/{sequenceNumber}", null, cancellationToken);
+        using var response = await _httpClient.PutAsync(_httpClient.BaseAddress + $"SequenceNumber/set/{sequenceNumber}", null, cancellationToken);
         response.EnsureSuccessStatusCode();
         var result = int.Parse(await response.Content.ReadAsStringAsync());
         return result;

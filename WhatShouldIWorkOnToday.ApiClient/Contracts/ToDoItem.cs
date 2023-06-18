@@ -16,5 +16,5 @@ public class ToDoItem
     public string Task { get; set; } = default!;
 
     public DateTime DateAdded { get; set; }
-    public DateTime? DateCompelted { get; set; }
+    public DateTime? DateCompleted { get; set; }
 }

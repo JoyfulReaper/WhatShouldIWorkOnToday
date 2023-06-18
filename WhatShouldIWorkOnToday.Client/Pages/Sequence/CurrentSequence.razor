@@ -1,23 +1,23 @@
 ﻿@page "/current-sequence"
-@inject ISequenceNumberEndpoint _sequenceNumberData
+@inject ISequenceClient _sequenceClient
 
 <PageTitle>WSIWOT: Change Current Sequeunce Nubmer</PageTitle>
 
 <div class="row">
     <div class="col">
-        @if (_currentSequenceNumber is null)
+        @if (_currentSequenceNumber == 0)
         {
             <Loading />
         }
         else
         {
-            <h3>Current Sequeunce Number: @_currentSequenceNumber.CurrentSequence</h3>
+            <h3>Current Sequeunce Number: @_currentSequenceNumber</h3>
             <EditForm Model="_newSequenceNumber" OnValidSubmit="HandleValidSubmit">
 
                 <div class="mb-3">
                     <label class="form-label">Set Sequeunce Number</label>
                     <InputNumber class="form-control form-control-sm w-auto"
-                             @bind-Value=_newSequenceNumber.CurrentSequence />
+                             @bind-Value=_newSequenceNumber />
                 </div>
                 <div>
                     <button type="submit" class="btn btn-primary">Change Sequence</button>
@@ -29,8 +29,8 @@
 
 
 @code {
-    private CurrentSequenceNumber? _currentSequenceNumber;
-    private CurrentSequenceNumber _newSequenceNumber = new();
+    private int _currentSequenceNumber;
+    private int _newSequenceNumber = 0;
 
     protected async override Task OnParametersSetAsync()
     {
@@ -39,16 +39,13 @@
 
     private async Task LoadData()
     {
-        _currentSequenceNumber = await _sequenceNumberData.Get();
-        _newSequenceNumber.CurrentSequence = _currentSequenceNumber.CurrentSequence;
+        _currentSequenceNumber = await _sequenceClient.GetSequenceNumberAsync();
         StateHasChanged();
     }
 
     private async Task HandleValidSubmit(EditContext editContext)
     {
-        _newSequenceNumber.DateSet = DateTime.UtcNow;
-
-        await _sequenceNumberData.Put(_newSequenceNumber);
+        await _sequenceClient.SetSequenceNumberAsync(_newSequenceNumber);
         _currentSequenceNumber = _newSequenceNumber;
 
         editContext.MarkAsUnmodified();
