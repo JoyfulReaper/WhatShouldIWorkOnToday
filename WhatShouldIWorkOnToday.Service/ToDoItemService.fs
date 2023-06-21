@@ -52,3 +52,13 @@ let deleteToDoItemHandler todoItemId : HttpHandler =
 
             return! Successful.NO_CONTENT next ctx
         }
+
+let updateToDoItemHandler : HttpHandler =
+    fun (next : HttpFunc) (ctx: HttpContext) ->
+    task {
+        let todoItemRepo = ctx.GetService<IToDoItemRepository>()
+        let! todoItem = ctx.BindJsonAsync<ToDoItemDto>()
+        let! updatedToDoItem = todoItemRepo.Update (todoItem |> ToDoItem.fromDto)
+
+        return! Successful.OK (ToDoItem.toDto updatedToDoItem) next ctx
+    }

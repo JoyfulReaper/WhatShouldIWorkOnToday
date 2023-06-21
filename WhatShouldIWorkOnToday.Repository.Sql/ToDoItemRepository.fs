@@ -3,6 +3,7 @@
 open WhatShouldIWorkOnToday.Repository.Sql.Entities
 open WhatShouldIWorkOnToday.Repository
 open WhatShouldIWorkOnToday.Repository.Sql.Mapping
+open WhatShouldIWorkOnToday.Models
 open Microsoft.EntityFrameworkCore
 open System
 open System.Linq
@@ -52,8 +53,21 @@ let completeToDoItem (context: SqlDbContext) (toDoItemId: int) =
             context.SaveChangesAsync() |> Async.AwaitTask |> ignore 
     }
 
+let updateToDoItem (context: SqlDbContext) (todoItem: ToDoItem.ToDoItem) =
+    async {
+        let! entity = context.ToDoItems.SingleOrDefaultAsync(fun ti -> ti.ToDoItemId = todoItem.ToDoItemId) |> Async.AwaitTask
+        
+        entity.Task <- todoItem.Task
+        entity.DateCompleted <- Option.toNullable todoItem.DateCompleted
+
+        context.SaveChangesAsync() |> Async.AwaitTask |> ignore
+        return entity |> ToDoItem.toModel
+    }
+
 type SqlToDoRepository(context: SqlDbContext) =
     interface IToDoItemRepository with
+        member this.Update(todoItem: WhatShouldIWorkOnToday.Models.ToDoItem.ToDoItem): Async<WhatShouldIWorkOnToday.Models.ToDoItem.ToDoItem> = 
+            raise (System.NotImplementedException())
         member this.Delete(id: int): Async<unit> = 
             deleteToDoItem context id
         member this.Get(id: int): Async<WhatShouldIWorkOnToday.Models.ToDoItem.ToDoItem option> = 

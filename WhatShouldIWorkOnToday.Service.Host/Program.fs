@@ -65,6 +65,8 @@ let webApp =
                     choose [
                         routeCif "/complete/%i" (fun toDoItemId ->
                             warbler (fun _ -> ToDoItemService.completeToDoItemHandler toDoItemId))
+                        routeCi "/" >=>
+                            warbler (fun _ -> ToDoItemService.updateToDoItemHandler)
                     ]
                 DELETE >=>
                     choose [

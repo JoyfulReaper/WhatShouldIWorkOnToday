@@ -38,14 +38,14 @@ module ToDoItem =
     let toEntity (todoItem : ToDoItem.ToDoItem) : ToDoItem = 
         ToDoItem(WorkItemId = todoItem.WorkItemId,
                  Task = todoItem.Task,
-                 DateAdded = todoItem.DateAddded,
+                 DateAdded = todoItem.DateAdded,
                  DateCompleted = Option.toNullable todoItem.DateCompleted)
 
     let toModel (entity : ToDoItem) : ToDoItem.ToDoItem =
         { ToDoItemId = entity.ToDoItemId
           WorkItemId = entity.WorkItemId
           Task = entity.Task
-          DateAddded = entity.DateAdded
+          DateAdded = entity.DateAdded
           DateCompleted = Option.ofNullable entity.DateCompleted
         }
 

@@ -61,20 +61,20 @@
                                 <td class="text-center">
                                     @if (item.DateCompleted is null)
                                     {
-                                        <button class="btn btn-sm btn-warning" type="button"  @onclick="() => CompleteItem(item.TodoItemId)">
+                                        <button class="btn btn-sm btn-warning" type="button"  @onclick="() => CompleteItem(item.ToDoItemId)">
                                             Complete
                                         </button>
                                     }
                                     else
                                     {
-                                         <button class="btn btn-sm btn-danger" type="button" @onclick="() => UnCompleteItem(item.TodoItemId)">
+                                        <button class="btn btn-sm btn-danger" type="button" @onclick="() => UnCompleteItem(item.ToDoItemId)">
                                             Un-Complete
                                         </button>
                                     }
                                     <button class="btn btn-sm btn-outline-warning ms-1" type="button" @onclick="() => Edit(item)">
                                         Edit
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger ms-1" type="button" @onclick="() => Delete(item.TodoItemId)">
+                                    <button class="btn btn-sm btn-outline-danger ms-1" type="button" @onclick="() => Delete(item.ToDoItemId)">
                                         Delete
                                     </button>
                                 </td>
@@ -157,7 +157,7 @@
         {
             if(_editing)
             {
-                await _todoItemData.Edit(_todoItem);
+                await _todoItemClient.Edit(_todoItem);
                 _todoItem.Task = string.Empty;
                 _editing = false;
             }
@@ -177,11 +177,11 @@
         }
     }
 
-    private void Edit(TodoItem item)
+    private void Edit(ToDoItem item)
     {
         _editing = true;
         _todoItem.Task = item.Task;
-        _todoItem.TodoItemId = item.TodoItemId;
+        _todoItem.ToDoItemId = item.ToDoItemId;
     }
 
     private async Task Delete(int todoItemId)

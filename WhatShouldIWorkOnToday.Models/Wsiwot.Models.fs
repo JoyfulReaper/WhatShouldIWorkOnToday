@@ -31,14 +31,14 @@ module ToDoItem =
         { ToDoItemId: int
           WorkItemId: int
           Task: string
-          DateAddded: System.DateTime
+          DateAdded: System.DateTime
           DateCompleted: System.DateTime option }
 
     let toDto (todoItem: ToDoItem) : ToDoItemDto =
         { ToDoItemId = todoItem.ToDoItemId
           WorkItemId = todoItem.WorkItemId
           Task = todoItem.Task
-          DateAddded = todoItem.DateAddded
+          DateAdded = todoItem.DateAdded
           DateCompleted = Option.toNullable todoItem.DateCompleted
         }
 
@@ -46,7 +46,7 @@ module ToDoItem =
             { ToDoItemId = todoItemDto.ToDoItemId
               WorkItemId = todoItemDto.WorkItemId
               Task = todoItemDto.Task
-              DateAddded = todoItemDto.DateAddded
+              DateAdded = todoItemDto.DateAdded
               DateCompleted = Option.ofNullable todoItemDto.DateCompleted
             }
 
@@ -54,7 +54,7 @@ module ToDoItem =
         { ToDoItemId = 0
           WorkItemId = request.WorkItemId
           Task = request.Task
-          DateAddded = System.DateTime.Now
+          DateAdded = System.DateTime.Now
           DateCompleted = None }
 
 module Setting =

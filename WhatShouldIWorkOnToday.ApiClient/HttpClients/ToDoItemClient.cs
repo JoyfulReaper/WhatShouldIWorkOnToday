@@ -49,4 +49,12 @@ public class ToDoItemClient : ITodoItemClient
         var response = await _httpClient.GetFromJsonAsync<List<ToDoItem>>(_httpClient.BaseAddress + $"ToDo/WorkItem/${workItemId}");
         return response ?? new List<ToDoItem>();
     }
+
+    public async Task<ToDoItem> UpdateAsync(ToDoItem todoItem, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.PutAsJsonAsync<ToDoItem>(_httpClient.BaseAddress + $"Todo", todoItem, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        var output = await response.Content.ReadFromJsonAsync<ToDoItem>();
+        return output;
+    }
 }

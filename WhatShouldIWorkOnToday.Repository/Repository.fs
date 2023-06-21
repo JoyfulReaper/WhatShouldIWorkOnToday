@@ -18,6 +18,7 @@ type IToDoItemRepository =
     abstract member Save : ToDoItem.ToDoItem -> Async<ToDoItem.ToDoItem option>
     abstract member Delete : int -> Async<unit>
     abstract member Complete : int -> Async<unit>
+    abstract member Update: ToDoItem.ToDoItem -> Async<ToDoItem.ToDoItem>
 
 type IWorkItemRepository =
     abstract member Get : int -> Async<WorkItem.WorkItem option>

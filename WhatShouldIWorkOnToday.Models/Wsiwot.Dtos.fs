@@ -19,7 +19,7 @@ type ToDoItemDto =
     { ToDoItemId: int
       WorkItemId: int
       Task: string
-      DateAddded: DateTime
+      DateAdded: DateTime
       DateCompleted: Nullable<DateTime> }
 
 [<CLIMutable>]
