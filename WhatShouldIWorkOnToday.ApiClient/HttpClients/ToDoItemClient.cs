@@ -24,6 +24,13 @@ public class ToDoItemClient : ITodoItemClient
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task UncompleteAsync(int todoItemId, CancellationToken cancellation = default)
+    {
+        var todoItem = await GetAsync(todoItemId, cancellation);
+        todoItem.DateCompleted = null;
+        await UpdateAsync(todoItem, cancellation);
+    }
+
     public async Task<ToDoItem> CreateAsync(ToDoItemRequest todoItemrequest, CancellationToken cancellationToken = default)
     {
         using var resposne = await _httpClient.PostAsJsonAsync(_httpClient.BaseAddress + "ToDo", todoItemrequest, cancellationToken);

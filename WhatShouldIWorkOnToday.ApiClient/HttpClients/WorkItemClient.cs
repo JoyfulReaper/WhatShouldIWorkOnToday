@@ -69,7 +69,7 @@ public class WorkItemClient : IWorkItemClient
         return result;
     }
 
-    public async Task MarkAsWorked(int workItemId, CancellationToken cancellationToken)
+    public async Task MarkAsWorked(int workItemId, CancellationToken cancellationToken = default)
     {
         var response = await _client.PutAsync(_client.BaseAddress + $"WorkItem/MarkWorked/{workItemId}", null, cancellationToken);
         response.EnsureSuccessStatusCode();

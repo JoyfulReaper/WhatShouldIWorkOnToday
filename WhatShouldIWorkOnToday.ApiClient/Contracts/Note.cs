@@ -11,5 +11,5 @@ public class Note
     [Required]
     public string Text { get; set; } = default!;
 
-    public DateTime Created { get; set; }
+    public DateTime DateCreated { get; set; }
 }

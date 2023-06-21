@@ -11,4 +11,5 @@ public interface IWorkItemClient
     Task<WorkItem?> CreateAsync(WorkItem workItem, CancellationToken cancellationToken = default);
     Task<WorkItem> UpdateAsync(WorkItem workItem, CancellationToken cancellationToken = default);
     Task DeleteAsync(int workItemId, CancellationToken cancellationToken = default);
+    Task MarkAsWorked(int workItemId, CancellationToken cancellationToken = default);
 }

@@ -1,7 +1,6 @@
 ﻿@page "/view-work-item/{WorkItemId:int}"
-@inject IWorkItemEndpoint _workItemData
-@inject INoteEndpoint _noteData
-@inject IPinnedWorkItemEndpoint _pins
+@inject IWorkItemClient _workItemClient
+@inject INoteClient _noteClient
 @inject NavigationManager _nav
 
 <PageTitle>WSIWOT: Work Item</PageTitle>
@@ -108,7 +107,6 @@
     private WorkItem? _workItem { get; set; }
     private Note _note { get; set; } = new();
     private List<Note> _notes { get; set; } = new();
-    private bool _isPinned;
 
     private string? _errorMessage;
     private bool _editing;
@@ -122,11 +120,8 @@
     {
         try
         {
-            _workItem = await _workItemData.GetAsync(WorkItemId);
-            _notes = await _noteData.GetAsync(WorkItemId);
-            _isPinned = (await _pins.GetAllAsync())
-                .Where(z => z.WorkItemId == _workItem.WorkItemId)
-                .Any();
+            _workItem = await _workItemClient.GetAsync(WorkItemId);
+            _notes = await _noteClient.GetByWorkItemAsync(WorkItemId);
         }
         catch (Exception ex)
         {
@@ -140,11 +135,11 @@
     {
         try
         {
-            _workItem = await _workItemData.UpdateWorkedOnAsync(WorkItemId);
+            await _workItemClient.MarkAsWorked(WorkItemId);
         }
         catch (Exception ex)
         {
-            _errorMessage = "An Error occured while attempting to contact the API";
+            _errorMessage = "An Error occured while attempting to contact the API: " + ex.Message;
         }
     }
 
@@ -159,7 +154,7 @@
         //TODO: Confirm Delete
         try
         {
-            await _workItemData.DeleteAsync(WorkItemId);
+            await _workItemClient.DeleteAsync(WorkItemId);
             _errorMessage = null;
         }
         catch (Exception)
@@ -185,7 +180,7 @@
 
         try
         {
-            await _workItemData.PutAsync(_workItem);
+            await _workItemClient.UpdateAsync(_workItem);
             _errorMessage = null;
         }
         catch (Exception)
@@ -200,7 +195,7 @@
         {
             _note.WorkItemId = WorkItemId;
 
-            await _noteData.PostNote(_note);
+            await _noteClient.CreateAsync(_note);
             _errorMessage = null;
 
             _note = new();
@@ -217,20 +212,21 @@
     {
         try
         {
-            if (_isPinned)
+            if (_workItem.Pinned)
             {
-                await _pins.UnpinWorkItem(_workItem!.WorkItemId);
+                _workItem.Pinned = false;
+                await _workItemClient.UpdateAsync(_workItem);
             }
             else
             {
-                await _pins.PinWorkItem(_workItem!.WorkItemId);
+                _workItem.Pinned = true;
+                await _workItemClient.UpdateAsync(_workItem);
             }
-            _isPinned = !_isPinned;
             _errorMessage = null;
         }
         catch (Exception ex)
         {
-            _errorMessage = "An Error occured while attempting to contact the API";
+            _errorMessage = "An Error occured while attempting to contact the API: " + ex.Message;
         }
     }
 }

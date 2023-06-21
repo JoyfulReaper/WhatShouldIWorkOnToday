@@ -136,7 +136,7 @@
     {
         try
         {
-            await _todoItemData.UnCompleteAsync(todoItemId);
+            await _todoItemClient.UncompleteAsync(todoItemId);
             _errorMessage = null;
             await UpdateData();
         }
@@ -157,7 +157,7 @@
         {
             if(_editing)
             {
-                await _todoItemClient.Edit(_todoItem);
+                await _todoItemClient.UpdateAsync(_todoItem);
                 _todoItem.Task = string.Empty;
                 _editing = false;
             }
