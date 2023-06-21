@@ -83,4 +83,10 @@ public class WorkItemClient : IWorkItemClient
         var result = await response.Content.ReadFromJsonAsync<List<WorkItem>>();
         return result ?? new List<WorkItem>();
     }
+
+    public async Task<List<WorkItemHistory>> GetHistoryAsync(int workItemId)
+    {
+        var response = await _client.GetFromJsonAsync<List<WorkItemHistory>>(_client.BaseAddress + $"WorkItem/History/{workItemId}");
+        return response ?? new List<WorkItemHistory>();
+    }
 }

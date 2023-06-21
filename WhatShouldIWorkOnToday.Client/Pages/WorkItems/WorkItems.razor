@@ -1,5 +1,5 @@
 ﻿@page "/work-items"
-@inject IWorkItemEndpoint _workItemData
+@inject IWorkItemClient _workItemClient
 
 <PageTitle>WSIWOT: Work Items</PageTitle>
 
@@ -50,7 +50,7 @@
     {
         try
         {
-            _workItems = await _workItemData.GetAllAsync();
+            _workItems = await _workItemClient.GetAllAsync();
         }
         catch (Exception)
         {

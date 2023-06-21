@@ -44,7 +44,7 @@
                         <button type="button" class="btn btn-sm btn-warning" @onclick="() => {_editing = true;}">Edit</button>
                         <button type="button" class="btn btn-sm btn-danger" @onclick="Delete">Delete</button>
                         <button type="button" class="btn btn-sm btn-outline-primary" @onclick="TogglePin">
-                            @(_isPinned ? "Unpin" : "Pin")
+                            @(_workItem.Pinned ? "Unpin" : "Pin")
                         </button>
                         <a href="work-history/@WorkItemId" class="btn btn-sm btn-info">History</a>
                         <a href="todos/@WorkItemId" class="btn btn-sm btn-outline-info">Todo Items</a>

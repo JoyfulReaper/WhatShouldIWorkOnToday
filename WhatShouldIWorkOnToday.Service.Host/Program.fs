@@ -29,6 +29,8 @@ let webApp =
                             warbler (fun _ -> WorkItemService.getWorkItemsBySeqeunceNumberHandler seqNum))
                         routeCif "/Search/%s" (fun search ->
                             warbler (fun _ -> WorkItemService.searchWorkItemsHandler search))
+                        routeCif "/History/%i" (fun workItemId ->
+                            warbler (fun _ -> WorkItemService.getWorkItemHistoryHandler workItemId))
                     ]
                 POST >=>
                     choose [

@@ -130,3 +130,9 @@ module WorkItemHistory =
           WorkItemId: int
           DateWorkedOn: System.DateTime
         }
+
+    let toDto (workItemHistory: WorkItemHistory) : WorkItemHistoryDto =
+        { WorkItemHistoryId = workItemHistory.WorkItemHistoryId
+          WorkItemId = workItemHistory.WorkItemId
+          DateWorkedOn = workItemHistory.DateWorkedOn
+        }

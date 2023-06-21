@@ -49,3 +49,9 @@ type WorkItemRequest =
 [<CLIMutable>]
 type ErrorResponse =
     { Message: string }
+
+[<CLIMutable>]
+type WorkItemHistoryDto =
+    { WorkItemHistoryId: int
+      WorkItemId: int
+      DateWorkedOn: DateTime }

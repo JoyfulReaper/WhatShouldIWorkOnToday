@@ -153,15 +153,16 @@
         {
             _currentSequenceNumber = await _sequenceClient.GetSequenceNumberAsync();
             _currentItems = await _workItemClient.GetBySequenceNumberAsync(_currentSequenceNumber);
+            
+            _currentItems = await _workItemClient.GetBySequenceNumberAsync(_currentSequenceNumber);
 
             _errorMessage = null;
         }
-        catch
+        catch (Exception ex)
         {
-            _errorMessage = "An error occured while attempting to contact the API";
+            _errorMessage = "An error occured while attempting to contact the API: " + ex.Message;
         }
-        await RandomItem();
-        StateHasChanged();
+
     }
 
     private async Task AdvanceSequence()

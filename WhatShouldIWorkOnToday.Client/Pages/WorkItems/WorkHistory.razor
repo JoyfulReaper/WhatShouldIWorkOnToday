@@ -51,7 +51,7 @@
     {
         try
         {
-            _history = await _workItemData.GetHistoryAsync(WorkItemId);
+            _history = await _workItemClient.GetHistoryAsync(WorkItemId);
             _errorMessage = null;
         }
         catch (Exception ex)
