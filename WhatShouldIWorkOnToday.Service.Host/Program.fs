@@ -116,7 +116,10 @@ let webApp =
     ])
 
 let configureApp (app : IApplicationBuilder) =
-    // Add Giraffe to the ASP.NET Core pipeline
+    app.UseCors(fun cors ->
+        cors.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader() |> ignore) |> ignore
     app.UseGiraffe webApp
 
 let configureServices (services : IServiceCollection) =
@@ -130,6 +133,7 @@ let configureServices (services : IServiceCollection) =
     services.AddTransient<IToDoItemRepository, SqlToDoRepository>() |> ignore
     services.AddTransient<IWorkItemRepository, SqlWorkItemRepository>() |> ignore
     services.AddTransient<IWorkItemHistoryRepository, SqlWorkItemHistoryRepository>() |> ignore
+    services.AddCors() |> ignore
 
     services.AddDbContext<SqlDbContext>(fun builder ->
         builder.UseSqlServer(configuration.GetConnectionString("Default")) |> ignore
