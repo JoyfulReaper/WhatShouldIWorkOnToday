@@ -2,6 +2,8 @@ open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.DependencyInjection
+open Microsoft.AspNetCore.Authentication;
+open Microsoft.AspNetCore.Authorization;
 open Microsoft.EntityFrameworkCore
 open Giraffe
 open WhatShouldIWorkOnToday.Repository
@@ -12,6 +14,7 @@ open NoteRepository
 open ToDoItemRepository
 open WorkItemRepository
 open WorkItemHistoryRepository
+open WhatShouldIWorkOnToday.Server.Authentication
 
 let webApp =
     subRouteCi "/api" (choose [
@@ -116,8 +119,10 @@ let webApp =
     ])
 
 let configureApp (app : IApplicationBuilder) =
+    app.UseAuthentication() |> ignore
+    app.UseAuthorization() |> ignore
     app.UseCors(fun cors ->
-        cors.AllowAnyOrigin()
+        cors.AllowAnyOrigin() // TODO: Don't allow all origins
             .AllowAnyMethod()
             .AllowAnyHeader() |> ignore) |> ignore
     app.UseGiraffe webApp
@@ -134,6 +139,17 @@ let configureServices (services : IServiceCollection) =
     services.AddTransient<IWorkItemRepository, SqlWorkItemRepository>() |> ignore
     services.AddTransient<IWorkItemHistoryRepository, SqlWorkItemHistoryRepository>() |> ignore
     services.AddCors() |> ignore
+
+    services.AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication",
+                fun options -> ()) |> ignore
+
+    services.AddAuthorization(fun options ->
+        options.AddPolicy("BasicAuthentication", AuthorizationPolicyBuilder("BasicAuthentication")
+            .RequireAuthenticatedUser()
+            .Build())
+        |> ignore) |> ignore
+
 
     services.AddDbContext<SqlDbContext>(fun builder ->
         builder.UseSqlServer(configuration.GetConnectionString("Default")) |> ignore
