@@ -21,6 +21,7 @@ let getWorkItem(context : SqlDbContext) (id : int) =
         let! workItem = context.WorkItems.AsNoTracking()
                                          .Include(fun w -> w.WorkItemHistories)
                                          .SingleOrDefaultAsync(fun wi -> wi.WorkItemId = id && wi.DateDeleted = Nullable()) |> Async.AwaitTask
+                                         // TODO NULL IF NOT FOUND SO CANT LOOKUP LAST DATE WORKED ON
         let dateWorkedOn = workItem |> getLastDateWorkedOn
         
         return workItem |> Option.ofObj |> Option.map (WorkItem.toModel dateWorkedOn)

@@ -1,0 +1,31 @@
+﻿@page "/login"
+@using System.Net.Http.Headers;
+@inject BasicAuthenticationService AuthenticationService
+@inject HttpClient HttpClient
+
+<!-- Add your login form markup -->
+@code {
+    private string username = "user";
+    private string password = "password";
+
+    protected async override Task OnInitializedAsync()
+    {
+        await Authenticate();
+    }
+
+    private async Task Authenticate()
+    {
+        bool isAuthenticated = await AuthenticationService.Authenticate(username, password);
+
+        if (isAuthenticated)
+        {
+            // Redirect or navigate to the authenticated page
+            HttpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Basic", "dXNlcjpwYXNzd29yZA==");
+        }
+        else
+        {
+            // Show authentication error message
+        }
+    }
+}

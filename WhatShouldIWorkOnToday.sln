@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WhatShouldIWorkOnToday.Repo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WhatShouldIWorkOnToday.ApiClient", "WhatShouldIWorkOnToday.ApiClient\WhatShouldIWorkOnToday.ApiClient.csproj", "{61732DF2-BB6C-4ED8-9B7C-5AAD5BAD0027}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaiveTests", "NaiveTests\NaiveTests.csproj", "{CCB01966-C5E8-44F6-A257-25865B8A822C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NaiveTests", "NaiveTests\NaiveTests.csproj", "{CCB01966-C5E8-44F6-A257-25865B8A822C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -17,7 +17,7 @@ open WorkItemHistoryRepository
 open WhatShouldIWorkOnToday.Server.Authentication
 
 let webApp =
-    subRouteCi "/api" (choose [
+    subRouteCi "/api" (requiresAuthentication (challenge "BasicAuthentication") >=> choose [
         subRouteCi "/v1" (choose [
             subRouteCi "/WorkItem" (choose [
                 GET >=>
@@ -138,6 +138,7 @@ let configureServices (services : IServiceCollection) =
     services.AddTransient<IToDoItemRepository, SqlToDoRepository>() |> ignore
     services.AddTransient<IWorkItemRepository, SqlWorkItemRepository>() |> ignore
     services.AddTransient<IWorkItemHistoryRepository, SqlWorkItemHistoryRepository>() |> ignore
+
     services.AddCors() |> ignore
 
     services.AddAuthentication()
