@@ -80,9 +80,7 @@
                             {
                                 <div class="choice-context">
                                     Last worked:
-                                    @todo.WorkItem.LastWorkedAt.Value
-                                    .ToLocalTime()
-                                    .ToString("g")
+                                    @(todo.WorkItem.LastWorkedAt.Value.ToLocalTime().ToString("g"))
                                 </div>
                             }
 
@@ -148,16 +146,27 @@
         await using var db =
             await DbContextFactory.CreateDbContextAsync();
 
-        var workItem = await db.WorkItems.FindAsync(todo.WorkItemId);
+        var workItem =
+            await db.WorkItems.FindAsync(todo.WorkItemId);
 
         if (workItem is null)
             return;
 
-        workItem.LastWorkedAt = DateTimeOffset.UtcNow;
+        var workedAt = DateTimeOffset.UtcNow;
+
+        workItem.LastWorkedAt = workedAt;
+
+        db.WorkHistoryEntries.Add(new WorkHistoryEntry
+        {
+            WorkItemId = workItem.Id,
+            TodoItemId = todo.Id,
+            TaskSnapshot = todo.Task,
+            WorkedAt = workedAt
+        });
 
         await db.SaveChangesAsync();
 
-        todo.WorkItem.LastWorkedAt = workItem.LastWorkedAt;
+        todo.WorkItem.LastWorkedAt = workedAt;
         _selectedTodoId = todo.Id;
     }
 

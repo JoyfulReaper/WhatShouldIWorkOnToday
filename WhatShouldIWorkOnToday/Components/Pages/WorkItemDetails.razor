@@ -102,6 +102,12 @@ else
                     <button type="button" class="secondary small" @onclick="ToggleWorkItemArchivedAsync">
                         @(_workItem.ArchivedAt is null ? "Archive" : "Unarchive")
                     </button>
+
+                    <button type="button"
+                            class="small"
+                            @onclick="MarkWorkedAsync">
+                        Mark worked
+                    </button>
                 </div>
             }
         </header>
@@ -237,6 +243,42 @@ else
                 </ul>
             }
         </section>
+        <section aria-labelledby="work-history-heading">
+            <div class="section-header">
+                <h2 id="work-history-heading">Work history</h2>
+                <span class="count-label">
+                    Recent @_workHistory.Count
+                </span>
+            </div>
+
+            @if (_workHistory.Count == 0)
+            {
+                <p class="empty-state">
+                    No work recorded yet.
+                </p>
+            }
+            else
+            {
+                <ul class="work-item-list">
+                    @foreach (var entry in _workHistory)
+                    {
+                        <li class="work-item-row">
+                            <div>
+                                <strong>
+                                    @(entry.TaskSnapshot ?? "General work")
+                                </strong>
+                            </div>
+
+                            <div class="work-item-meta">
+                                <span class="last-worked">
+                                    @(entry.WorkedAt.ToLocalTime().ToString("g"))
+                                </span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
     </div>
 }
 
@@ -248,6 +290,7 @@ else
     private WorkItem? _editingWorkItem;
     private TodoItem _newTodo = new();
     private TodoItem? _editingTodo;
+    private List<WorkHistoryEntry> _workHistory = [];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -263,6 +306,16 @@ else
             .AsNoTracking()
             .Include(x => x.Todos)
             .SingleOrDefaultAsync(x => x.Id == Id);
+
+        var history = await db.WorkHistoryEntries
+            .AsNoTracking()
+            .Where(x => x.WorkItemId == Id)
+            .ToListAsync();
+
+        _workHistory = history
+            .OrderByDescending(x => x.WorkedAt)
+            .Take(20)
+            .ToList();
     }
 
     private void EditWorkItem()
@@ -424,6 +477,31 @@ else
         todo.CompletedAt = todo.CompletedAt is null
             ? DateTimeOffset.UtcNow
             : null;
+
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task MarkWorkedAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+            return;
+
+        var workedAt = DateTimeOffset.UtcNow;
+
+        workItem.LastWorkedAt = workedAt;
+
+        db.WorkHistoryEntries.Add(new WorkHistoryEntry
+        {
+            WorkItemId = workItem.Id,
+            WorkedAt = workedAt
+        });
 
         await db.SaveChangesAsync();
 
