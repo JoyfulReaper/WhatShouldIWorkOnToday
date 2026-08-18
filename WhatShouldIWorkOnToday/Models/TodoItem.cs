@@ -14,6 +14,10 @@ public sealed class TodoItem
     [MaxLength(500)]
     public string Task { get; set; } = string.Empty;
 
+    public EnergyLevel Energy { get; set; } = EnergyLevel.Medium;
+
+    public EffortLevel Effort { get; set; } = EffortLevel.Medium;
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? CompletedAt { get; set; }

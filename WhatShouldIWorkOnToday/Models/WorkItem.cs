@@ -18,10 +18,6 @@ public sealed class WorkItem
 
     public WorkItemKind Kind { get; set; } = WorkItemKind.Project;
 
-    public EnergyLevel Energy { get; set; } = EnergyLevel.Medium;
-
-    public EffortLevel Effort { get; set; } = EffortLevel.Medium;
-
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? LastWorkedAt { get; set; }
