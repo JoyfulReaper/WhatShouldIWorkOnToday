@@ -1,4 +1,6 @@
-﻿namespace WhatShouldIWorkOnToday.Client.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WhatShouldIWorkOnToday.Client.Models;
 
 public class Note
 {
