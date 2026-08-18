@@ -59,11 +59,25 @@
                         <div>@workItem.Description</div>
                     }
 
-                    <small>
-                        @workItem.Kind ·
-                        @workItem.Energy energy ·
-                        @workItem.Effort effort
-                    </small>
+                    <div>
+                        <small>
+                            @workItem.Kind ·
+                            @workItem.Energy energy ·
+                            @workItem.Effort effort
+                        </small>
+                    </div>
+
+                    <div>
+                        <button type="button"
+                                @onclick="() => StartWorkAsync(workItem.Id)">
+                            Work on this
+                        </button>
+
+                        @if (_selectedWorkItemId == workItem.Id)
+                        {
+                            <span> Selected.</span>
+                        }
+                    </div>
                 </li>
             }
         </ul>
@@ -80,10 +94,12 @@
 
     private List<WorkItem> _choices = [];
     private bool _hasChosen;
+    private int? _selectedWorkItemId;
 
     private async Task ChooseAsync()
     {
-        await using var db = await DbContextFactory.CreateDbContextAsync();
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
 
         var candidates = await db.WorkItems
             .AsNoTracking()
@@ -99,6 +115,24 @@
             .Take(3)
             .ToList();
 
+        _selectedWorkItemId = null;
         _hasChosen = true;
+    }
+
+    private async Task StartWorkAsync(int workItemId)
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(workItemId);
+
+        if (workItem is null)
+            return;
+
+        workItem.LastWorkedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync();
+
+        _selectedWorkItemId = workItemId;
     }
 }
