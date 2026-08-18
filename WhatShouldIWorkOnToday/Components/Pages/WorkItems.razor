@@ -22,6 +22,35 @@
         <InputTextArea @bind-Value="_newWorkItem.Description" />
     </div>
 
+    <div>
+        <label>Kind</label>
+        <InputSelect @bind-Value="_newWorkItem.Kind">
+            @foreach (var value in Enum.GetValues<WorkItemKind>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div>
+        <label>Energy</label>
+        <InputSelect @bind-Value="_newWorkItem.Energy">
+            @foreach (var value in Enum.GetValues<EnergyLevel>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div>
+        <label>Effort</label>
+        <InputSelect @bind-Value="_newWorkItem.Effort">
+            @foreach (var value in Enum.GetValues<EffortLevel>())
+            {
+                <option value="@value">@value</option>
+            }
+        </InputSelect>
+    </div>
     <button type="submit">Add work item</button>
 </EditForm>
 
