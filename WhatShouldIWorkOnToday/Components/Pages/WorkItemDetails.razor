@@ -23,11 +23,7 @@ else
         <p>@_workItem.Description</p>
     }
 
-    <p>
-        @_workItem.Kind ·
-        @_workItem.Energy energy ·
-        @_workItem.Effort effort
-    </p>
+    <p>@_workItem.Kind</p>
 
     <hr />
 
@@ -40,6 +36,26 @@ else
             <label>Task</label>
             <InputText @bind-Value="_newTodo.Task" />
             <ValidationMessage For="() => _newTodo.Task" />
+        </div>
+
+        <div>
+            <label>Energy</label>
+            <InputSelect @bind-Value="_newTodo.Energy">
+                @foreach (var value in Enum.GetValues<EnergyLevel>())
+                {
+                    <option value="@value">@value</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div>
+            <label>Effort</label>
+            <InputSelect @bind-Value="_newTodo.Effort">
+                @foreach (var value in Enum.GetValues<EffortLevel>())
+                {
+                    <option value="@value">@value</option>
+                }
+            </InputSelect>
         </div>
 
         <button type="submit">Add todo</button>
@@ -70,6 +86,11 @@ else
                     {
                         <s>@todo.Task</s>
                     }
+
+                    <small>
+                        · @todo.Energy energy
+                        · @todo.Effort effort
+                    </small>
                 </li>
             }
         </ul>
@@ -90,7 +111,8 @@ else
 
     private async Task LoadAsync()
     {
-        await using var db = await DbContextFactory.CreateDbContextAsync();
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
 
         _workItem = await db.WorkItems
             .AsNoTracking()
@@ -103,12 +125,15 @@ else
         if (_workItem is null)
             return;
 
-        await using var db = await DbContextFactory.CreateDbContextAsync();
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
 
         db.TodoItems.Add(new TodoItem
         {
             WorkItemId = _workItem.Id,
-            Task = _newTodo.Task
+            Task = _newTodo.Task,
+            Energy = _newTodo.Energy,
+            Effort = _newTodo.Effort
         });
 
         await db.SaveChangesAsync();
@@ -120,7 +145,8 @@ else
 
     private async Task ToggleTodoAsync(int todoId)
     {
-        await using var db = await DbContextFactory.CreateDbContextAsync();
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
 
         var todo = await db.TodoItems.FindAsync(todoId);
 

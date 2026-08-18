@@ -45,50 +45,49 @@
         <h2>How about...</h2>
 
         <ul>
-            @foreach (var workItem in _choices)
+            @foreach (var todo in _choices)
             {
                 <li>
                     <strong>
-                        <a href="@($"/work-items/{workItem.Id}")">
-                            @workItem.Name
+                        <a href="@($"/work-items/{todo.WorkItemId}")">
+                            @todo.WorkItem.Name
                         </a>
                     </strong>
 
-                    @if (!string.IsNullOrWhiteSpace(workItem.Description))
-                    {
-                        <div>@workItem.Description</div>
-                    }
+                    <div>@todo.Task</div>
 
                     <div>
                         <small>
-                            @workItem.Kind ·
-                            @workItem.Energy energy ·
-                            @workItem.Effort effort
+                            @todo.Energy energy ·
+                            @todo.Effort effort
                         </small>
-                        @if (workItem.LastWorkedAt is null)
-                        {
-                            <div>
-                                <small>Never worked on.</small>
-                            </div>
-                        }
-                        else
-                        {
-                            <div>
-                                <small>
-                                    Last worked:
-                                    @workItem.LastWorkedAt.Value.ToLocalTime().ToString("g")
-                                </small>
-                            </div>
-                        }
                     </div>
+
+                    @if (todo.WorkItem.LastWorkedAt is null)
+                    {
+                        <div>
+                            <small>Never worked on.</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <small>
+                                Last worked:
+                                @todo.WorkItem.LastWorkedAt.Value
+                                .ToLocalTime()
+                                .ToString("g")
+                            </small>
+                        </div>
+                    }
 
                     <div>
                         <button type="button"
-                                @onclick="() => StartWorkAsync(workItem.Id)">
+                                @onclick="() => StartWorkAsync(todo)">
                             Work on this
                         </button>
 
-                        @if (_selectedWorkItemId == workItem.Id)
+                        @if (_selectedTodoId == todo.Id)
                         {
                             <span> Selected.</span>
                         }
@@ -107,20 +106,22 @@
     private EnergyLevel _energy = EnergyLevel.Medium;
     private EffortLevel _effort = EffortLevel.Medium;
 
-    private List<WorkItem> _choices = [];
+    private List<TodoItem> _choices = [];
     private bool _hasChosen;
-    private int? _selectedWorkItemId;
+    private int? _selectedTodoId;
 
     private async Task ChooseAsync()
     {
         await using var db =
             await DbContextFactory.CreateDbContextAsync();
 
-        var candidates = await db.WorkItems
+        var candidates = await db.TodoItems
             .AsNoTracking()
+            .Include(x => x.WorkItem)
             .Where(x =>
                 x.CompletedAt == null &&
-                x.ArchivedAt == null &&
+                x.WorkItem.CompletedAt == null &&
+                x.WorkItem.ArchivedAt == null &&
                 x.Energy <= _energy &&
                 x.Effort <= _effort)
             .ToListAsync();
@@ -130,16 +131,16 @@
             .Take(3)
             .ToList();
 
-        _selectedWorkItemId = null;
+        _selectedTodoId = null;
         _hasChosen = true;
     }
 
-    private async Task StartWorkAsync(int workItemId)
+    private async Task StartWorkAsync(TodoItem todo)
     {
         await using var db =
             await DbContextFactory.CreateDbContextAsync();
 
-        var workItem = await db.WorkItems.FindAsync(workItemId);
+        var workItem = await db.WorkItems.FindAsync(todo.WorkItemId);
 
         if (workItem is null)
             return;
@@ -148,14 +149,18 @@
 
         await db.SaveChangesAsync();
 
-        _selectedWorkItemId = workItemId;
+        todo.WorkItem.LastWorkedAt = workItem.LastWorkedAt;
+        _selectedTodoId = todo.Id;
     }
 
-    private static double GetNeglectScore(WorkItem workItem)
+    private static double GetNeglectScore(TodoItem todo)
     {
-        var ageScore = workItem.LastWorkedAt is null
+        var ageScore = todo.WorkItem.LastWorkedAt is null
             ? 365
-            : Math.Min((DateTimeOffset.UtcNow - workItem.LastWorkedAt.Value).TotalDays,365);
+            : Math.Min(
+                (DateTimeOffset.UtcNow -
+                    todo.WorkItem.LastWorkedAt.Value).TotalDays,
+                365);
 
         var randomScore = Random.Shared.NextDouble() * 30;
 
