@@ -78,19 +78,61 @@ else
                         @(todo.CompletedAt is null ? "Complete" : "Reopen")
                     </button>
 
-                    @if (todo.CompletedAt is null)
+                    @if (_editingTodo?.Id == todo.Id)
                     {
-                        <span>@todo.Task</span>
+                        var editingTodo = _editingTodo;
+
+                        <EditForm Model="editingTodo" OnValidSubmit="SaveTodoAsync">
+                            <DataAnnotationsValidator />
+
+                            <div>
+                                <label>Task</label>
+                                <InputText @bind-Value="editingTodo.Task" />
+                                <ValidationMessage For="() => editingTodo.Task" />
+                            </div>
+
+                            <div>
+                                <label>Energy</label>
+                                <InputSelect @bind-Value="editingTodo.Energy">
+                                    @foreach (var value in Enum.GetValues<EnergyLevel>())
+                                    {
+                                        <option value="@value">@value</option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <div>
+                                <label>Effort</label>
+                                <InputSelect @bind-Value="editingTodo.Effort">
+                                    @foreach (var value in Enum.GetValues<EffortLevel>())
+                                    {
+                                        <option value="@value">@value</option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <button type="submit">Save</button>
+                            <button type="button" @onclick="CancelEdit">Cancel</button>
+                        </EditForm>
                     }
                     else
                     {
-                        <s>@todo.Task</s>
-                    }
+                        @if (todo.CompletedAt is null)
+                        {
+                            <span>@todo.Task</span>
+                        }
+                        else
+                        {
+                            <s>@todo.Task</s>
+                        }
 
-                    <small>
-                        · @todo.Energy energy
-                        · @todo.Effort effort
-                    </small>
+                        <small>
+                            · @todo.Energy energy
+                            · @todo.Effort effort
+                        </small>
+
+                        <button type="button" @onclick="() => EditTodo(todo)">Edit</button>
+                    }
                 </li>
             }
         </ul>
@@ -103,6 +145,7 @@ else
 
     private WorkItem? _workItem;
     private TodoItem _newTodo = new();
+    private TodoItem? _editingTodo;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -139,6 +182,46 @@ else
         await db.SaveChangesAsync();
 
         _newTodo = new TodoItem();
+
+        await LoadAsync();
+    }
+
+    private void EditTodo(TodoItem todo)
+    {
+        _editingTodo = new TodoItem
+        {
+            Id = todo.Id,
+            Task = todo.Task,
+            Energy = todo.Energy,
+            Effort = todo.Effort
+        };
+    }
+
+    private void CancelEdit()
+    {
+        _editingTodo = null;
+    }
+
+    private async Task SaveTodoAsync()
+    {
+        if (_editingTodo is null)
+            return;
+
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var todo = await db.TodoItems.FindAsync(_editingTodo.Id);
+
+        if (todo is null)
+            return;
+
+        todo.Task = _editingTodo.Task;
+        todo.Energy = _editingTodo.Energy;
+        todo.Effort = _editingTodo.Effort;
+
+        await db.SaveChangesAsync();
+
+        _editingTodo = null;
 
         await LoadAsync();
     }
