@@ -1,4 +1,4 @@
-﻿@page "/work-items/{Id:int}"
+@page "/work-items/{Id:int}"
 @using Microsoft.EntityFrameworkCore
 @using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
@@ -8,135 +8,160 @@
 
 @if (_workItem is null)
 {
-    <p>Work item not found.</p>
+    <div class="app-page panel not-found">
+        <h1>Work item not found.</h1>
+        <a class="back-link" href="/work-items">← Work Items</a>
+    </div>
 }
 else
 {
-    <p>
-        <a href="/work-items">← Work Items</a>
-    </p>
+    <div class="app-page">
+        <a class="back-link" href="/work-items">← Work Items</a>
 
-    <h1>@_workItem.Name</h1>
+        <header class="work-item-summary">
+            <p class="eyebrow">Work item</p>
+            <h1>@_workItem.Name</h1>
 
-    @if (!string.IsNullOrWhiteSpace(_workItem.Description))
-    {
-        <p>@_workItem.Description</p>
-    }
-
-    <p>@_workItem.Kind</p>
-
-    <hr />
-
-    <h2>Todos</h2>
-
-    <EditForm Model="_newTodo" OnValidSubmit="CreateTodoAsync">
-        <DataAnnotationsValidator />
-
-        <div>
-            <label>Task</label>
-            <InputText @bind-Value="_newTodo.Task" />
-            <ValidationMessage For="() => _newTodo.Task" />
-        </div>
-
-        <div>
-            <label>Energy</label>
-            <InputSelect @bind-Value="_newTodo.Energy">
-                @foreach (var value in Enum.GetValues<EnergyLevel>())
-                {
-                    <option value="@value">@value</option>
-                }
-            </InputSelect>
-        </div>
-
-        <div>
-            <label>Effort</label>
-            <InputSelect @bind-Value="_newTodo.Effort">
-                @foreach (var value in Enum.GetValues<EffortLevel>())
-                {
-                    <option value="@value">@value</option>
-                }
-            </InputSelect>
-        </div>
-
-        <button type="submit">Add todo</button>
-    </EditForm>
-
-    @if (_workItem.Todos.Count == 0)
-    {
-        <p>No todos yet.</p>
-    }
-    else
-    {
-        <ul>
-            @foreach (var todo in _workItem.Todos
-                .OrderBy(x => x.CompletedAt.HasValue)
-                .ThenBy(x => x.CreatedAt))
+            @if (!string.IsNullOrWhiteSpace(_workItem.Description))
             {
-                <li>
-                    <button type="button"
-                            @onclick="() => ToggleTodoAsync(todo.Id)">
-                        @(todo.CompletedAt is null ? "Complete" : "Reopen")
-                    </button>
-
-                    @if (_editingTodo?.Id == todo.Id)
-                    {
-                        var editingTodo = _editingTodo;
-
-                        <EditForm Model="editingTodo" OnValidSubmit="SaveTodoAsync">
-                            <DataAnnotationsValidator />
-
-                            <div>
-                                <label>Task</label>
-                                <InputText @bind-Value="editingTodo.Task" />
-                                <ValidationMessage For="() => editingTodo.Task" />
-                            </div>
-
-                            <div>
-                                <label>Energy</label>
-                                <InputSelect @bind-Value="editingTodo.Energy">
-                                    @foreach (var value in Enum.GetValues<EnergyLevel>())
-                                    {
-                                        <option value="@value">@value</option>
-                                    }
-                                </InputSelect>
-                            </div>
-
-                            <div>
-                                <label>Effort</label>
-                                <InputSelect @bind-Value="editingTodo.Effort">
-                                    @foreach (var value in Enum.GetValues<EffortLevel>())
-                                    {
-                                        <option value="@value">@value</option>
-                                    }
-                                </InputSelect>
-                            </div>
-
-                            <button type="submit">Save</button>
-                            <button type="button" @onclick="CancelEdit">Cancel</button>
-                        </EditForm>
-                    }
-                    else
-                    {
-                        @if (todo.CompletedAt is null)
-                        {
-                            <span>@todo.Task</span>
-                        }
-                        else
-                        {
-                            <s>@todo.Task</s>
-                        }
-
-                        <small>
-                            · @todo.Energy energy
-                            · @todo.Effort effort
-                        </small>
-
-                        <button type="button" @onclick="() => EditTodo(todo)">Edit</button>
-                    }
-                </li>
+                <p class="description">@_workItem.Description</p>
             }
-        </ul>
-    }
+
+            <span class="badge accent">@_workItem.Kind</span>
+        </header>
+
+        <section class="panel form-panel new-todo-panel" aria-labelledby="new-todo-heading">
+            <header class="form-panel-header">
+                <h2 id="new-todo-heading">Add a todo</h2>
+                <p>Small enough to start. Specific enough to finish.</p>
+            </header>
+
+            <EditForm Model="_newTodo" OnValidSubmit="CreateTodoAsync" class="todo-create-grid">
+                <DataAnnotationsValidator />
+
+                <div class="form-field">
+                    <label>Task</label>
+                    <InputText @bind-Value="_newTodo.Task" />
+                    <ValidationMessage For="() => _newTodo.Task" />
+                </div>
+
+                <div class="form-field">
+                    <label>Energy</label>
+                    <InputSelect @bind-Value="_newTodo.Energy">
+                        @foreach (var value in Enum.GetValues<EnergyLevel>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-field">
+                    <label>Effort</label>
+                    <InputSelect @bind-Value="_newTodo.Effort">
+                        @foreach (var value in Enum.GetValues<EffortLevel>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit">Add todo</button>
+                </div>
+            </EditForm>
+        </section>
+
+        <section aria-labelledby="todos-heading">
+            <div class="section-header">
+                <h2 id="todos-heading">Todos</h2>
+                <span class="count-label">@_workItem.Todos.Count total</span>
+            </div>
+
+            @if (_workItem.Todos.Count == 0)
+            {
+                <p class="empty-state">No todos yet.</p>
+            }
+            else
+            {
+                <ul class="todo-list">
+                    @foreach (var todo in _workItem.Todos
+                        .OrderBy(x => x.CompletedAt.HasValue)
+                        .ThenBy(x => x.CreatedAt))
+                    {
+                        <li class="todo-row @(todo.CompletedAt is not null ? "completed" : null)">
+                            <button type="button"
+                                    class="secondary small"
+                                    @onclick="() => ToggleTodoAsync(todo.Id)">
+                                @(todo.CompletedAt is null ? "Complete" : "Reopen")
+                            </button>
+
+                            @if (_editingTodo?.Id == todo.Id)
+                            {
+                                var editingTodo = _editingTodo;
+
+                                <EditForm Model="editingTodo" OnValidSubmit="SaveTodoAsync" class="todo-edit-form">
+                                    <DataAnnotationsValidator />
+
+                                    <div class="form-field">
+                                        <label>Task</label>
+                                        <InputText @bind-Value="editingTodo.Task" />
+                                        <ValidationMessage For="() => editingTodo.Task" />
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label>Energy</label>
+                                        <InputSelect @bind-Value="editingTodo.Energy">
+                                            @foreach (var value in Enum.GetValues<EnergyLevel>())
+                                            {
+                                                <option value="@value">@value</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label>Effort</label>
+                                        <InputSelect @bind-Value="editingTodo.Effort">
+                                            @foreach (var value in Enum.GetValues<EffortLevel>())
+                                            {
+                                                <option value="@value">@value</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+
+                                    <div class="row-actions">
+                                        <button type="submit" class="small">Save</button>
+                                        <button type="button" class="secondary small" @onclick="CancelEdit">Cancel</button>
+                                    </div>
+                                </EditForm>
+                            }
+                            else
+                            {
+                                <div class="todo-content">
+                                    <span class="todo-task">
+                                        @if (todo.CompletedAt is null)
+                                        {
+                                            @todo.Task
+                                        }
+                                        else
+                                        {
+                                            <s>@todo.Task</s>
+                                        }
+                                    </span>
+
+                                    <div class="badge-row">
+                                        <span class="badge accent">@todo.Energy energy</span>
+                                        <span class="badge">@todo.Effort effort</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="secondary small" @onclick="() => EditTodo(todo)">Edit</button>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
 }
 
 @code {

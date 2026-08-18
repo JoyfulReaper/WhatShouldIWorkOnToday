@@ -1,4 +1,4 @@
-﻿@page "/today"
+@page "/today"
 @using Microsoft.EntityFrameworkCore
 @using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
@@ -6,101 +6,109 @@
 
 <PageTitle>What Should I Work On Today?</PageTitle>
 
-<h1>What Should I Work On Today?</h1>
+<div class="app-page">
+    <header class="page-heading">
+        <p class="eyebrow">Today.exe</p>
+        <h1>What Should I Work On Today?</h1>
+        <p class="lead">Give the chooser a realistic resource budget. It will handle the indecision.</p>
+    </header>
 
-<div>
-    <label>Energy</label>
-    <InputSelect @bind-Value="_energy">
-        @foreach (var value in Enum.GetValues<EnergyLevel>())
-        {
-            <option value="@value">@value</option>
-        }
-    </InputSelect>
-</div>
+    <section class="panel chooser-panel" aria-label="Chooser filters">
+        <div class="chooser-controls">
+            <div class="form-field">
+                <label>Energy</label>
+                <InputSelect @bind-Value="_energy">
+                    @foreach (var value in Enum.GetValues<EnergyLevel>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
 
-<div>
-    <label>Available time / effort</label>
-    <InputSelect @bind-Value="_effort">
-        @foreach (var value in Enum.GetValues<EffortLevel>())
-        {
-            <option value="@value">@value</option>
-        }
-    </InputSelect>
-</div>
+            <div class="form-field">
+                <label>Available time / effort</label>
+                <InputSelect @bind-Value="_effort">
+                    @foreach (var value in Enum.GetValues<EffortLevel>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
 
-<button type="button" @onclick="ChooseAsync">
-    Pick something
-</button>
+            <button type="button" @onclick="ChooseAsync">
+                Pick something
+            </button>
+        </div>
+    </section>
 
-<hr />
-
-@if (_hasChosen)
-{
-    if (_choices.Count == 0)
+    @if (_hasChosen)
     {
-        <p>Nothing matches. Apparently Past You has failed Present You.</p>
-    }
-    else
-    {
-        <h2>How about...</h2>
-
-        <ul>
-            @foreach (var todo in _choices)
+        <section class="results-section" aria-live="polite">
+            @if (_choices.Count == 0)
             {
-                <li>
-                    <strong>
-                        <a href="@($"/work-items/{todo.WorkItemId}")">
-                            @todo.WorkItem.Name
-                        </a>
-                    </strong>
-
-                    <div>@todo.Task</div>
-
-                    <div>
-                        <small>
-                            @todo.Energy energy ·
-                            @todo.Effort effort
-                        </small>
-                    </div>
-
-                    @if (todo.WorkItem.LastWorkedAt is null)
-                    {
-                        <div>
-                            <small>Never worked on.</small>
-                        </div>
-                    }
-                    else
-                    {
-                        <div>
-                            <small>
-                                Last worked:
-                                @todo.WorkItem.LastWorkedAt.Value
-                                .ToLocalTime()
-                                .ToString("g")
-                            </small>
-                        </div>
-                    }
-
-                    <div>
-                        <button type="button"
-                                @onclick="() => StartWorkAsync(todo)">
-                            Work on this
-                        </button>
-
-                        @if (_selectedTodoId == todo.Id)
-                        {
-                            <span> Selected.</span>
-                        }
-                    </div>
-                </li>
+                <p class="empty-state">Nothing matches. Apparently Past You has failed Present You.</p>
             }
-        </ul>
+            else
+            {
+                <div class="results-heading">
+                    <h2>How about...</h2>
+                    <span class="count-label">@_choices.Count options</span>
+                </div>
 
-        <button type="button" @onclick="ChooseAsync">
-            Nah, give me something else
-        </button>
+                <ul class="choice-list">
+                    @foreach (var todo in _choices)
+                    {
+                        <li class="choice-card @(_selectedTodoId == todo.Id ? "is-selected" : null)">
+                            <div class="choice-project">
+                                <a href="@($"/work-items/{todo.WorkItemId}")">
+                                    @todo.WorkItem.Name
+                                </a>
+                            </div>
+
+                            <div class="choice-task">@todo.Task</div>
+
+                            <div class="badge-row">
+                                <span class="badge accent">@todo.Energy energy</span>
+                                <span class="badge">@todo.Effort effort</span>
+                            </div>
+
+                            @if (todo.WorkItem.LastWorkedAt is null)
+                            {
+                                <div class="choice-context">Never worked on.</div>
+                            }
+                            else
+                            {
+                                <div class="choice-context">
+                                    Last worked:
+                                    @todo.WorkItem.LastWorkedAt.Value
+                                    .ToLocalTime()
+                                    .ToString("g")
+                                </div>
+                            }
+
+                            <div class="choice-actions row-actions">
+                                <button type="button"
+                                        class="small"
+                                        @onclick="() => StartWorkAsync(todo)">
+                                    Work on this
+                                </button>
+
+                                @if (_selectedTodoId == todo.Id)
+                                {
+                                    <span class="selected-note">Selected.</span>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+
+                <button type="button" class="secondary" @onclick="ChooseAsync">
+                    Nah, give me something else
+                </button>
+            }
+        </section>
     }
-}
+</div>
 
 @code {
     private EnergyLevel _energy = EnergyLevel.Medium;

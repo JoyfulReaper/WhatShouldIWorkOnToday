@@ -1,4 +1,4 @@
-﻿@page "/work-items"
+@page "/work-items"
 @using Microsoft.EntityFrameworkCore
 @using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
@@ -6,73 +6,93 @@
 
 <PageTitle>Work Items</PageTitle>
 
-<h1>Work Items</h1>
+<div class="app-page">
+    <header class="page-heading">
+        <p class="eyebrow">The backlog</p>
+        <h1>Work Items</h1>
+        <p class="lead">Projects, experiments, and side quests currently competing for attention.</p>
+    </header>
 
-<EditForm Model="_newWorkItem" OnValidSubmit="CreateAsync">
-    <DataAnnotationsValidator />
+    <section class="panel form-panel" aria-labelledby="new-work-item-heading">
+        <header class="form-panel-header">
+            <h2 id="new-work-item-heading">Add a work item</h2>
+            <p>Capture the useful version. You can overthink the name later.</p>
+        </header>
 
-    <div>
-        <label>Name</label>
-        <InputText @bind-Value="_newWorkItem.Name" />
-        <ValidationMessage For="() => _newWorkItem.Name" />
-    </div>
+        <EditForm Model="_newWorkItem" OnValidSubmit="CreateAsync" class="form-grid">
+            <DataAnnotationsValidator />
 
-    <div>
-        <label>Description</label>
-        <InputTextArea @bind-Value="_newWorkItem.Description" />
-    </div>
+            <div class="form-field">
+                <label>Name</label>
+                <InputText @bind-Value="_newWorkItem.Name" />
+                <ValidationMessage For="() => _newWorkItem.Name" />
+            </div>
 
-    <div>
-        <label>Kind</label>
-        <InputSelect @bind-Value="_newWorkItem.Kind">
-            @foreach (var value in Enum.GetValues<WorkItemKind>())
-            {
-                <option value="@value">@value</option>
-            }
-        </InputSelect>
-    </div>
+            <div class="form-field">
+                <label>Kind</label>
+                <InputSelect @bind-Value="_newWorkItem.Kind">
+                    @foreach (var value in Enum.GetValues<WorkItemKind>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
 
-    <button type="submit">Add work item</button>
-</EditForm>
+            <div class="form-field wide">
+                <label>Description</label>
+                <InputTextArea @bind-Value="_newWorkItem.Description" />
+            </div>
 
-<hr />
+            <div class="form-actions">
+                <button type="submit">Add work item</button>
+            </div>
+        </EditForm>
+    </section>
 
-@if (_workItems.Count == 0)
-{
-    <p>No work items yet.</p>
-}
-else
-{
-    <ul>
-        @foreach (var workItem in _workItems)
+    <section class="work-items-section" aria-labelledby="work-items-heading">
+        <div class="section-header">
+            <h2 id="work-items-heading">All work items</h2>
+            <span class="count-label">@_workItems.Count total</span>
+        </div>
+
+        @if (_workItems.Count == 0)
         {
-            <li>
-                <strong>
-                    <a href="@($"/work-items/{workItem.Id}")">
-                        @workItem.Name
-                    </a>
-                </strong>
-
-                @if (!string.IsNullOrWhiteSpace(workItem.Description))
-                {
-                    <div>@workItem.Description</div>
-                }
-
-                <small>@workItem.Kind</small>
-
-                @if (workItem.LastWorkedAt is not null)
-                {
-                    <div>
-                        <small>
-                            Last worked:
-                            @workItem.LastWorkedAt.Value.ToLocalTime().ToString("g")
-                        </small>
-                    </div>
-                }
-            </li>
+            <p class="empty-state">No work items yet.</p>
         }
-    </ul>
-}
+        else
+        {
+            <ul class="work-item-list">
+                @foreach (var workItem in _workItems)
+                {
+                    <li class="work-item-row">
+                        <div>
+                            <a class="work-item-title" href="@($"/work-items/{workItem.Id}")">
+                                @workItem.Name
+                            </a>
+
+                            @if (!string.IsNullOrWhiteSpace(workItem.Description))
+                            {
+                                <div class="work-item-description">@workItem.Description</div>
+                            }
+                        </div>
+
+                        <div class="work-item-meta">
+                            <span class="badge accent">@workItem.Kind</span>
+
+                            @if (workItem.LastWorkedAt is not null)
+                            {
+                                <span class="last-worked">
+                                    Last worked:
+                                    @workItem.LastWorkedAt.Value.ToLocalTime().ToString("g")
+                                </span>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>
 
 @code {
     private List<WorkItem> _workItems = [];
