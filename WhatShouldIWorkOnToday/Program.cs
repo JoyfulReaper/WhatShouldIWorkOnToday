@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Components;
+using WhatShouldIWorkOnToday.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,13 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+var connectionString = builder.Configuration.GetConnectionString("Database")
+    ?? throw new InvalidOperationException("Connection string 'Database' was not found.");
+
+builder.Services.AddDbContextFactory<AppDbContext>(options =>
+    options.UseSqlite(connectionString));
+
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
