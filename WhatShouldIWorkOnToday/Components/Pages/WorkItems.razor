@@ -1,0 +1,89 @@
+﻿@page "/work-items"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>Work Items</PageTitle>
+
+<h1>Work Items</h1>
+
+<EditForm Model="_newWorkItem" OnValidSubmit="CreateAsync">
+    <DataAnnotationsValidator />
+
+    <div>
+        <label>Name</label>
+        <InputText @bind-Value="_newWorkItem.Name" />
+        <ValidationMessage For="() => _newWorkItem.Name" />
+    </div>
+
+    <div>
+        <label>Description</label>
+        <InputTextArea @bind-Value="_newWorkItem.Description" />
+    </div>
+
+    <button type="submit">Add work item</button>
+</EditForm>
+
+<hr />
+
+@if (_workItems.Count == 0)
+{
+    <p>No work items yet.</p>
+}
+else
+{
+    <ul>
+        @foreach (var workItem in _workItems)
+        {
+            <li>
+                <strong>@workItem.Name</strong>
+
+                @if (!string.IsNullOrWhiteSpace(workItem.Description))
+                {
+                    <div>@workItem.Description</div>
+                }
+
+                <small>
+                    @workItem.Kind ·
+                    @workItem.Energy energy ·
+                    @workItem.Effort effort
+                </small>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<WorkItem> _workItems = [];
+    private WorkItem _newWorkItem = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        _workItems = await db.WorkItems
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ToListAsync();
+    }
+
+    private async Task CreateAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        db.WorkItems.Add(_newWorkItem);
+        await db.SaveChangesAsync();
+
+        _newWorkItem = new WorkItem();
+
+        await LoadAsync();
+    }
+}
