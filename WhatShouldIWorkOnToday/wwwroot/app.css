@@ -348,6 +348,18 @@ textarea:focus {
     background: var(--accent-soft);
 }
 
+.badge.completed {
+    border-color: rgba(120, 199, 163, 0.32);
+    color: #9ad9bb;
+    background: rgba(120, 199, 163, 0.1);
+}
+
+.badge.archived {
+    border-color: #465164;
+    color: #a9b3c1;
+    background: rgba(104, 117, 134, 0.13);
+}
+
 .empty-state {
     margin: 1rem 0 0;
     padding: 1.2rem;
@@ -554,6 +566,21 @@ textarea:focus {
     max-width: 50rem;
     margin-bottom: 1rem;
     color: var(--text-muted);
+}
+
+.work-item-url {
+    margin-bottom: 1rem;
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+.work-item-actions {
+    margin-top: 1.15rem;
+}
+
+.work-item-edit-form {
+    max-width: 52rem;
 }
 
 .new-todo-panel {

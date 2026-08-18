@@ -20,14 +20,90 @@ else
 
         <header class="work-item-summary">
             <p class="eyebrow">Work item</p>
-            <h1>@_workItem.Name</h1>
 
-            @if (!string.IsNullOrWhiteSpace(_workItem.Description))
+            @if (_editingWorkItem is not null)
             {
-                <p class="description">@_workItem.Description</p>
-            }
+                var editingWorkItem = _editingWorkItem;
 
-            <span class="badge accent">@_workItem.Kind</span>
+                <EditForm Model="editingWorkItem" OnValidSubmit="SaveWorkItemAsync" class="panel form-panel form-grid work-item-edit-form">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-field">
+                        <label>Name</label>
+                        <InputText @bind-Value="editingWorkItem.Name" />
+                        <ValidationMessage For="() => editingWorkItem.Name" />
+                    </div>
+
+                    <div class="form-field">
+                        <label>Kind</label>
+                        <InputSelect @bind-Value="editingWorkItem.Kind">
+                            @foreach (var value in Enum.GetValues<WorkItemKind>())
+                            {
+                                <option value="@value">@value</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-field wide">
+                        <label>Description</label>
+                        <InputTextArea @bind-Value="editingWorkItem.Description" />
+                        <ValidationMessage For="() => editingWorkItem.Description" />
+                    </div>
+
+                    <div class="form-field wide">
+                        <label>URL</label>
+                        <InputText @bind-Value="editingWorkItem.Url" />
+                        <ValidationMessage For="() => editingWorkItem.Url" />
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="small">Save</button>
+                        <button type="button" class="secondary small" @onclick="CancelWorkItemEdit">Cancel</button>
+                    </div>
+                </EditForm>
+            }
+            else
+            {
+                <h1>@_workItem.Name</h1>
+
+                @if (!string.IsNullOrWhiteSpace(_workItem.Description))
+                {
+                    <p class="description">@_workItem.Description</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_workItem.Url))
+                {
+                    <p class="work-item-url">
+                        <a href="@_workItem.Url" target="_blank" rel="noopener noreferrer">@_workItem.Url</a>
+                    </p>
+                }
+
+                <div class="badge-row">
+                    <span class="badge accent">@_workItem.Kind</span>
+
+                    @if (_workItem.CompletedAt is not null)
+                    {
+                        <span class="badge completed">Completed</span>
+                    }
+
+                    @if (_workItem.ArchivedAt is not null)
+                    {
+                        <span class="badge archived">Archived</span>
+                    }
+                </div>
+
+                <div class="row-actions work-item-actions">
+                    <button type="button" class="secondary small" @onclick="EditWorkItem">Edit</button>
+
+                    <button type="button" class="small" @onclick="ToggleWorkItemCompletedAsync">
+                        @(_workItem.CompletedAt is null ? "Complete" : "Reopen")
+                    </button>
+
+                    <button type="button" class="secondary small" @onclick="ToggleWorkItemArchivedAsync">
+                        @(_workItem.ArchivedAt is null ? "Archive" : "Unarchive")
+                    </button>
+                </div>
+            }
         </header>
 
         <section class="panel form-panel new-todo-panel" aria-labelledby="new-todo-heading">
@@ -169,6 +245,7 @@ else
     public int Id { get; set; }
 
     private WorkItem? _workItem;
+    private WorkItem? _editingWorkItem;
     private TodoItem _newTodo = new();
     private TodoItem? _editingTodo;
 
@@ -186,6 +263,89 @@ else
             .AsNoTracking()
             .Include(x => x.Todos)
             .SingleOrDefaultAsync(x => x.Id == Id);
+    }
+
+    private void EditWorkItem()
+    {
+        if (_workItem is null)
+            return;
+
+        _editingWorkItem = new WorkItem
+        {
+            Id = _workItem.Id,
+            Name = _workItem.Name,
+            Description = _workItem.Description,
+            Url = _workItem.Url,
+            Kind = _workItem.Kind
+        };
+    }
+
+    private void CancelWorkItemEdit()
+    {
+        _editingWorkItem = null;
+    }
+
+    private async Task SaveWorkItemAsync()
+    {
+        if (_editingWorkItem is null)
+            return;
+
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(_editingWorkItem.Id);
+
+        if (workItem is null)
+            return;
+
+        workItem.Name = _editingWorkItem.Name;
+        workItem.Description = _editingWorkItem.Description;
+        workItem.Url = _editingWorkItem.Url;
+        workItem.Kind = _editingWorkItem.Kind;
+
+        await db.SaveChangesAsync();
+
+        _editingWorkItem = null;
+
+        await LoadAsync();
+    }
+
+    private async Task ToggleWorkItemCompletedAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+            return;
+
+        workItem.CompletedAt = workItem.CompletedAt is null
+            ? DateTimeOffset.UtcNow
+            : null;
+
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task ToggleWorkItemArchivedAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+            return;
+
+        workItem.ArchivedAt = workItem.ArchivedAt is null
+            ? DateTimeOffset.UtcNow
+            : null;
+
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
     }
 
     private async Task CreateTodoAsync()
