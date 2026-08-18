@@ -37,7 +37,11 @@ else
         @foreach (var workItem in _workItems)
         {
             <li>
-                <strong>@workItem.Name</strong>
+                <strong>
+                    <a href="@($"/work-items/{workItem.Id}")">
+                        @workItem.Name
+                    </a>
+                </strong>
 
                 @if (!string.IsNullOrWhiteSpace(workItem.Description))
                 {

@@ -1,0 +1,138 @@
+﻿@page "/work-items/{Id:int}"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>@(_workItem?.Name ?? "Work Item")</PageTitle>
+
+@if (_workItem is null)
+{
+    <p>Work item not found.</p>
+}
+else
+{
+    <p>
+        <a href="/work-items">← Work Items</a>
+    </p>
+
+    <h1>@_workItem.Name</h1>
+
+    @if (!string.IsNullOrWhiteSpace(_workItem.Description))
+    {
+        <p>@_workItem.Description</p>
+    }
+
+    <p>
+        @_workItem.Kind ·
+        @_workItem.Energy energy ·
+        @_workItem.Effort effort
+    </p>
+
+    <hr />
+
+    <h2>Todos</h2>
+
+    <EditForm Model="_newTodo" OnValidSubmit="CreateTodoAsync">
+        <DataAnnotationsValidator />
+
+        <div>
+            <label>Task</label>
+            <InputText @bind-Value="_newTodo.Task" />
+            <ValidationMessage For="() => _newTodo.Task" />
+        </div>
+
+        <button type="submit">Add todo</button>
+    </EditForm>
+
+    @if (_workItem.Todos.Count == 0)
+    {
+        <p>No todos yet.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var todo in _workItem.Todos
+                .OrderBy(x => x.CompletedAt.HasValue)
+                .ThenBy(x => x.CreatedAt))
+            {
+                <li>
+                    <button type="button"
+                            @onclick="() => ToggleTodoAsync(todo.Id)">
+                        @(todo.CompletedAt is null ? "Complete" : "Reopen")
+                    </button>
+
+                    @if (todo.CompletedAt is null)
+                    {
+                        <span>@todo.Task</span>
+                    }
+                    else
+                    {
+                        <s>@todo.Task</s>
+                    }
+                </li>
+            }
+        </ul>
+    }
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private WorkItem? _workItem;
+    private TodoItem _newTodo = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        _workItem = await db.WorkItems
+            .AsNoTracking()
+            .Include(x => x.Todos)
+            .SingleOrDefaultAsync(x => x.Id == Id);
+    }
+
+    private async Task CreateTodoAsync()
+    {
+        if (_workItem is null)
+            return;
+
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        db.TodoItems.Add(new TodoItem
+        {
+            WorkItemId = _workItem.Id,
+            Task = _newTodo.Task
+        });
+
+        await db.SaveChangesAsync();
+
+        _newTodo = new TodoItem();
+
+        await LoadAsync();
+    }
+
+    private async Task ToggleTodoAsync(int todoId)
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var todo = await db.TodoItems.FindAsync(todoId);
+
+        if (todo is null)
+            return;
+
+        todo.CompletedAt = todo.CompletedAt is null
+            ? DateTimeOffset.UtcNow
+            : null;
+
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+}
