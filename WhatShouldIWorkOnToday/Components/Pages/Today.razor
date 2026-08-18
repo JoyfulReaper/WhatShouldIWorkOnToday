@@ -1,0 +1,104 @@
+﻿@page "/today"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>What Should I Work On Today?</PageTitle>
+
+<h1>What Should I Work On Today?</h1>
+
+<div>
+    <label>Energy</label>
+    <InputSelect @bind-Value="_energy">
+        @foreach (var value in Enum.GetValues<EnergyLevel>())
+        {
+            <option value="@value">@value</option>
+        }
+    </InputSelect>
+</div>
+
+<div>
+    <label>Available time / effort</label>
+    <InputSelect @bind-Value="_effort">
+        @foreach (var value in Enum.GetValues<EffortLevel>())
+        {
+            <option value="@value">@value</option>
+        }
+    </InputSelect>
+</div>
+
+<button type="button" @onclick="ChooseAsync">
+    Pick something
+</button>
+
+<hr />
+
+@if (_hasChosen)
+{
+    if (_choices.Count == 0)
+    {
+        <p>Nothing matches. Apparently Past You has failed Present You.</p>
+    }
+    else
+    {
+        <h2>How about...</h2>
+
+        <ul>
+            @foreach (var workItem in _choices)
+            {
+                <li>
+                    <strong>
+                        <a href="@($"/work-items/{workItem.Id}")">
+                            @workItem.Name
+                        </a>
+                    </strong>
+
+                    @if (!string.IsNullOrWhiteSpace(workItem.Description))
+                    {
+                        <div>@workItem.Description</div>
+                    }
+
+                    <small>
+                        @workItem.Kind ·
+                        @workItem.Energy energy ·
+                        @workItem.Effort effort
+                    </small>
+                </li>
+            }
+        </ul>
+
+        <button type="button" @onclick="ChooseAsync">
+            Nah, give me something else
+        </button>
+    }
+}
+
+@code {
+    private EnergyLevel _energy = EnergyLevel.Medium;
+    private EffortLevel _effort = EffortLevel.Medium;
+
+    private List<WorkItem> _choices = [];
+    private bool _hasChosen;
+
+    private async Task ChooseAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var candidates = await db.WorkItems
+            .AsNoTracking()
+            .Where(x =>
+                x.CompletedAt == null &&
+                x.ArchivedAt == null &&
+                x.Energy <= _energy &&
+                x.Effort <= _effort)
+            .ToListAsync();
+
+        _choices = candidates
+            .OrderBy(_ => Random.Shared.Next())
+            .Take(3)
+            .ToList();
+
+        _hasChosen = true;
+    }
+}
