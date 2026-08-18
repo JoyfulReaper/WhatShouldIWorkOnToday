@@ -8,4 +8,5 @@ public sealed class AppDbContext(
     : DbContext(options)
 {
     public DbSet<WorkItem> WorkItems => Set<WorkItem>();
+    public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 }

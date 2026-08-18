@@ -29,4 +29,6 @@ public sealed class WorkItem
     public DateTimeOffset? CompletedAt { get; set; }
 
     public DateTimeOffset? ArchivedAt { get; set; }
+
+    public List<TodoItem> Todos { get; set; } = [];
 }
