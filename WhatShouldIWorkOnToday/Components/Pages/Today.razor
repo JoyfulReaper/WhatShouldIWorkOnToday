@@ -3,6 +3,7 @@
 @using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
 @inject IDbContextFactory<AppDbContext> DbContextFactory
+@inject NavigationManager Navigation
 
 <PageTitle>What Should I Work On Today?</PageTitle>
 
@@ -10,13 +11,18 @@
     <header class="page-heading">
         <p class="eyebrow">Today.exe</p>
         <h1>What Should I Work On Today?</h1>
-        <p class="lead">Give the chooser a realistic resource budget. It will handle the indecision.</p>
+        <p class="lead">
+            Give the chooser a realistic resource budget.
+            It will handle the indecision.
+        </p>
     </header>
 
-    <section class="panel chooser-panel" aria-label="Chooser filters">
+    <section class="panel chooser-panel"
+             aria-label="Chooser filters">
         <div class="chooser-controls">
             <div class="form-field">
                 <label>Energy</label>
+
                 <InputSelect @bind-Value="_energy">
                     @foreach (var value in Enum.GetValues<EnergyLevel>())
                     {
@@ -27,6 +33,7 @@
 
             <div class="form-field">
                 <label>Available time / effort</label>
+
                 <InputSelect @bind-Value="_effort">
                     @foreach (var value in Enum.GetValues<EffortLevel>())
                     {
@@ -35,7 +42,8 @@
                 </InputSelect>
             </div>
 
-            <button type="button" @onclick="ChooseAsync">
+            <button type="button"
+                    @onclick="ChooseAsync">
                 Pick something
             </button>
         </div>
@@ -43,64 +51,78 @@
 
     @if (_hasChosen)
     {
-        <section class="results-section" aria-live="polite">
+        <section class="results-section"
+                 aria-live="polite">
             @if (_choices.Count == 0)
             {
-                <p class="empty-state">Nothing matches. Apparently Past You has failed Present You.</p>
+                <p class="empty-state">
+                    Nothing matches. Apparently Past You has failed Present You.
+                </p>
             }
             else
             {
                 <div class="results-heading">
                     <h2>How about...</h2>
-                    <span class="count-label">@_choices.Count options</span>
+
+                    <span class="count-label">
+                        @_choices.Count options
+                    </span>
                 </div>
 
                 <ul class="choice-list">
                     @foreach (var todo in _choices)
                     {
-                        <li class="choice-card @(_selectedTodoId == todo.Id ? "is-selected" : null)">
+                        <li class="choice-card">
                             <div class="choice-project">
                                 <a href="@($"/work-items/{todo.WorkItemId}")">
                                     @todo.WorkItem.Name
                                 </a>
                             </div>
 
-                            <div class="choice-task">@todo.Task</div>
+                            <div class="choice-task">
+                                @todo.Task
+                            </div>
 
                             <div class="badge-row">
-                                <span class="badge accent">@todo.Energy energy</span>
-                                <span class="badge">@todo.Effort effort</span>
+                                <span class="badge accent">
+                                    @todo.Energy energy
+                                </span>
+
+                                <span class="badge">
+                                    @todo.Effort effort
+                                </span>
                             </div>
 
                             @if (todo.WorkItem.LastWorkedAt is null)
                             {
-                                <div class="choice-context">Never worked on.</div>
+                                <div class="choice-context">
+                                    Never worked on.
+                                </div>
                             }
                             else
                             {
                                 <div class="choice-context">
                                     Last worked:
-                                    @(todo.WorkItem.LastWorkedAt.Value.ToLocalTime().ToString("g"))
+                                    @(todo.WorkItem.LastWorkedAt.Value
+                                        .ToLocalTime()
+                                        .ToString("g"))
                                 </div>
                             }
 
                             <div class="choice-actions row-actions">
                                 <button type="button"
                                         class="small"
-                                        @onclick="() => StartWorkAsync(todo)">
+                                        @onclick="() => OpenWorkItem(todo)">
                                     Work on this
                                 </button>
-
-                                @if (_selectedTodoId == todo.Id)
-                                {
-                                    <span class="selected-note">Selected.</span>
-                                }
                             </div>
                         </li>
                     }
                 </ul>
 
-                <button type="button" class="secondary" @onclick="ChooseAsync">
+                <button type="button"
+                        class="secondary"
+                        @onclick="ChooseAsync">
                     Nah, give me something else
                 </button>
             }
@@ -114,7 +136,6 @@
 
     private List<TodoItem> _choices = [];
     private bool _hasChosen;
-    private int? _selectedTodoId;
 
     private async Task ChooseAsync()
     {
@@ -137,37 +158,13 @@
             .Take(3)
             .ToList();
 
-        _selectedTodoId = null;
         _hasChosen = true;
     }
 
-    private async Task StartWorkAsync(TodoItem todo)
+    private void OpenWorkItem(TodoItem todo)
     {
-        await using var db =
-            await DbContextFactory.CreateDbContextAsync();
-
-        var workItem =
-            await db.WorkItems.FindAsync(todo.WorkItemId);
-
-        if (workItem is null)
-            return;
-
-        var workedAt = DateTimeOffset.UtcNow;
-
-        workItem.LastWorkedAt = workedAt;
-
-        db.WorkHistoryEntries.Add(new WorkHistoryEntry
-        {
-            WorkItemId = workItem.Id,
-            TodoItemId = todo.Id,
-            TaskSnapshot = todo.Task,
-            WorkedAt = workedAt
-        });
-
-        await db.SaveChangesAsync();
-
-        todo.WorkItem.LastWorkedAt = workedAt;
-        _selectedTodoId = todo.Id;
+        Navigation.NavigateTo(
+            $"/work-items/{todo.WorkItemId}");
     }
 
     private static double GetNeglectScore(TodoItem todo)
@@ -179,7 +176,8 @@
                     todo.WorkItem.LastWorkedAt.Value).TotalDays,
                 365);
 
-        var randomScore = Random.Shared.NextDouble() * 30;
+        var randomScore =
+            Random.Shared.NextDouble() * 30;
 
         return ageScore + randomScore;
     }
