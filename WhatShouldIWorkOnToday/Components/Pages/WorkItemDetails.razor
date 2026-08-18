@@ -102,6 +102,12 @@ else
                     <button type="button" class="secondary small" @onclick="ToggleWorkItemArchivedAsync">
                         @(_workItem.ArchivedAt is null ? "Archive" : "Unarchive")
                     </button>
+                </div>
+
+                <div class="form-field work-note-field">
+                    <label>Quick work note</label>
+
+                    <InputTextArea @bind-Value="_workNote" placeholder="What did you actually do?" />
 
                     <button type="button"
                             class="small"
@@ -267,6 +273,45 @@ else
                                 <strong>
                                     @(entry.TaskSnapshot ?? "General work")
                                 </strong>
+
+                                @if (_editingHistoryId == entry.Id)
+                                {
+                                    <div class="form-field">
+                                        <InputTextArea @bind-Value="_editingHistoryNote"
+                                                       placeholder="What did you do?" />
+
+                                        <div class="row-actions">
+                                            <button type="button"
+                                                    class="small"
+                                                    @onclick="SaveHistoryNoteAsync">
+                                                Save
+                                            </button>
+
+                                            <button type="button"
+                                                    class="secondary small"
+                                                    @onclick="CancelHistoryNoteEdit">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @if (!string.IsNullOrWhiteSpace(entry.Note))
+                                    {
+                                        <div class="work-item-description">
+                                            @entry.Note
+                                        </div>
+                                    }
+
+                                    <button type="button"
+                                            class="secondary small"
+                                            @onclick="() => EditHistoryNote(entry)">
+                                        @(string.IsNullOrWhiteSpace(entry.Note)
+                                            ? "Add note"
+                                            : "Edit note")
+                                    </button>
+                                }
                             </div>
 
                             <div class="work-item-meta">
@@ -290,7 +335,11 @@ else
     private WorkItem? _editingWorkItem;
     private TodoItem _newTodo = new();
     private TodoItem? _editingTodo;
+    private string? _workNote;
+    private int? _editingHistoryId;
+    private string? _editingHistoryNote;
     private List<WorkHistoryEntry> _workHistory = [];
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -485,8 +534,7 @@ else
 
     private async Task MarkWorkedAsync()
     {
-        await using var db =
-            await DbContextFactory.CreateDbContextAsync();
+        await using var db = await DbContextFactory.CreateDbContextAsync();
 
         var workItem = await db.WorkItems.FindAsync(Id);
 
@@ -500,10 +548,50 @@ else
         db.WorkHistoryEntries.Add(new WorkHistoryEntry
         {
             WorkItemId = workItem.Id,
+            Note = string.IsNullOrWhiteSpace(_workNote)
+                ? null
+                : _workNote.Trim(),
             WorkedAt = workedAt
         });
 
         await db.SaveChangesAsync();
+
+        _workNote = null;
+
+        await LoadAsync();
+    }
+
+    private void EditHistoryNote(WorkHistoryEntry entry)
+    {
+        _editingHistoryId = entry.Id;
+        _editingHistoryNote = entry.Note;
+    }
+
+    private void CancelHistoryNoteEdit()
+    {
+        _editingHistoryId = null;
+        _editingHistoryNote = null;
+    }
+
+    private async Task SaveHistoryNoteAsync()
+    {
+        if (_editingHistoryId is null)
+            return;
+
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var entry = await db.WorkHistoryEntries.FindAsync(_editingHistoryId.Value);
+
+        if (entry is null)
+            return;
+
+        entry.Note = string.IsNullOrWhiteSpace(_editingHistoryNote)
+            ? null
+            : _editingHistoryNote.Trim();
+
+        await db.SaveChangesAsync();
+
+        CancelHistoryNoteEdit();
 
         await LoadAsync();
     }

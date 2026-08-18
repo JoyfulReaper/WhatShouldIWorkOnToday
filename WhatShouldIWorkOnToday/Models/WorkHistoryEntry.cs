@@ -15,5 +15,8 @@ public sealed class WorkHistoryEntry
     [MaxLength(500)]
     public string? TaskSnapshot { get; set; }
 
+    [MaxLength(2000)]
+    public string? Note { get; set; }
+
     public DateTimeOffset WorkedAt { get; set; } = DateTimeOffset.UtcNow;
 }
