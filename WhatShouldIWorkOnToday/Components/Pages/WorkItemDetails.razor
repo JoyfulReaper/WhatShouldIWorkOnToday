@@ -1,0 +1,432 @@
+@page "/work-items/{Id:int}"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>@(_workItem?.Name ?? "Work Item")</PageTitle>
+
+@if (_workItem is null)
+{
+    <div class="app-page panel not-found">
+        <h1>Work item not found.</h1>
+        <a class="back-link" href="/work-items">← Work Items</a>
+    </div>
+}
+else
+{
+    <div class="app-page">
+        <a class="back-link" href="/work-items">← Work Items</a>
+
+        <header class="work-item-summary">
+            <p class="eyebrow">Work item</p>
+
+            @if (_editingWorkItem is not null)
+            {
+                var editingWorkItem = _editingWorkItem;
+
+                <EditForm Model="editingWorkItem" OnValidSubmit="SaveWorkItemAsync" class="panel form-panel form-grid work-item-edit-form">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-field">
+                        <label>Name</label>
+                        <InputText @bind-Value="editingWorkItem.Name" />
+                        <ValidationMessage For="() => editingWorkItem.Name" />
+                    </div>
+
+                    <div class="form-field">
+                        <label>Kind</label>
+                        <InputSelect @bind-Value="editingWorkItem.Kind">
+                            @foreach (var value in Enum.GetValues<WorkItemKind>())
+                            {
+                                <option value="@value">@value</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="form-field wide">
+                        <label>Description</label>
+                        <InputTextArea @bind-Value="editingWorkItem.Description" />
+                        <ValidationMessage For="() => editingWorkItem.Description" />
+                    </div>
+
+                    <div class="form-field wide">
+                        <label>URL</label>
+                        <InputText @bind-Value="editingWorkItem.Url" />
+                        <ValidationMessage For="() => editingWorkItem.Url" />
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="small">Save</button>
+                        <button type="button" class="secondary small" @onclick="CancelWorkItemEdit">Cancel</button>
+                    </div>
+                </EditForm>
+            }
+            else
+            {
+                <h1>@_workItem.Name</h1>
+
+                @if (!string.IsNullOrWhiteSpace(_workItem.Description))
+                {
+                    <p class="description">@_workItem.Description</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_workItem.Url))
+                {
+                    <p class="work-item-url">
+                        <a href="@_workItem.Url" target="_blank" rel="noopener noreferrer">@_workItem.Url</a>
+                    </p>
+                }
+
+                <div class="badge-row">
+                    <span class="badge accent">@_workItem.Kind</span>
+
+                    @if (_workItem.CompletedAt is not null)
+                    {
+                        <span class="badge completed">Completed</span>
+                    }
+
+                    @if (_workItem.ArchivedAt is not null)
+                    {
+                        <span class="badge archived">Archived</span>
+                    }
+                </div>
+
+                <div class="row-actions work-item-actions">
+                    <button type="button" class="secondary small" @onclick="EditWorkItem">Edit</button>
+
+                    <button type="button" class="small" @onclick="ToggleWorkItemCompletedAsync">
+                        @(_workItem.CompletedAt is null ? "Complete" : "Reopen")
+                    </button>
+
+                    <button type="button" class="secondary small" @onclick="ToggleWorkItemArchivedAsync">
+                        @(_workItem.ArchivedAt is null ? "Archive" : "Unarchive")
+                    </button>
+                </div>
+            }
+        </header>
+
+        <section class="panel form-panel new-todo-panel" aria-labelledby="new-todo-heading">
+            <header class="form-panel-header">
+                <h2 id="new-todo-heading">Add a todo</h2>
+                <p>Small enough to start. Specific enough to finish.</p>
+            </header>
+
+            <EditForm Model="_newTodo" OnValidSubmit="CreateTodoAsync" class="todo-create-grid">
+                <DataAnnotationsValidator />
+
+                <div class="form-field">
+                    <label>Task</label>
+                    <InputText @bind-Value="_newTodo.Task" />
+                    <ValidationMessage For="() => _newTodo.Task" />
+                </div>
+
+                <div class="form-field">
+                    <label>Energy</label>
+                    <InputSelect @bind-Value="_newTodo.Energy">
+                        @foreach (var value in Enum.GetValues<EnergyLevel>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-field">
+                    <label>Effort</label>
+                    <InputSelect @bind-Value="_newTodo.Effort">
+                        @foreach (var value in Enum.GetValues<EffortLevel>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit">Add todo</button>
+                </div>
+            </EditForm>
+        </section>
+
+        <section aria-labelledby="todos-heading">
+            <div class="section-header">
+                <h2 id="todos-heading">Todos</h2>
+                <span class="count-label">@_workItem.Todos.Count total</span>
+            </div>
+
+            @if (_workItem.Todos.Count == 0)
+            {
+                <p class="empty-state">No todos yet.</p>
+            }
+            else
+            {
+                <ul class="todo-list">
+                    @foreach (var todo in _workItem.Todos
+                        .OrderBy(x => x.CompletedAt.HasValue)
+                        .ThenBy(x => x.CreatedAt))
+                    {
+                        <li class="todo-row @(todo.CompletedAt is not null ? "completed" : null)">
+                            <button type="button"
+                                    class="secondary small"
+                                    @onclick="() => ToggleTodoAsync(todo.Id)">
+                                @(todo.CompletedAt is null ? "Complete" : "Reopen")
+                            </button>
+
+                            @if (_editingTodo?.Id == todo.Id)
+                            {
+                                var editingTodo = _editingTodo;
+
+                                <EditForm Model="editingTodo" OnValidSubmit="SaveTodoAsync" class="todo-edit-form">
+                                    <DataAnnotationsValidator />
+
+                                    <div class="form-field">
+                                        <label>Task</label>
+                                        <InputText @bind-Value="editingTodo.Task" />
+                                        <ValidationMessage For="() => editingTodo.Task" />
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label>Energy</label>
+                                        <InputSelect @bind-Value="editingTodo.Energy">
+                                            @foreach (var value in Enum.GetValues<EnergyLevel>())
+                                            {
+                                                <option value="@value">@value</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label>Effort</label>
+                                        <InputSelect @bind-Value="editingTodo.Effort">
+                                            @foreach (var value in Enum.GetValues<EffortLevel>())
+                                            {
+                                                <option value="@value">@value</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+
+                                    <div class="row-actions">
+                                        <button type="submit" class="small">Save</button>
+                                        <button type="button" class="secondary small" @onclick="CancelEdit">Cancel</button>
+                                    </div>
+                                </EditForm>
+                            }
+                            else
+                            {
+                                <div class="todo-content">
+                                    <span class="todo-task">
+                                        @if (todo.CompletedAt is null)
+                                        {
+                                            @todo.Task
+                                        }
+                                        else
+                                        {
+                                            <s>@todo.Task</s>
+                                        }
+                                    </span>
+
+                                    <div class="badge-row">
+                                        <span class="badge accent">@todo.Energy energy</span>
+                                        <span class="badge">@todo.Effort effort</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="secondary small" @onclick="() => EditTodo(todo)">Edit</button>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private WorkItem? _workItem;
+    private WorkItem? _editingWorkItem;
+    private TodoItem _newTodo = new();
+    private TodoItem? _editingTodo;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        _workItem = await db.WorkItems
+            .AsNoTracking()
+            .Include(x => x.Todos)
+            .SingleOrDefaultAsync(x => x.Id == Id);
+    }
+
+    private void EditWorkItem()
+    {
+        if (_workItem is null)
+            return;
+
+        _editingWorkItem = new WorkItem
+        {
+            Id = _workItem.Id,
+            Name = _workItem.Name,
+            Description = _workItem.Description,
+            Url = _workItem.Url,
+            Kind = _workItem.Kind
+        };
+    }
+
+    private void CancelWorkItemEdit()
+    {
+        _editingWorkItem = null;
+    }
+
+    private async Task SaveWorkItemAsync()
+    {
+        if (_editingWorkItem is null)
+            return;
+
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(_editingWorkItem.Id);
+
+        if (workItem is null)
+            return;
+
+        workItem.Name = _editingWorkItem.Name;
+        workItem.Description = _editingWorkItem.Description;
+        workItem.Url = _editingWorkItem.Url;
+        workItem.Kind = _editingWorkItem.Kind;
+
+        await db.SaveChangesAsync();
+
+        _editingWorkItem = null;
+
+        await LoadAsync();
+    }
+
+    private async Task ToggleWorkItemCompletedAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+            return;
+
+        workItem.CompletedAt = workItem.CompletedAt is null
+            ? DateTimeOffset.UtcNow
+            : null;
+
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task ToggleWorkItemArchivedAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+            return;
+
+        workItem.ArchivedAt = workItem.ArchivedAt is null
+            ? DateTimeOffset.UtcNow
+            : null;
+
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private async Task CreateTodoAsync()
+    {
+        if (_workItem is null)
+            return;
+
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        db.TodoItems.Add(new TodoItem
+        {
+            WorkItemId = _workItem.Id,
+            Task = _newTodo.Task,
+            Energy = _newTodo.Energy,
+            Effort = _newTodo.Effort
+        });
+
+        await db.SaveChangesAsync();
+
+        _newTodo = new TodoItem();
+
+        await LoadAsync();
+    }
+
+    private void EditTodo(TodoItem todo)
+    {
+        _editingTodo = new TodoItem
+        {
+            Id = todo.Id,
+            Task = todo.Task,
+            Energy = todo.Energy,
+            Effort = todo.Effort
+        };
+    }
+
+    private void CancelEdit()
+    {
+        _editingTodo = null;
+    }
+
+    private async Task SaveTodoAsync()
+    {
+        if (_editingTodo is null)
+            return;
+
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var todo = await db.TodoItems.FindAsync(_editingTodo.Id);
+
+        if (todo is null)
+            return;
+
+        todo.Task = _editingTodo.Task;
+        todo.Energy = _editingTodo.Energy;
+        todo.Effort = _editingTodo.Effort;
+
+        await db.SaveChangesAsync();
+
+        _editingTodo = null;
+
+        await LoadAsync();
+    }
+
+    private async Task ToggleTodoAsync(int todoId)
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var todo = await db.TodoItems.FindAsync(todoId);
+
+        if (todo is null)
+            return;
+
+        todo.CompletedAt = todo.CompletedAt is null
+            ? DateTimeOffset.UtcNow
+            : null;
+
+        await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+}

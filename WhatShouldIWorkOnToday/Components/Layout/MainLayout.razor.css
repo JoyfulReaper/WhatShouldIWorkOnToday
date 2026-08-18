@@ -1,0 +1,107 @@
+.app-shell {
+    width: min(100% - 2rem, 70rem);
+    margin: 0 auto;
+}
+
+.app-header {
+    display: flex;
+    min-height: 4.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text);
+    font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+.brand:hover {
+    color: #fff;
+}
+
+.brand-prompt {
+    margin-right: 0.18rem;
+    color: var(--accent);
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+nav ::deep a {
+    padding: 0.42rem 0.65rem;
+    border-radius: 0.4rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+nav ::deep a:hover,
+nav ::deep a.active {
+    color: var(--text);
+    background: var(--surface);
+}
+
+nav ::deep a.active {
+    box-shadow: inset 0 -2px var(--accent);
+}
+
+.app-main {
+    padding: clamp(2rem, 6vw, 4.5rem) 0 5rem;
+}
+
+#blazor-error-ui {
+    color-scheme: dark;
+    color: var(--text);
+    background: #342816;
+    bottom: 0;
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.3);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+@media (max-width: 520px) {
+    .app-shell {
+        width: min(100% - 1.25rem, 70rem);
+    }
+
+    .app-header {
+        min-height: 4rem;
+    }
+
+    .brand {
+        font-size: 0.82rem;
+    }
+
+    nav ::deep a {
+        padding-inline: 0.5rem;
+        font-size: 0.76rem;
+    }
+
+    .app-main {
+        padding-top: 2.25rem;
+    }
+}

@@ -1,0 +1,177 @@
+@page "/today"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>What Should I Work On Today?</PageTitle>
+
+<div class="app-page">
+    <header class="page-heading">
+        <p class="eyebrow">Today.exe</p>
+        <h1>What Should I Work On Today?</h1>
+        <p class="lead">Give the chooser a realistic resource budget. It will handle the indecision.</p>
+    </header>
+
+    <section class="panel chooser-panel" aria-label="Chooser filters">
+        <div class="chooser-controls">
+            <div class="form-field">
+                <label>Energy</label>
+                <InputSelect @bind-Value="_energy">
+                    @foreach (var value in Enum.GetValues<EnergyLevel>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="form-field">
+                <label>Available time / effort</label>
+                <InputSelect @bind-Value="_effort">
+                    @foreach (var value in Enum.GetValues<EffortLevel>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <button type="button" @onclick="ChooseAsync">
+                Pick something
+            </button>
+        </div>
+    </section>
+
+    @if (_hasChosen)
+    {
+        <section class="results-section" aria-live="polite">
+            @if (_choices.Count == 0)
+            {
+                <p class="empty-state">Nothing matches. Apparently Past You has failed Present You.</p>
+            }
+            else
+            {
+                <div class="results-heading">
+                    <h2>How about...</h2>
+                    <span class="count-label">@_choices.Count options</span>
+                </div>
+
+                <ul class="choice-list">
+                    @foreach (var todo in _choices)
+                    {
+                        <li class="choice-card @(_selectedTodoId == todo.Id ? "is-selected" : null)">
+                            <div class="choice-project">
+                                <a href="@($"/work-items/{todo.WorkItemId}")">
+                                    @todo.WorkItem.Name
+                                </a>
+                            </div>
+
+                            <div class="choice-task">@todo.Task</div>
+
+                            <div class="badge-row">
+                                <span class="badge accent">@todo.Energy energy</span>
+                                <span class="badge">@todo.Effort effort</span>
+                            </div>
+
+                            @if (todo.WorkItem.LastWorkedAt is null)
+                            {
+                                <div class="choice-context">Never worked on.</div>
+                            }
+                            else
+                            {
+                                <div class="choice-context">
+                                    Last worked:
+                                    @todo.WorkItem.LastWorkedAt.Value
+                                    .ToLocalTime()
+                                    .ToString("g")
+                                </div>
+                            }
+
+                            <div class="choice-actions row-actions">
+                                <button type="button"
+                                        class="small"
+                                        @onclick="() => StartWorkAsync(todo)">
+                                    Work on this
+                                </button>
+
+                                @if (_selectedTodoId == todo.Id)
+                                {
+                                    <span class="selected-note">Selected.</span>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+
+                <button type="button" class="secondary" @onclick="ChooseAsync">
+                    Nah, give me something else
+                </button>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private EnergyLevel _energy = EnergyLevel.Medium;
+    private EffortLevel _effort = EffortLevel.Medium;
+
+    private List<TodoItem> _choices = [];
+    private bool _hasChosen;
+    private int? _selectedTodoId;
+
+    private async Task ChooseAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var candidates = await db.TodoItems
+            .AsNoTracking()
+            .Include(x => x.WorkItem)
+            .Where(x =>
+                x.CompletedAt == null &&
+                x.WorkItem.CompletedAt == null &&
+                x.WorkItem.ArchivedAt == null &&
+                x.Energy <= _energy &&
+                x.Effort <= _effort)
+            .ToListAsync();
+
+        _choices = candidates
+            .OrderByDescending(GetNeglectScore)
+            .Take(3)
+            .ToList();
+
+        _selectedTodoId = null;
+        _hasChosen = true;
+    }
+
+    private async Task StartWorkAsync(TodoItem todo)
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(todo.WorkItemId);
+
+        if (workItem is null)
+            return;
+
+        workItem.LastWorkedAt = DateTimeOffset.UtcNow;
+
+        await db.SaveChangesAsync();
+
+        todo.WorkItem.LastWorkedAt = workItem.LastWorkedAt;
+        _selectedTodoId = todo.Id;
+    }
+
+    private static double GetNeglectScore(TodoItem todo)
+    {
+        var ageScore = todo.WorkItem.LastWorkedAt is null
+            ? 365
+            : Math.Min(
+                (DateTimeOffset.UtcNow -
+                    todo.WorkItem.LastWorkedAt.Value).TotalDays,
+                365);
+
+        var randomScore = Random.Shared.NextDouble() * 30;
+
+        return ageScore + randomScore;
+    }
+}
