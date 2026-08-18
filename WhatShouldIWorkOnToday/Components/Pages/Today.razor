@@ -65,6 +65,21 @@
                             @workItem.Energy energy ·
                             @workItem.Effort effort
                         </small>
+                        @if (workItem.LastWorkedAt is null)
+                        {
+                            <div>
+                                <small>Never worked on.</small>
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                <small>
+                                    Last worked:
+                                    @workItem.LastWorkedAt.Value.ToLocalTime().ToString("g")
+                                </small>
+                            </div>
+                        }
                     </div>
 
                     <div>
@@ -111,7 +126,7 @@
             .ToListAsync();
 
         _choices = candidates
-            .OrderBy(_ => Random.Shared.Next())
+            .OrderByDescending(GetNeglectScore)
             .Take(3)
             .ToList();
 
@@ -134,5 +149,16 @@
         await db.SaveChangesAsync();
 
         _selectedWorkItemId = workItemId;
+    }
+
+    private static double GetNeglectScore(WorkItem workItem)
+    {
+        var ageScore = workItem.LastWorkedAt is null
+            ? 365
+            : Math.Min((DateTimeOffset.UtcNow - workItem.LastWorkedAt.Value).TotalDays,365);
+
+        var randomScore = Random.Shared.NextDouble() * 30;
+
+        return ageScore + randomScore;
     }
 }
