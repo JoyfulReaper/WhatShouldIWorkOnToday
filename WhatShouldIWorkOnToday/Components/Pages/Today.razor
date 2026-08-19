@@ -46,8 +46,87 @@
                     @onclick="ChooseAsync">
                 Pick something
             </button>
+
+            <button type="button"
+                    class="secondary"
+                    @onclick="ChooseRandomAsync">
+                Fuck it, random
+            </button>
         </div>
     </section>
+
+    @if (_hasRandomChosen)
+    {
+        <section class="results-section"
+                 aria-live="polite">
+            @if (_randomTodo is null)
+            {
+                <p class="empty-state">
+                    No active todos. Somehow you finished everything.
+                </p>
+            }
+            else
+            {
+                <div class="results-heading">
+                    <h2>The universe has decided...</h2>
+                </div>
+
+                <ul class="choice-list">
+                    <li class="choice-card">
+                        <div class="choice-project">
+                            <a href="@($"/work-items/{_randomTodo.WorkItemId}")">
+                                @_randomTodo.WorkItem.Name
+                            </a>
+                        </div>
+
+                        <div class="choice-task">
+                            @_randomTodo.Task
+                        </div>
+
+                        <div class="badge-row">
+                            <span class="badge accent">
+                                @_randomTodo.Energy energy
+                            </span>
+
+                            <span class="badge">
+                                @_randomTodo.Effort effort
+                            </span>
+                        </div>
+
+                        @if (_randomTodo.WorkItem.LastWorkedAt is null)
+                        {
+                            <div class="choice-context">
+                                Never worked on.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="choice-context">
+                                Last worked:
+                                @(_randomTodo.WorkItem.LastWorkedAt.Value
+                                    .ToLocalTime()
+                                    .ToString("g"))
+                            </div>
+                        }
+
+                        <div class="choice-actions row-actions">
+                            <button type="button"
+                                    class="small"
+                                    @onclick="OpenRandomTodo">
+                                Work on this
+                            </button>
+
+                            <button type="button"
+                                    class="secondary small"
+                                    @onclick="ChooseRandomAsync">
+                                Nope, random again
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+            }
+        </section>
+    }
 
     @if (_hasChosen)
     {
@@ -137,6 +216,9 @@
     private List<TodoItem> _choices = [];
     private bool _hasChosen;
 
+    private TodoItem? _randomTodo;
+    private bool _hasRandomChosen;
+
     private async Task ChooseAsync()
     {
         await using var db =
@@ -158,7 +240,41 @@
             .Take(3)
             .ToList();
 
+        _randomTodo = null;
+        _hasRandomChosen = false;
         _hasChosen = true;
+    }
+
+    private async Task ChooseRandomAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var candidates = await db.TodoItems
+            .AsNoTracking()
+            .Include(x => x.WorkItem)
+            .Where(x =>
+                x.CompletedAt == null &&
+                x.WorkItem.CompletedAt == null &&
+                x.WorkItem.ArchivedAt == null)
+            .ToListAsync();
+
+        _randomTodo = candidates.Count == 0
+            ? null
+            : candidates[Random.Shared.Next(candidates.Count)];
+
+        _choices = [];
+        _hasChosen = false;
+        _hasRandomChosen = true;
+    }
+
+    private void OpenRandomTodo()
+    {
+        if (_randomTodo is null)
+            return;
+
+        Navigation.NavigateTo(
+            $"/work-items/{_randomTodo.WorkItemId}");
     }
 
     private void OpenWorkItem(TodoItem todo)
