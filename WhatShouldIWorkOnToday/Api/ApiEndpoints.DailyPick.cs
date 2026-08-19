@@ -1,0 +1,35 @@
+﻿using WhatShouldIWorkOnToday.Services;
+
+namespace WhatShouldIWorkOnToday.Api;
+
+public static partial class ApiEndpoints
+{
+    private static async Task<IResult> GetDailyPickAsync(
+        WorkChooser workChooser,
+        CancellationToken cancellationToken)
+    {
+        var date = DateOnly.FromDateTime(DateTime.Now);
+        var todo = await workChooser.ChooseDailyAsync(date, cancellationToken: cancellationToken);
+
+        if (todo is null)
+        {
+            return Results.NoContent();
+        }
+
+        var response =
+            new DailyPickDto(
+                date,
+                new TodoItemDto(
+                    todo.Id,
+                    todo.WorkItemId,
+                    todo.WorkItem.Name,
+                    todo.Task,
+                    todo.Energy.ToString(),
+                    todo.Effort.ToString(),
+                    todo.CreatedAt,
+                    todo.CompletedAt),
+                todo.WorkItem.LastWorkedAt);
+
+        return Results.Ok(response);
+    }
+}
