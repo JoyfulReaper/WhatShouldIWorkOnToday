@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Components;
 using WhatShouldIWorkOnToday.Data;
+using WhatShouldIWorkOnToday.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,7 @@ builder.Services.AddSingleton<
     PasswordHasher<SingleUser>>();
 
 builder.Services.AddSingleton<SingleUserAuthService>();
+builder.Services.AddScoped<WorkChooser>();
 
 var configuredDatabasePath =
     builder.Configuration["Database:Path"]

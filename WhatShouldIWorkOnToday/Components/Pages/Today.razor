@@ -1,8 +1,7 @@
 @page "/today"
-@using Microsoft.EntityFrameworkCore
-@using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
-@inject IDbContextFactory<AppDbContext> DbContextFactory
+@using WhatShouldIWorkOnToday.Services
+@inject WorkChooser WorkChooser
 @inject NavigationManager Navigation
 
 <PageTitle>What Should I Work On Today?</PageTitle>
@@ -221,24 +220,9 @@
 
     private async Task ChooseAsync()
     {
-        await using var db =
-            await DbContextFactory.CreateDbContextAsync();
-
-        var candidates = await db.TodoItems
-            .AsNoTracking()
-            .Include(x => x.WorkItem)
-            .Where(x =>
-                x.CompletedAt == null &&
-                x.WorkItem.CompletedAt == null &&
-                x.WorkItem.ArchivedAt == null &&
-                x.Energy <= _energy &&
-                x.Effort <= _effort)
-            .ToListAsync();
-
-        _choices = candidates
-            .OrderByDescending(GetNeglectScore)
-            .Take(3)
-            .ToList();
+        _choices = await WorkChooser.ChooseAsync(
+            _energy,
+            _effort);
 
         _randomTodo = null;
         _hasRandomChosen = false;
@@ -247,21 +231,8 @@
 
     private async Task ChooseRandomAsync()
     {
-        await using var db =
-            await DbContextFactory.CreateDbContextAsync();
-
-        var candidates = await db.TodoItems
-            .AsNoTracking()
-            .Include(x => x.WorkItem)
-            .Where(x =>
-                x.CompletedAt == null &&
-                x.WorkItem.CompletedAt == null &&
-                x.WorkItem.ArchivedAt == null)
-            .ToListAsync();
-
-        _randomTodo = candidates.Count == 0
-            ? null
-            : candidates[Random.Shared.Next(candidates.Count)];
+        _randomTodo =
+            await WorkChooser.ChooseRandomAsync();
 
         _choices = [];
         _hasChosen = false;
@@ -281,20 +252,5 @@
     {
         Navigation.NavigateTo(
             $"/work-items/{todo.WorkItemId}");
-    }
-
-    private static double GetNeglectScore(TodoItem todo)
-    {
-        var ageScore = todo.WorkItem.LastWorkedAt is null
-            ? 365
-            : Math.Min(
-                (DateTimeOffset.UtcNow -
-                    todo.WorkItem.LastWorkedAt.Value).TotalDays,
-                365);
-
-        var randomScore =
-            Random.Shared.NextDouble() * 30;
-
-        return ageScore + randomScore;
     }
 }
