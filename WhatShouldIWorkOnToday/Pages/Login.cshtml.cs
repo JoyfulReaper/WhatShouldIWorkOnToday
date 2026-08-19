@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using WhatShouldIWorkOnToday.Auth;
+using WhatShouldIWorkOnToday.Events;
 
 namespace WhatShouldIWorkOnToday.Pages;
 
 [AllowAnonymous]
 public sealed class LoginModel(
-    SingleUserAuthService authService) : PageModel
+    SingleUserAuthService authService,
+    WsiwotLoginEventPublisher loginEventPublisher) : PageModel
 {
     [BindProperty]
     [Required]
@@ -41,10 +43,20 @@ public sealed class LoginModel(
             return Page();
 
         if (!authService.Validate(
-            Username,
-            Password))
+                Username,
+                Password))
         {
-            ModelState.AddModelError(string.Empty, "Invalid username or password.");
+            await loginEventPublisher.TryPublishFailedAsync(
+                Username,
+                HttpContext.Connection
+                    .RemoteIpAddress?
+                    .ToString(),
+                HttpContext.RequestAborted);
+
+            ModelState.AddModelError(
+                string.Empty,
+                "Invalid username or password.");
+
             Password = string.Empty;
 
             return Page();
@@ -71,6 +83,13 @@ public sealed class LoginModel(
                 IsPersistent = true,
                 AllowRefresh = true
             });
+
+        await loginEventPublisher.TryPublishSucceededAsync(
+            authService.Username,
+            HttpContext.Connection
+                .RemoteIpAddress?
+                .ToString(),
+            HttpContext.RequestAborted);
 
         return LocalRedirect(GetReturnUrl());
     }

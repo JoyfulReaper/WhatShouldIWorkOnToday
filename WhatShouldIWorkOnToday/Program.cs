@@ -1,7 +1,9 @@
+using JoyfulReaperLib.MissionControl;
 using WhatShouldIWorkOnToday.Api;
 using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Components;
 using WhatShouldIWorkOnToday.Data;
+using WhatShouldIWorkOnToday.Events;
 using WhatShouldIWorkOnToday.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,9 +15,11 @@ builder.Services
 builder.Services.AddRazorPages();
 
 builder.Services.AddApplicationAuthentication(builder.Configuration);
-builder.Services.AddApplicationDatabase(
-    builder.Configuration,
-    builder.Environment);
+builder.Services.AddApplicationDatabase(builder.Configuration, builder.Environment);
+
+builder.Services.AddMissionControlClient(builder.Configuration.GetSection(MissionControlClientOptions.SectionName));
+
+builder.Services.AddScoped<WsiwotLoginEventPublisher>();
 
 builder.Services.AddScoped<WorkChooser>();
 
