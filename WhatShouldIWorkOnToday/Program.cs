@@ -51,12 +51,17 @@ builder.Services.AddSingleton<
 
 builder.Services.AddSingleton<SingleUserAuthService>();
 
-var connectionString = builder.Configuration.GetConnectionString("Database")
-    ?? throw new InvalidOperationException("Connection string 'Database' was not found.");
+var configuredDatabasePath =
+    builder.Configuration["Database:Path"]
+    ?? DatabasePath.DefaultRelativePath;
+
+var databasePath = DatabasePath.Resolve(
+    configuredDatabasePath,
+    builder.Environment.ContentRootPath);
 
 builder.Services.AddDbContextFactory<AppDbContext>(
     options =>
-        options.UseSqlite(connectionString));
+        options.UseSqlite($"Data Source={databasePath}"));
 
 var app = builder.Build();
 
