@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Data;
+using WhatShouldIWorkOnToday.Models;
 
 namespace WhatShouldIWorkOnToday.Api;
 
@@ -28,6 +29,10 @@ public static class ApiEndpoints
         api.MapGet(
             "/todos/{id:int}",
             GetTodoAsync);
+
+        api.MapPost(
+            "/work-items/{workItemId:int}/todos",
+            CreateTodoAsync);
 
         return endpoints;
     }
@@ -158,5 +163,133 @@ public static class ApiEndpoints
         return todo is null
             ? Results.NotFound()
             : Results.Ok(todo);
+    }
+
+    private static async Task<IResult> CreateTodoAsync(
+        int workItemId,
+        CreateTodoRequest request,
+        IDbContextFactory<AppDbContext> dbContextFactory,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Task))
+        {
+            return Results.ValidationProblem(
+                new Dictionary<string, string[]>
+                {
+                    ["task"] =
+                    [
+                        "Task is required."
+                    ]
+                });
+        }
+
+        var task = request.Task.Trim();
+        if (task.Length > 500)
+        {
+            return Results.ValidationProblem(
+                new Dictionary<string, string[]>
+                {
+                    ["task"] =
+                    [
+                        "Task cannot exceed 500 characters."
+                    ]
+                });
+        }
+
+        if (!TryParseEnergy(request.Energy, out var energy))
+        {
+            return Results.ValidationProblem(
+                new Dictionary<string, string[]>
+                {
+                    ["energy"] =
+                    [
+                        "Energy must be Low, Medium, or High."
+                    ]
+                });
+        }
+
+        if (!TryParseEffort(request.Effort, out var effort))
+        {
+            return Results.ValidationProblem(
+                new Dictionary<string, string[]>
+                {
+                    ["effort"] =
+                    [
+                        "Effort must be Short, Medium, or Long."
+                    ]
+                });
+        }
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var workItem = await db.WorkItems
+            .SingleOrDefaultAsync(x => x.Id == workItemId, cancellationToken);
+
+        if (workItem is null)
+        {
+            return Results.NotFound();
+        }
+
+        if (workItem.CompletedAt is not null ||
+            workItem.ArchivedAt is not null)
+        {
+            return Results.Conflict(
+                new
+                {
+                    error = "Cannot add a todo to an inactive work item."
+                });
+        }
+
+        var todo = new TodoItem
+        {
+            WorkItemId = workItem.Id,
+            Task = task,
+            Energy = energy,
+            Effort = effort
+        };
+
+        db.TodoItems.Add(todo);
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        var response = new TodoItemDto(
+            todo.Id,
+            todo.WorkItemId,
+            workItem.Name,
+            todo.Task,
+            todo.Energy.ToString(),
+            todo.Effort.ToString(),
+            todo.CreatedAt,
+            todo.CompletedAt);
+
+        return Results.Created($"/api/todos/{todo.Id}", response);
+    }
+
+    private static bool TryParseEnergy(
+        string? value,
+        out EnergyLevel energy)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            energy = EnergyLevel.Medium;
+            return true;
+        }
+
+        return Enum.TryParse(value, ignoreCase: true, out energy) &&
+               Enum.IsDefined(energy);
+    }
+
+    private static bool TryParseEffort(
+        string? value,
+        out EffortLevel effort)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            effort = EffortLevel.Medium;
+            return true;
+        }
+
+        return Enum.TryParse(value, ignoreCase: true, out effort) &&
+               Enum.IsDefined(effort);
     }
 }
