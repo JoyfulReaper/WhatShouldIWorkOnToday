@@ -305,7 +305,7 @@ else
                                     }
 
                                     <button type="button"
-                                            class="secondary small"
+                                            class="secondary small @(string.IsNullOrWhiteSpace(entry.Note) ? "history-add-note" : null)"
                                             @onclick="() => EditHistoryNote(entry)">
                                         @(string.IsNullOrWhiteSpace(entry.Note)
                                             ? "Add note"
