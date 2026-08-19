@@ -242,7 +242,36 @@ else
                                     </div>
                                 </div>
 
-                                <button type="button" class="secondary small" @onclick="() => EditTodo(todo)">Edit</button>
+                                <div class="row-actions">
+                                    <button type="button"
+                                            class="secondary small"
+                                            @onclick="() => EditTodo(todo)">
+                                        Edit
+                                    </button>
+
+                                    @if (_confirmDeleteTodoId == todo.Id)
+                                    {
+                                        <button type="button"
+                                                class="small"
+                                                @onclick="() => DeleteTodoAsync(todo.Id)">
+                                            Confirm delete
+                                        </button>
+
+                                        <button type="button"
+                                                class="secondary small"
+                                                @onclick="CancelDeleteTodo">
+                                            Cancel
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="secondary small"
+                                                @onclick="() => ConfirmDeleteTodo(todo.Id)">
+                                            Delete
+                                        </button>
+                                    }
+                                </div>
                             }
                         </li>
                     }
@@ -335,6 +364,7 @@ else
     private WorkItem? _editingWorkItem;
     private TodoItem _newTodo = new();
     private TodoItem? _editingTodo;
+    private int? _confirmDeleteTodoId;
     private string? _workNote;
     private int? _editingHistoryId;
     private string? _editingHistoryNote;
@@ -487,6 +517,40 @@ else
     private void CancelEdit()
     {
         _editingTodo = null;
+    }
+
+    private void ConfirmDeleteTodo(int todoId)
+    {
+        _confirmDeleteTodoId = todoId;
+    }
+
+    private void CancelDeleteTodo()
+    {
+        _confirmDeleteTodoId = null;
+    }
+
+    private async Task DeleteTodoAsync(int todoId)
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var todo = await db.TodoItems.FindAsync(todoId);
+
+        if (todo is null)
+            return;
+
+        db.TodoItems.Remove(todo);
+
+        await db.SaveChangesAsync();
+
+        if (_editingTodo?.Id == todoId)
+        {
+            _editingTodo = null;
+        }
+
+        _confirmDeleteTodoId = null;
+
+        await LoadAsync();
     }
 
     private async Task SaveTodoAsync()
