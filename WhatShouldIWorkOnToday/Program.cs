@@ -43,7 +43,16 @@ app.UseWhen(
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();
+    app.UseWhen(
+        context =>
+            !context.Request.Path
+                .StartsWithSegments("/api") &&
+            !context.Request.Path
+                .StartsWithSegments("/health"),
+        branch =>
+        {
+            branch.UseHttpsRedirection();
+        });
 }
 
 app.UseAuthentication();
@@ -53,6 +62,16 @@ app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorPages();
+
+app.MapGet(
+        "/health/live",
+        () => Results.Ok(
+            new
+            {
+                status = "ok"
+            }))
+    .AllowAnonymous();
+
 app.MapApiEndpoints();
 
 app.MapRazorComponents<App>()
