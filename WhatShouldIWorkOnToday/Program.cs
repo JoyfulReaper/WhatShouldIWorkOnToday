@@ -21,6 +21,8 @@ builder.Services.AddScoped<WorkChooser>();
 
 var app = builder.Build();
 
+await app.Services.MigrateApplicationDatabaseAsync();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler(
