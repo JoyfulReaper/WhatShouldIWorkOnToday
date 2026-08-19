@@ -14,11 +14,15 @@ ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
 
+COPY ["NuGet.config", "."]
+COPY ["local-nuget/", "local-nuget/"]
+
 COPY ["WhatShouldIWorkOnToday/WhatShouldIWorkOnToday.csproj", \
       "WhatShouldIWorkOnToday/"]
 
 RUN dotnet restore \
-    "WhatShouldIWorkOnToday/WhatShouldIWorkOnToday.csproj"
+    "WhatShouldIWorkOnToday/WhatShouldIWorkOnToday.csproj" \
+    --configfile NuGet.config
 
 COPY . .
 
@@ -28,7 +32,8 @@ RUN dotnet publish \
     "WhatShouldIWorkOnToday.csproj" \
     -c $BUILD_CONFIGURATION \
     -o /app/publish \
-    /p:UseAppHost=false
+    /p:UseAppHost=false \
+    --no-restore
 
 
 FROM base AS final
