@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WhatShouldIWorkOnToday.Api;
 using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Components;
 using WhatShouldIWorkOnToday.Data;
@@ -90,6 +91,8 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 
 app.MapRazorPages();
+
+app.MapApiEndpoints();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
