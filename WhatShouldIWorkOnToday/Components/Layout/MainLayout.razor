@@ -8,8 +8,22 @@
         </a>
 
         <nav aria-label="Main navigation">
-            <NavLink href="/today">Chooser</NavLink>
-            <NavLink href="/work-items">Work items</NavLink>
+            <NavLink href="/today">
+                Chooser
+            </NavLink>
+
+            <NavLink href="/work-items">
+                Work items
+            </NavLink>
+
+            <form method="post" action="/logout">
+                <AntiforgeryToken />
+
+                <button type="submit"
+                        class="secondary small">
+                    Log out
+                </button>
+            </form>
         </nav>
     </header>
 
