@@ -2,6 +2,7 @@
 using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Data;
 using WhatShouldIWorkOnToday.Models;
+using WhatShouldIWorkOnToday.Services;
 
 namespace WhatShouldIWorkOnToday.Api;
 
@@ -30,6 +31,10 @@ public static class ApiEndpoints
             "/todos/{id:int}",
             GetTodoAsync);
 
+        api.MapGet(
+            "/daily-pick",
+            GetDailyPickAsync);
+
         api.MapPost(
             "/work-items/{workItemId:int}/todos",
             CreateTodoAsync);
@@ -43,6 +48,37 @@ public static class ApiEndpoints
             CreateWorkItemsBulkAsync);
 
         return endpoints;
+    }
+
+    private static async Task<IResult> GetDailyPickAsync(
+    WorkChooser workChooser,
+    CancellationToken cancellationToken)
+    {
+        var date = DateOnly.FromDateTime(DateTime.Now);
+
+        var todo = await workChooser.ChooseDailyAsync(
+            date,
+            cancellationToken: cancellationToken);
+
+        if (todo is null)
+        {
+            return Results.NoContent();
+        }
+
+        var response = new DailyPickDto(
+            date,
+            new TodoItemDto(
+                todo.Id,
+                todo.WorkItemId,
+                todo.WorkItem.Name,
+                todo.Task,
+                todo.Energy.ToString(),
+                todo.Effort.ToString(),
+                todo.CreatedAt,
+                todo.CompletedAt),
+            todo.WorkItem.LastWorkedAt);
+
+        return Results.Ok(response);
     }
 
     private static async Task<IResult> GetWorkItemsAsync(
