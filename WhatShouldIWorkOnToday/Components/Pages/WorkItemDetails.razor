@@ -512,29 +512,11 @@ else
 
         await LoadAsync();
     }
-
-    private async Task ToggleTodoAsync(int todoId)
+    
+    private async Task MarkWorkedAsync()
     {
         await using var db =
             await DbContextFactory.CreateDbContextAsync();
-
-        var todo = await db.TodoItems.FindAsync(todoId);
-
-        if (todo is null)
-            return;
-
-        todo.CompletedAt = todo.CompletedAt is null
-            ? DateTimeOffset.UtcNow
-            : null;
-
-        await db.SaveChangesAsync();
-
-        await LoadAsync();
-    }
-
-    private async Task MarkWorkedAsync()
-    {
-        await using var db = await DbContextFactory.CreateDbContextAsync();
 
         var workItem = await db.WorkItems.FindAsync(Id);
 
@@ -557,6 +539,48 @@ else
         await db.SaveChangesAsync();
 
         _workNote = null;
+
+        await LoadAsync();
+    }
+
+    private async Task ToggleTodoAsync(int todoId)
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var todo = await db.TodoItems.FindAsync(todoId);
+
+        if (todo is null)
+            return;
+
+        if (todo.CompletedAt is null)
+        {
+            var workedAt = DateTimeOffset.UtcNow;
+
+            todo.CompletedAt = workedAt;
+
+            var workItem =
+                await db.WorkItems.FindAsync(todo.WorkItemId);
+
+            if (workItem is null)
+                return;
+
+            workItem.LastWorkedAt = workedAt;
+
+            db.WorkHistoryEntries.Add(new WorkHistoryEntry
+            {
+                WorkItemId = workItem.Id,
+                TodoItemId = todo.Id,
+                TaskSnapshot = todo.Task,
+                WorkedAt = workedAt
+            });
+        }
+        else
+        {
+            todo.CompletedAt = null;
+        }
+
+        await db.SaveChangesAsync();
 
         await LoadAsync();
     }
