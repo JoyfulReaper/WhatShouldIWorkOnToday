@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -28,9 +29,36 @@ builder.Services
 
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
-    });
+    })
+    .AddScheme<
+        AuthenticationSchemeOptions,
+        ApiKeyAuthenticationHandler>(
+        ApiKeyDefaults.AuthenticationScheme,
+        _ => { });
 
-builder.Services.AddAuthorization();
+builder.Services
+    .AddOptions<ApiKeyOptions>()
+    .Bind(
+        builder.Configuration.GetSection(
+            ApiKeyOptions.SectionName))
+    .Validate(
+        options =>
+            !string.IsNullOrWhiteSpace(options.Key),
+        "Api:Key is required.")
+    .ValidateOnStart();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        ApiKeyDefaults.AuthorizationPolicy,
+        policy =>
+        {
+            policy.AddAuthenticationSchemes(
+                ApiKeyDefaults.AuthenticationScheme);
+
+            policy.RequireAuthenticatedUser();
+        });
+});
 
 builder.Services.AddCascadingAuthenticationState();
 
@@ -77,9 +105,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute(
-    "/not-found",
-    createScopeForStatusCodePages: true);
+app.UseWhen(
+    context =>
+        !context.Request.Path
+            .StartsWithSegments("/api"),
+    branch =>
+    {
+        branch.UseStatusCodePagesWithReExecute(
+            "/not-found",
+            createScopeForStatusCodePages: true);
+    });
 
 app.UseHttpsRedirection();
 

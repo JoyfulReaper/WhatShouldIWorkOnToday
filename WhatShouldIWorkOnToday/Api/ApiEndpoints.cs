@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Data;
 
 namespace WhatShouldIWorkOnToday.Api;
@@ -8,7 +9,9 @@ public static class ApiEndpoints
     public static IEndpointRouteBuilder MapApiEndpoints(
         this IEndpointRouteBuilder endpoints)
     {
-        var api = endpoints.MapGroup("/api");
+        var api = endpoints
+            .MapGroup("/api")
+            .RequireAuthorization(ApiKeyDefaults.AuthorizationPolicy);
 
         api.MapGet(
             "/work-items",
