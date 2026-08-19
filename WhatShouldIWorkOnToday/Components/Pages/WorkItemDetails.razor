@@ -3,6 +3,7 @@
 @using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
 @inject IDbContextFactory<AppDbContext> DbContextFactory
+@inject NavigationManager Navigation
 
 <PageTitle>@(_workItem?.Name ?? "Work Item")</PageTitle>
 
@@ -102,7 +103,41 @@ else
                     <button type="button" class="secondary small" @onclick="ToggleWorkItemArchivedAsync">
                         @(_workItem.ArchivedAt is null ? "Archive" : "Unarchive")
                     </button>
+
+                    @if (!_confirmDeleteWorkItem)
+                    {
+                        <button type="button"
+                                class="secondary small"
+                                @onclick="ConfirmDeleteWorkItem">
+                            Delete permanently
+                        </button>
+                    }
                 </div>
+
+                @if (_confirmDeleteWorkItem)
+                {
+                    <div class="panel">
+                        <p>
+                            This will permanently delete this work item,
+                            all of its todos, and all of its work history.
+                            This cannot be undone.
+                        </p>
+
+                        <div class="row-actions">
+                            <button type="button"
+                                    class="small"
+                                    @onclick="DeleteWorkItemAsync">
+                                Yes, permanently delete
+                            </button>
+
+                            <button type="button"
+                                    class="secondary small"
+                                    @onclick="CancelDeleteWorkItem">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                }
 
                 <div class="form-field work-note-field">
                     <label>Quick work note</label>
@@ -369,7 +404,7 @@ else
     private int? _editingHistoryId;
     private string? _editingHistoryNote;
     private List<WorkHistoryEntry> _workHistory = [];
-
+    private bool _confirmDeleteWorkItem;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -415,6 +450,44 @@ else
     private void CancelWorkItemEdit()
     {
         _editingWorkItem = null;
+    }
+
+    private void ConfirmDeleteWorkItem()
+    {
+        _confirmDeleteWorkItem = true;
+    }
+
+    private void CancelDeleteWorkItem()
+    {
+        _confirmDeleteWorkItem = false;
+    }
+
+    private async Task DeleteWorkItemAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+        {
+            Navigation.NavigateTo("/work-items");
+            return;
+        }
+
+        var todos = await db.TodoItems
+            .Where(x => x.WorkItemId == Id)
+            .ToListAsync();
+
+        var history = await db.WorkHistoryEntries
+            .Where(x => x.WorkItemId == Id)
+            .ToListAsync();
+
+        db.WorkHistoryEntries.RemoveRange(history);
+        db.TodoItems.RemoveRange(todos);
+        db.WorkItems.Remove(workItem);
+
+        await db.SaveChangesAsync();
+
+        Navigation.NavigateTo("/work-items");
     }
 
     private async Task SaveWorkItemAsync()
@@ -531,8 +604,7 @@ else
 
     private async Task DeleteTodoAsync(int todoId)
     {
-        await using var db =
-            await DbContextFactory.CreateDbContextAsync();
+        await using var db = await DbContextFactory.CreateDbContextAsync();
 
         var todo = await db.TodoItems.FindAsync(todoId);
 
