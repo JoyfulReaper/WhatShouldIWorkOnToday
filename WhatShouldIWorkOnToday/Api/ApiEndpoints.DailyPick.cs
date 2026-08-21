@@ -26,6 +26,7 @@ public static partial class ApiEndpoints
                     todo.Task,
                     todo.Energy.ToString(),
                     todo.Effort.ToString(),
+                    todo.Priority.ToString(),
                     todo.CreatedAt,
                     todo.CompletedAt),
                 todo.WorkItem.LastWorkedAt);

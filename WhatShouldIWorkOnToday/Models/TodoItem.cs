@@ -18,6 +18,8 @@ public sealed class TodoItem
 
     public EffortLevel Effort { get; set; } = EffortLevel.Medium;
 
+    public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? CompletedAt { get; set; }

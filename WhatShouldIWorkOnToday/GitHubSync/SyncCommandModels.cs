@@ -41,13 +41,15 @@ public sealed record CreateWorkItemCommandPayload(
     string? Name,
     string? Kind = null,
     string? Description = null,
-    string? Url = null);
+    string? Url = null,
+    string? Priority = null);
 
 public sealed record CreateTodoCommandPayload(
     int WorkItemId,
     string? Task,
     string? Energy = null,
-    string? Effort = null);
+    string? Effort = null,
+    string? Priority = null);
 
 public sealed record CompleteTodoCommandPayload(
     int TodoId);

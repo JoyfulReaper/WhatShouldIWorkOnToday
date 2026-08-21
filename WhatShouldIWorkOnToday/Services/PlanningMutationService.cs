@@ -17,6 +17,7 @@ public sealed class PlanningMutationService
             input.Kind,
             input.Description,
             input.Url,
+            input.Priority,
             string.Empty,
             errors);
 
@@ -31,7 +32,8 @@ public sealed class PlanningMutationService
             Name = item.Name,
             Kind = item.Kind,
             Description = item.Description,
-            Url = item.Url
+            Url = item.Url,
+            Priority = item.Priority
         };
 
         db.WorkItems.Add(workItem);
@@ -53,6 +55,7 @@ public sealed class PlanningMutationService
             input.Task,
             input.Energy,
             input.Effort,
+            input.Priority,
             string.Empty,
             errors);
 
@@ -86,7 +89,8 @@ public sealed class PlanningMutationService
             WorkItemId = workItem.Id,
             Task = item.Task,
             Energy = item.Energy,
-            Effort = item.Effort
+            Effort = item.Effort,
+            Priority = item.Priority
         };
 
         db.TodoItems.Add(todo);
@@ -183,6 +187,7 @@ public sealed class PlanningMutationService
             string? kindValue,
             string? descriptionValue,
             string? urlValue,
+            string? priorityValue,
             string keyPrefix,
             Dictionary<string, string[]> errors)
     {
@@ -239,17 +244,27 @@ public sealed class PlanningMutationService
             ];
         }
 
+        if (!TryParsePriority(priorityValue, out var priority))
+        {
+            errors[$"{keyPrefix}priority"] =
+            [
+                "Priority must be Low, Normal, or High."
+            ];
+        }
+
         return new NormalizedWorkItem(
             name,
             kind,
             description,
-            url);
+            url,
+            priority);
     }
 
     public static NormalizedTodo ValidateAndNormalizeTodo(
         string? taskValue,
         string? energyValue,
         string? effortValue,
+        string? priorityValue,
         string keyPrefix,
         Dictionary<string, string[]> errors)
     {
@@ -291,10 +306,19 @@ public sealed class PlanningMutationService
             ];
         }
 
+        if (!TryParsePriority(priorityValue, out var priority))
+        {
+            errors[$"{keyPrefix}priority"] =
+            [
+                "Priority must be Low, Normal, or High."
+            ];
+        }
+
         return new NormalizedTodo(
             task,
             energy,
-            effort);
+            effort,
+            priority);
     }
 
     public static bool TryParseEnergy(
@@ -348,6 +372,23 @@ public sealed class PlanningMutationService
                Enum.IsDefined(kind);
     }
 
+    public static bool TryParsePriority(
+        string? value,
+        out PriorityLevel priority)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            priority = PriorityLevel.Normal;
+            return true;
+        }
+
+        return Enum.TryParse(
+                   value,
+                   ignoreCase: true,
+                   out priority) &&
+               Enum.IsDefined(priority);
+    }
+
     private static void CompleteTrackedTodo(
         AppDbContext db,
         TodoItem todo,
@@ -373,23 +414,27 @@ public sealed record CreateWorkItemInput(
     string? Name,
     string? Kind = null,
     string? Description = null,
-    string? Url = null);
+    string? Url = null,
+    string? Priority = null);
 
 public sealed record CreateTodoInput(
     string? Task,
     string? Energy = null,
-    string? Effort = null);
+    string? Effort = null,
+    string? Priority = null);
 
 public sealed record NormalizedWorkItem(
     string Name,
     WorkItemKind Kind,
     string? Description,
-    string? Url);
+    string? Url,
+    PriorityLevel Priority);
 
 public sealed record NormalizedTodo(
     string Task,
     EnergyLevel Energy,
-    EffortLevel Effort);
+    EffortLevel Effort,
+    PriorityLevel Priority);
 
 public sealed record CreatedTodo(
     TodoItem Todo,

@@ -11,6 +11,7 @@ public static partial class ApiEndpoints
             string? kindValue,
             string? descriptionValue,
             string? urlValue,
+            string? priorityValue,
             string keyPrefix,
             Dictionary<string, string[]> errors)
     {
@@ -20,27 +21,26 @@ public static partial class ApiEndpoints
                 kindValue,
                 descriptionValue,
                 urlValue,
+                priorityValue,
                 keyPrefix,
                 errors);
     }
 
-    private static bool TryParseEnergy(
-        string? value,
-        out EnergyLevel energy)
+    private static NormalizedTodo ValidateAndNormalizeTodo(
+        string? taskValue,
+        string? energyValue,
+        string? effortValue,
+        string? priorityValue,
+        string keyPrefix,
+        Dictionary<string, string[]> errors)
     {
-        return PlanningMutationService
-            .TryParseEnergy(
-                value,
-                out energy);
+        return PlanningMutationService.ValidateAndNormalizeTodo(
+            taskValue,
+            energyValue,
+            effortValue,
+            priorityValue,
+            keyPrefix,
+            errors);
     }
 
-    private static bool TryParseEffort(
-        string? value,
-        out EffortLevel effort)
-    {
-        return PlanningMutationService
-            .TryParseEffort(
-                value,
-                out effort);
-    }
 }

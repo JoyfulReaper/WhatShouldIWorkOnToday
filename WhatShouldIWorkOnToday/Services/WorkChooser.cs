@@ -55,7 +55,8 @@ public sealed class WorkChooser(
         TodoItem todo)
     {
         return GetAgeScore(todo) +
-               Random.Shared.NextDouble() * 30;
+               Random.Shared.NextDouble() * 30 +
+               GetPriorityScore(todo);
     }
 
     private static double GetDailyScore(
@@ -63,7 +64,24 @@ public sealed class WorkChooser(
         DateOnly date)
     {
         return GetAgeScore(todo) +
-               GetDailyRandomScore(todo, date) * 30;
+               GetDailyRandomScore(todo, date) * 30 +
+               GetPriorityScore(todo);
+    }
+
+    internal static int GetPriorityScore(TodoItem todo)
+    {
+        return GetPriorityBias(todo.WorkItem.Priority) +
+               GetPriorityBias(todo.Priority);
+    }
+
+    private static int GetPriorityBias(PriorityLevel priority)
+    {
+        return priority switch
+        {
+            PriorityLevel.Low => -45,
+            PriorityLevel.High => 45,
+            _ => 0
+        };
     }
 
     private static double GetAgeScore(

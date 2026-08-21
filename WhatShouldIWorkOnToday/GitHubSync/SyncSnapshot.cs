@@ -10,6 +10,7 @@ public sealed record SyncWorkItemSnapshot(
     int Id,
     string Name,
     string Kind,
+    string Priority,
     string? Description,
     string? Url,
     DateTimeOffset CreatedAt,
@@ -23,5 +24,6 @@ public sealed record SyncTodoSnapshot(
     string Task,
     string Energy,
     string Effort,
+    string Priority,
     DateTimeOffset CreatedAt,
     DateTimeOffset? CompletedAt);

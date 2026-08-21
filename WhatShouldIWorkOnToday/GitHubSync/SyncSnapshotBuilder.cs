@@ -27,6 +27,7 @@ public sealed class SyncSnapshotBuilder(
                     workItem.Id,
                     workItem.Name,
                     workItem.Kind.ToString(),
+                    workItem.Priority.ToString(),
                     workItem.Description,
                     workItem.Url,
                     workItem.CreatedAt,
@@ -41,6 +42,7 @@ public sealed class SyncSnapshotBuilder(
                                 todo.Task,
                                 todo.Energy.ToString(),
                                 todo.Effort.ToString(),
+                                todo.Priority.ToString(),
                                 todo.CreatedAt,
                                 todo.CompletedAt))
                         .ToList()))

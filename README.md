@@ -6,8 +6,8 @@ This is a personal, single-user application. It is not a multi-user SaaS product
 
 ## Features
 
-- Create and edit work items with a name, kind, description, and optional URL. Supported kinds are `Project`, `Maintenance`, `Learning`, `Idea`, and `ExternalIssue`.
-- Add todos to work items and classify each todo by energy (`Low`, `Medium`, or `High`) and effort (`Short`, `Medium`, or `Long`).
+- Create and edit work items with a name, kind, priority, description, and optional URL. Supported kinds are `Project`, `Maintenance`, `Learning`, `Idea`, and `ExternalIssue`.
+- Add todos to work items and classify each todo by energy (`Low`, `Medium`, or `High`), effort (`Short`, `Medium`, or `Long`), and priority (`Low`, `Normal`, or `High`). Work-item and todo priority default to `Normal`.
 - Ask the chooser for up to three active todos that fit the selected energy and effort limits.
 - Request an unfiltered random active todo from the UI.
 - Retrieve a deterministic daily pick through the API.
@@ -21,11 +21,13 @@ This is a personal, single-user application. It is not a multi-user SaaS product
 
 ### Chooser behavior
 
-The filtered UI chooser considers incomplete todos on active work items whose energy and effort values are less than or equal to the selected limits. It ranks candidates using how long the parent work item has been neglected, capped at 365 days, plus random jitter, and returns up to three results. Work items that have never been worked on receive the maximum age score.
+The filtered UI chooser considers incomplete todos on active work items whose energy and effort values are less than or equal to the selected limits. It ranks candidates using how long the parent work item has been neglected, capped at 365 days, plus random jitter and a small priority bias, and returns up to three results. Work items that have never been worked on receive the maximum age score.
 
-The UI's separate random action chooses uniformly from all active, incomplete todos and ignores the energy and effort filters.
+Priority is deliberately simple: `Low` contributes -45 points, `Normal` contributes 0, and `High` contributes +45. The parent WorkItem and Todo contribute independently, so two `High` values add +90. Priority improves or reduces recommendation rank but does not hard-pin an item or override candidate eligibility and neglect in every case.
 
-`GET /api/daily-pick` uses the server's local calendar date and defaults to `Medium` energy and `Medium` effort. It replaces the UI chooser's random jitter with a value derived from the date, todo ID, and work-item ID. Given the same date, eligible records, and neglect-score ordering, its ranking is repeatable. Data changes or an item reaching the 365-day age cap can change the pick.
+The UI's separate random action chooses uniformly from all active, incomplete todos and ignores energy, effort, and priority.
+
+`GET /api/daily-pick` uses the server's local calendar date and defaults to `Medium` energy and `Medium` effort. It replaces the UI chooser's random jitter with a value derived from the date, todo ID, and work-item ID, while applying the same parent and Todo priority biases. Given the same date and unchanged state, its ranking is repeatable. Data changes or an item reaching the 365-day age cap can change the pick.
 
 ## Architecture
 
@@ -131,7 +133,7 @@ All API routes require the Bearer API key.
 | `POST` | `/api/todos/bulk` | Creates up to 100 todos across active work items |
 | `POST` | `/api/work-items/bulk` | Creates up to 50 work items and up to 100 nested todos in one request |
 
-`GET /api/todos` accepts `workItemId` and `includeCompleted` query parameters. For create requests, omitted or blank energy and effort values default to `Medium`; omitted or blank work-item kind defaults to `Project`.
+`GET /api/todos` accepts `workItemId` and `includeCompleted` query parameters. For create requests, omitted or blank energy and effort values default to `Medium`; omitted or blank work-item kind defaults to `Project`; and omitted or blank WorkItem or Todo priority defaults to `Normal`. Priority accepts `Low`, `Normal`, or `High`, case-insensitively.
 
 Set variables for the examples:
 
@@ -149,13 +151,13 @@ curl.exe -H "Authorization: Bearer $apiKey" "$baseUri/api/daily-pick"
 Create a work item:
 
 ```powershell
-curl.exe -X POST "$baseUri/api/work-items" -H "Authorization: Bearer $apiKey" -H "Content-Type: application/json" -d '{"name":"Documentation refresh","kind":"Maintenance","description":"Bring project docs up to date","url":"https://example.com/docs"}'
+curl.exe -X POST "$baseUri/api/work-items" -H "Authorization: Bearer $apiKey" -H "Content-Type: application/json" -d '{"name":"Documentation refresh","kind":"Maintenance","priority":"High","description":"Bring project docs up to date","url":"https://example.com/docs"}'
 ```
 
 Create a todo:
 
 ```powershell
-curl.exe -X POST "$baseUri/api/work-items/1/todos" -H "Authorization: Bearer $apiKey" -H "Content-Type: application/json" -d '{"task":"Write the deployment notes","energy":"Low","effort":"Short"}'
+curl.exe -X POST "$baseUri/api/work-items/1/todos" -H "Authorization: Bearer $apiKey" -H "Content-Type: application/json" -d '{"task":"Write the deployment notes","energy":"Low","effort":"Short","priority":"Normal"}'
 ```
 
 Bulk-create work items with nested todos:
@@ -184,7 +186,7 @@ commands/
     invalid-filename-<safe-hash>.json
 ```
 
-The worker publishes `state/snapshot.json` only when a stable hash of meaningful WorkItems and Todos changes. It processes pending commands in filename order, writes the result under `commands/applied/`, and only then deletes the pending file. A pending JSON file whose filename is not a valid command GUID is copied byte-for-byte to a deterministic, safely named file under `commands/rejected/` before the pending copy is removed. This quarantines unusable filenames for inspection instead of retrying them forever. Supported version 1 commands are `createWorkItem`, `createTodo`, and `completeTodo`.
+The worker publishes `state/snapshot.json` only when a stable hash of meaningful WorkItems and Todos changes. The snapshot includes string priority values for every WorkItem and Todo. It processes pending commands in filename order, writes the result under `commands/applied/`, and only then deletes the pending file. A pending JSON file whose filename is not a valid command GUID is copied byte-for-byte to a deterministic, safely named file under `commands/rejected/` before the pending copy is removed. This quarantines unusable filenames for inspection instead of retrying them forever. Supported version 1 commands are `createWorkItem`, `createTodo`, and `completeTodo`.
 
 Create a WorkItem:
 
@@ -197,6 +199,7 @@ Create a WorkItem:
   "payload": {
     "name": "Documentation refresh",
     "kind": "Maintenance",
+    "priority": "High",
     "description": "Bring project docs up to date",
     "url": "https://example.com/docs"
   }
@@ -215,7 +218,8 @@ Create a Todo:
     "workItemId": 12,
     "task": "Review configuration",
     "energy": "Low",
-    "effort": "Short"
+    "effort": "Short",
+    "priority": "Normal"
   }
 }
 ```
@@ -234,7 +238,7 @@ Complete a Todo:
 }
 ```
 
-The pending filename must use the same GUID as the JSON `id`, such as `commands/pending/4e98b35e-0be8-4d1c-a2f9-34757de40bd7.json`. Creation validation and defaults match the normal HTTP API. Completing a Todo also updates its parent WorkItem's last-worked timestamp and records work history.
+The pending filename must use the same GUID as the JSON `id`, such as `commands/pending/4e98b35e-0be8-4d1c-a2f9-34757de40bd7.json`. Creation validation and defaults match the normal HTTP API. The optional `priority` field accepts `Low`, `Normal`, or `High`; old commands that omit it continue to create `Normal` priority records. Completing a Todo also updates its parent WorkItem's last-worked timestamp and records work history.
 
 For durable idempotency, WSIWOT stores each command ID, status, processing time, and full receipt in SQLite in the same transaction as the requested mutation. If the process stops after the database commit but before the GitHub receipt is written, the next cycle recreates the missing receipt without applying the mutation again.
 

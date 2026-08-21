@@ -176,7 +176,8 @@ public sealed class SyncCommandProcessor(
                 payload.Name,
                 payload.Kind,
                 payload.Description,
-                payload.Url));
+                payload.Url,
+                payload.Priority));
 
         if (!result.Succeeded)
         {
@@ -231,7 +232,8 @@ public sealed class SyncCommandProcessor(
             new CreateTodoInput(
                 payload.Task,
                 payload.Energy,
-                payload.Effort),
+                payload.Effort,
+                payload.Priority),
             cancellationToken);
 
         if (!result.Succeeded)

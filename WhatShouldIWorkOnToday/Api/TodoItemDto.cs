@@ -7,5 +7,6 @@ public sealed record TodoItemDto(
     string Task,
     string Energy,
     string Effort,
+    string Priority,
     DateTimeOffset CreatedAt,
     DateTimeOffset? CompletedAt);

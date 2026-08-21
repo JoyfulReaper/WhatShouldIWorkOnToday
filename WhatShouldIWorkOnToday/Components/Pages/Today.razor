@@ -90,6 +90,11 @@
                             <span class="badge">
                                 @_randomTodo.Effort effort
                             </span>
+
+                            @if (_randomTodo.Priority != PriorityLevel.Normal)
+                            {
+                                <span class="badge">@_randomTodo.Priority priority</span>
+                            }
                         </div>
 
                         @if (_randomTodo.WorkItem.LastWorkedAt is null)
@@ -169,6 +174,16 @@
                                 <span class="badge">
                                     @todo.Effort effort
                                 </span>
+
+                                @if (todo.WorkItem.Priority != PriorityLevel.Normal)
+                                {
+                                    <span class="badge">@todo.WorkItem.Priority work-item priority</span>
+                                }
+
+                                @if (todo.Priority != PriorityLevel.Normal)
+                                {
+                                    <span class="badge">@todo.Priority todo priority</span>
+                                }
                             </div>
 
                             @if (todo.WorkItem.LastWorkedAt is null)

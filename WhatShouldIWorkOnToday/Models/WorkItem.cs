@@ -18,6 +18,8 @@ public sealed class WorkItem
 
     public WorkItemKind Kind { get; set; } = WorkItemKind.Project;
 
+    public PriorityLevel Priority { get; set; } = PriorityLevel.Normal;
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? LastWorkedAt { get; set; }
