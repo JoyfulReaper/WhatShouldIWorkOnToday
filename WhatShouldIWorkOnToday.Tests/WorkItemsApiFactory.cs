@@ -62,6 +62,7 @@ public sealed class WorkItemsApiFactory
                         ["Api:Key"] = ApiKey,
                         ["Auth:Username"] = "test-user",
                         ["Auth:Password"] = "test-password",
+                        ["GitHubSync:Enabled"] = "false",
                         ["MissionControl:Enabled"] = "false",
                         ["Logging:EventLog:LogLevel:Default"] = "None"
                     }));
@@ -95,27 +96,4 @@ public sealed class WorkItemsApiFactory
         }
     }
 
-    private sealed class TestDbContextFactory(
-        string databasePath)
-        : IDbContextFactory<AppDbContext>
-    {
-        private readonly DbContextOptions<AppDbContext>
-            _options =
-                new DbContextOptionsBuilder<AppDbContext>()
-                    .UseSqlite(
-                        $"Data Source={databasePath};Pooling=False")
-                    .Options;
-
-        public AppDbContext CreateDbContext()
-        {
-            return new AppDbContext(_options);
-        }
-
-        public Task<AppDbContext> CreateDbContextAsync(
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(
-                CreateDbContext());
-        }
-    }
 }

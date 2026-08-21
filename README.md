@@ -16,6 +16,7 @@ This is a personal, single-user application. It is not a multi-user SaaS product
 - Complete/reopen, archive/unarchive, edit, or permanently delete work items. Completed and archived work items are excluded from chooser results.
 - Search work items and todos from the home page, filter the work-item list, and search todos within a work item.
 - Read and create data through an API, including bulk work-item and todo imports.
+- Optionally mirror planning state and process versioned mutation commands through a separate private GitHub repository.
 - Optionally publish successful and failed UI login telemetry to Mission Control.
 
 ### Chooser behavior
@@ -35,6 +36,7 @@ The UI's separate random action chooses uniformly from all active, incomplete to
 | Login/logout | Razor Pages with ASP.NET Core cookie authentication |
 | API | ASP.NET Core minimal APIs under `/api` |
 | Persistence | Entity Framework Core 10 with SQLite |
+| Optional sync | GitHub Contents API mailbox/state mirror |
 | Telemetry | Optional `JoyfulReaperLib.MissionControl` client |
 | Packaging | Multi-stage Docker build using .NET 10 SDK and ASP.NET runtime images |
 
@@ -74,6 +76,12 @@ ASP.NET Core configuration sources apply, including `appsettings.json`, user sec
 | `MissionControl:BaseUrl` | No | `http://localhost:5190/` | Mission Control service URL |
 | `MissionControl:ApiKey` | No | Empty | Mission Control credential |
 | `MissionControl:TimeoutMilliseconds` | No | `1000` | Event publishing timeout |
+| `GitHubSync:Enabled` | No | `false` | Enables the GitHub synchronization worker |
+| `GitHubSync:Owner` | When sync enabled | Empty | Owner of the private sync repository |
+| `GitHubSync:Repository` | When sync enabled | Empty | Private sync repository name |
+| `GitHubSync:Branch` | When sync enabled | `main` | Branch containing state, commands, and receipts |
+| `GitHubSync:Token` | When sync enabled | Empty/unset | GitHub token with Contents read/write permission on the sync repository |
+| `GitHubSync:PollIntervalSeconds` | When sync enabled | `300` | Poll interval; must be at least 30 seconds |
 
 The application validates `Auth:Username`, `Auth:Password`, and `Api:Key` at startup and will not start when any is blank. Do not commit real credentials to `appsettings.json`. For environment variables, replace `:` with `__`, for example `Auth__Username`, `Auth__Password`, and `Api__Key`.
 
@@ -103,7 +111,7 @@ Open `https://localhost:7277`. The HTTPS launch profile also binds `http://local
 
 SQLite is used for all application data. With the default setting, the database is created at `WhatShouldIWorkOnToday/App_Data/WhatShouldIWorkOnToday.db` when the project is run from the repository. The parent directory is created automatically.
 
-At startup, the application calls EF Core's `MigrateAsync`, so a new database is created and all included migrations are applied automatically. The current migrations create the work-item and todo tables, move energy and effort classification to todos, and add work history with editable notes.
+At startup, the application calls EF Core's `MigrateAsync`, so a new database is created and all included migrations are applied automatically. The current migrations create the work-item and todo tables, move energy and effort classification to todos, add work history with editable notes, and add durable GitHub sync command receipts.
 
 Persist and back up the SQLite database file in deployments. The Docker build context intentionally excludes `App_Data` and SQLite database files.
 
@@ -158,6 +166,95 @@ curl.exe -X POST "$baseUri/api/work-items/bulk" -H "Authorization: Bearer $apiKe
 
 Invalid create requests return validation problems. Creating a todo for a completed or archived work item is rejected.
 
+## GitHub Sync
+
+GitHub sync is an optional bridge for tools that can read and write a private GitHub repository. SQLite remains the authoritative WSIWOT database. GitHub is only a read-only state mirror plus a mailbox for requested changes and their receipts; the SQLite database file is never uploaded or synchronized.
+
+Use a separate **PRIVATE** repository for planning data, for example `wsiwot-sync`, with this layout:
+
+```text
+state/
+  snapshot.json
+commands/
+  pending/
+    <command-id>.json
+  applied/
+    <command-id>.json
+```
+
+The worker publishes `state/snapshot.json` only when a stable hash of meaningful WorkItems and Todos changes. It processes pending commands in filename order, writes the result under `commands/applied/`, and only then deletes the pending file. Supported version 1 commands are `createWorkItem`, `createTodo`, and `completeTodo`.
+
+Create a WorkItem:
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "4e98b35e-0be8-4d1c-a2f9-34757de40bd7",
+  "type": "createWorkItem",
+  "createdAtUtc": "2026-08-21T12:00:00Z",
+  "payload": {
+    "name": "Documentation refresh",
+    "kind": "Maintenance",
+    "description": "Bring project docs up to date",
+    "url": "https://example.com/docs"
+  }
+}
+```
+
+Create a Todo:
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "90d6c881-0067-430a-a305-e8aa73ed95b7",
+  "type": "createTodo",
+  "createdAtUtc": "2026-08-21T12:05:00Z",
+  "payload": {
+    "workItemId": 12,
+    "task": "Review configuration",
+    "energy": "Low",
+    "effort": "Short"
+  }
+}
+```
+
+Complete a Todo:
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "6d08bb7c-8455-4fd0-8116-124c1d05de2d",
+  "type": "completeTodo",
+  "createdAtUtc": "2026-08-21T12:10:00Z",
+  "payload": {
+    "todoId": 73
+  }
+}
+```
+
+The pending filename must use the same GUID as the JSON `id`, such as `commands/pending/4e98b35e-0be8-4d1c-a2f9-34757de40bd7.json`. Creation validation and defaults match the normal HTTP API. Completing a Todo also updates its parent WorkItem's last-worked timestamp and records work history.
+
+For durable idempotency, WSIWOT stores each command ID, status, processing time, and full receipt in SQLite in the same transaction as the requested mutation. If the process stops after the database commit but before the GitHub receipt is written, the next cycle recreates the missing receipt without applying the mutation again.
+
+### GitHub sync setup
+
+1. Create a separate private GitHub repository. Do not use the public WSIWOT source repository for personal planning data.
+2. Create a fine-grained personal access token restricted to that repository with **Contents: Read and write** permission. GitHub also grants the metadata read access needed by the API. Avoid a broad classic `repo` token when a fine-grained token is available.
+3. Configure the deployment through secrets or environment variables; never commit the token:
+
+```powershell
+$env:GitHubSync__Enabled = "true"
+$env:GitHubSync__Owner = "your-github-owner"
+$env:GitHubSync__Repository = "wsiwot-sync"
+$env:GitHubSync__Branch = "main"
+$env:GitHubSync__Token = "github_pat_replace-me"
+$env:GitHubSync__PollIntervalSeconds = "300"
+```
+
+For Docker, pass the same values with `-e`, especially `-e GitHubSync__Token=...`. The repository does not need empty directories committed: WSIWOT creates snapshot and receipt paths through the GitHub API, while external tools create command files directly under `commands/pending/`.
+
+When `GitHubSync:Enabled` is `false`, the worker exits immediately and makes no GitHub requests. GitHub sync adds no HTTP endpoint and does not change UI or API authentication.
+
 ## Docker
 
 Build the image from the repository root:
@@ -188,4 +285,3 @@ The image exposes port `8080`. For this local Development-mode container, open `
 - Authentication is one configured UI user and one shared API key; there is no user or key management UI.
 - The API currently supports reads and creation only. Updates, lifecycle changes, deletion, work-history access, and chooser filtering are UI-only.
 - Search loads data into the Blazor page and filters in memory; there is no full-text index or pagination.
-- The repository currently has no automated test project.

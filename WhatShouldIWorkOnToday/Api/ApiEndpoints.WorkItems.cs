@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Data;
 using WhatShouldIWorkOnToday.Models;
+using WhatShouldIWorkOnToday.Services;
 
 namespace WhatShouldIWorkOnToday.Api;
 
@@ -68,37 +69,28 @@ public static partial class ApiEndpoints
     private static async Task<IResult> CreateWorkItemAsync(
         CreateWorkItemRequest request,
         IDbContextFactory<AppDbContext> dbContextFactory,
+        PlanningMutationService mutationService,
         CancellationToken cancellationToken)
     {
-        var errors =
-            new Dictionary<string, string[]>();
-
-        var item = ValidateAndNormalizeWorkItem(
-            request.Name,
-            request.Kind,
-            request.Description,
-            request.Url,
-            string.Empty,
-            errors);
-
-        if (errors.Count > 0)
-        {
-            return Results.ValidationProblem(errors);
-        }
-
         await using var db =
             await dbContextFactory.CreateDbContextAsync(
                 cancellationToken);
 
-        var workItem = new WorkItem
-        {
-            Name = item.Name,
-            Kind = item.Kind,
-            Description = item.Description,
-            Url = item.Url
-        };
+        var result = mutationService.CreateWorkItem(
+            db,
+            new CreateWorkItemInput(
+                request.Name,
+                request.Kind,
+                request.Description,
+                request.Url));
 
-        db.WorkItems.Add(workItem);
+        if (!result.Succeeded)
+        {
+            return Results.ValidationProblem(
+                result.ValidationErrors!);
+        }
+
+        var workItem = result.Value!;
         await db.SaveChangesAsync(cancellationToken);
 
         var response = new WorkItemDto(

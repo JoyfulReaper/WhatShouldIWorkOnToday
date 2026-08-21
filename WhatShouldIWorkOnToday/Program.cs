@@ -4,6 +4,7 @@ using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Components;
 using WhatShouldIWorkOnToday.Data;
 using WhatShouldIWorkOnToday.Events;
+using WhatShouldIWorkOnToday.GitHubSync;
 using WhatShouldIWorkOnToday.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,12 +17,14 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddApplicationAuthentication(builder.Configuration);
 builder.Services.AddApplicationDatabase(builder.Configuration, builder.Environment);
+builder.Services.AddGitHubSync(builder.Configuration);
 
 builder.Services.AddMissionControlClient(builder.Configuration.GetSection(MissionControlClientOptions.SectionName));
 
 builder.Services.AddScoped<WsiwotLoginEventPublisher>();
 
 builder.Services.AddScoped<WorkChooser>();
+builder.Services.AddSingleton<PlanningMutationService>();
 
 var app = builder.Build();
 

@@ -13,4 +13,7 @@ public sealed class AppDbContext(
 
     public DbSet<WorkHistoryEntry> WorkHistoryEntries =>
         Set<WorkHistoryEntry>();
+
+    public DbSet<ProcessedSyncCommand> ProcessedSyncCommands =>
+        Set<ProcessedSyncCommand>();
 }

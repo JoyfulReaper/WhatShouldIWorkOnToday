@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Data;
 using WhatShouldIWorkOnToday.Models;
+using WhatShouldIWorkOnToday.Services;
 
 namespace WhatShouldIWorkOnToday.Api;
 
@@ -76,93 +77,50 @@ public static partial class ApiEndpoints
         int workItemId,
         CreateTodoRequest request,
         IDbContextFactory<AppDbContext> dbContextFactory,
+        PlanningMutationService mutationService,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Task))
+        await using var db =
+            await dbContextFactory.CreateDbContextAsync(
+                cancellationToken);
+
+        var result = await mutationService.CreateTodoAsync(
+            db,
+            workItemId,
+            new CreateTodoInput(
+                request.Task,
+                request.Energy,
+                request.Effort),
+            cancellationToken);
+
+        if (!result.Succeeded)
         {
-            return Results.ValidationProblem(
-                new Dictionary<string, string[]>
-                {
-                    ["task"] =
-                    [
-                        "Task is required."
-                    ]
-                });
+            return result.Failure switch
+            {
+                PlanningMutationFailure.Validation =>
+                    Results.ValidationProblem(
+                        result.ValidationErrors!),
+
+                PlanningMutationFailure.NotFound =>
+                    Results.NotFound(),
+
+                _ => Results.Conflict(
+                    new
+                    {
+                        error = result.Error
+                    })
+            };
         }
-
-        var task = request.Task.Trim();
-        if (task.Length > 500)
-        {
-            return Results.ValidationProblem(
-                new Dictionary<string, string[]>
-                {
-                    ["task"] =
-                    [
-                        "Task cannot exceed 500 characters."
-                    ]
-                });
-        }
-
-        if (!TryParseEnergy(request.Energy, out var energy))
-        {
-            return Results.ValidationProblem(
-                new Dictionary<string, string[]>
-                {
-                    ["energy"] =
-                    [
-                        "Energy must be Low, Medium, or High."
-                    ]
-                });
-        }
-
-        if (!TryParseEffort(request.Effort, out var effort))
-        {
-            return Results.ValidationProblem(
-                new Dictionary<string, string[]>
-                {
-                    ["effort"] =
-                    [
-                        "Effort must be Short, Medium, or Long."
-                    ]
-                });
-        }
-
-        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        var workItem = await db.WorkItems
-            .SingleOrDefaultAsync(x => x.Id == workItemId, cancellationToken);
-
-        if (workItem is null)
-        {
-            return Results.NotFound();
-        }
-
-        if (workItem.CompletedAt is not null ||
-            workItem.ArchivedAt is not null)
-        {
-            return Results.Conflict(
-                new
-                {
-                    error = "Cannot add a todo to an inactive work item."
-                });
-        }
-
-        var todo = new TodoItem
-        {
-            WorkItemId = workItem.Id,
-            Task = task,
-            Energy = energy,
-            Effort = effort
-        };
-
-        db.TodoItems.Add(todo);
 
         await db.SaveChangesAsync(cancellationToken);
+
+        var created = result.Value!;
+        var todo = created.Todo;
 
         var response = new TodoItemDto(
             todo.Id,
             todo.WorkItemId,
-            workItem.Name,
+            created.WorkItem.Name,
             todo.Task,
             todo.Energy.ToString(),
             todo.Effort.ToString(),
