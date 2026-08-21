@@ -1,4 +1,8 @@
 @page "/"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
 
 <PageTitle>What Should I Work On Today?</PageTitle>
 
@@ -10,7 +14,246 @@
     </p>
 
     <div class="home-actions">
-        <a class="button-link" href="/today">Help me pick something</a>
-        <a class="button-link secondary" href="/work-items">Manage work items</a>
+        <a class="button-link" href="/today">
+            Help me pick something
+        </a>
+
+        <a class="button-link secondary" href="/work-items">
+            Manage work items
+        </a>
     </div>
 </section>
+
+<section class="app-page">
+    <div class="panel form-panel">
+        <header class="form-panel-header">
+            <h2>Find something</h2>
+            <p>
+                Search work items and todos.
+            </p>
+        </header>
+
+        <div class="form-field">
+            <label for="home-search">Search</label>
+
+            <input id="home-search"
+                   type="search"
+                   placeholder="Project, task, description..."
+                   @bind="_search"
+                   @bind:event="oninput" />
+        </div>
+    </div>
+
+    @if (HasSearch)
+    {
+        var workItemResults = FilteredWorkItems.ToList();
+        var todoResults = FilteredTodos.ToList();
+
+        <section aria-labelledby="work-item-results-heading">
+            <div class="section-header">
+                <h2 id="work-item-results-heading">
+                    Work items
+                </h2>
+
+                <span class="count-label">
+                    @workItemResults.Count found
+                </span>
+            </div>
+
+            @if (workItemResults.Count == 0)
+            {
+                <p class="empty-state">
+                    No matching work items.
+                </p>
+            }
+            else
+            {
+                <ul class="work-item-list">
+                    @foreach (var workItem in workItemResults)
+                    {
+                        <li class="work-item-row">
+                            <div>
+                                <a class="work-item-title"
+                                   href="@($"/work-items/{workItem.Id}")">
+                                    @workItem.Name
+                                </a>
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    workItem.Description))
+                                {
+                                    <div class="work-item-description">
+                                        @workItem.Description
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="work-item-meta">
+                                <div class="badge-row">
+                                    <span class="badge accent">
+                                        @workItem.Kind
+                                    </span>
+
+                                    @if (workItem.CompletedAt is not null)
+                                    {
+                                        <span class="badge completed">
+                                            Completed
+                                        </span>
+                                    }
+
+                                    @if (workItem.ArchivedAt is not null)
+                                    {
+                                        <span class="badge archived">
+                                            Archived
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section aria-labelledby="todo-results-heading">
+            <div class="section-header">
+                <h2 id="todo-results-heading">
+                    Todos
+                </h2>
+
+                <span class="count-label">
+                    @todoResults.Count found
+                </span>
+            </div>
+
+            @if (todoResults.Count == 0)
+            {
+                <p class="empty-state">
+                    No matching todos.
+                </p>
+            }
+            else
+            {
+                <ul class="work-item-list">
+                    @foreach (var result in todoResults)
+                    {
+                        <li class="work-item-row">
+                            <div>
+                                <a class="work-item-title"
+                                   href="@($"/work-items/{result.WorkItem.Id}")">
+                                    @result.Todo.Task
+                                </a>
+
+                                <div class="work-item-description">
+                                    @result.WorkItem.Name
+                                </div>
+                            </div>
+
+                            <div class="work-item-meta">
+                                <div class="badge-row">
+                                    <span class="badge accent">
+                                        @result.Todo.Energy energy
+                                    </span>
+
+                                    <span class="badge">
+                                        @result.Todo.Effort effort
+                                    </span>
+
+                                    @if (result.Todo.CompletedAt is not null)
+                                    {
+                                        <span class="badge completed">
+                                            Completed
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+</section>
+
+@code {
+    private List<WorkItem> _workItems = [];
+    private string _search = string.Empty;
+
+    private bool HasSearch =>
+        !string.IsNullOrWhiteSpace(_search);
+
+    private IEnumerable<WorkItem> FilteredWorkItems
+    {
+        get
+        {
+            if (!HasSearch)
+            {
+                return [];
+            }
+
+            var query = _search.Trim();
+
+            return _workItems.Where(
+                workItem =>
+                    Contains(workItem.Name, query) ||
+                    Contains(workItem.Description, query) ||
+                    Contains(workItem.Url, query) ||
+                    Contains(workItem.Kind.ToString(), query));
+        }
+    }
+
+    private IEnumerable<(WorkItem WorkItem, TodoItem Todo)> FilteredTodos
+    {
+        get
+        {
+            if (!HasSearch)
+            {
+                return [];
+            }
+
+            var query = _search.Trim();
+
+            return _workItems
+                .SelectMany(
+                    workItem =>
+                        workItem.Todos.Select(
+                            todo =>
+                                (
+                                    WorkItem: workItem,
+                                    Todo: todo
+                                )))
+                .Where(
+                    result =>
+                        Contains(
+                            result.Todo.Task,
+                            query) ||
+                        Contains(
+                            result.WorkItem.Name,
+                            query) ||
+                        Contains(
+                            result.Todo.Energy.ToString(),
+                            query) ||
+                        Contains(
+                            result.Todo.Effort.ToString(),
+                            query));
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        _workItems = await db.WorkItems
+            .AsNoTracking()
+            .Include(x => x.Todos)
+            .OrderBy(x => x.Name)
+            .ToListAsync();
+    }
+
+    private static bool Contains(
+        string? value,
+        string query)
+    {
+        return !string.IsNullOrWhiteSpace(value) &&
+               value.Contains( query,StringComparison.OrdinalIgnoreCase);
+    }
+}

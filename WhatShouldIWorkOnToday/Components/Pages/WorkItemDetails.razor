@@ -203,17 +203,27 @@ else
         <section aria-labelledby="todos-heading">
             <div class="section-header">
                 <h2 id="todos-heading">Todos</h2>
-                <span class="count-label">@_workItem.Todos.Count total</span>
+                <span class="count-label">
+                    @FilteredTodos.Count() of @_workItem.Todos.Count
+                </span>
             </div>
 
             @if (_workItem.Todos.Count == 0)
             {
-                <p class="empty-state">No todos yet.</p>
+                <p class="empty-state">
+                    No todos yet.
+                </p>
+            }
+            else if (!FilteredTodos.Any())
+            {
+                <p class="empty-state">
+                    No todos match your search.
+                </p>
             }
             else
             {
                 <ul class="todo-list">
-                    @foreach (var todo in _workItem.Todos
+                    @foreach (var todo in FilteredTodos
                         .OrderBy(x => x.CompletedAt.HasValue)
                         .ThenBy(x => x.CreatedAt))
                     {
@@ -330,6 +340,18 @@ else
                 </span>
             </div>
 
+            <div class="form-field">
+                <label for="todo-search">
+                    Search todos
+                </label>
+
+                <input id="todo-search"
+                       type="search"
+                       placeholder="Search tasks..."
+                       @bind="_todoSearch"
+                       @bind:event="oninput" />
+            </div>
+
             @if (_workHistory.Count == 0)
             {
                 <p class="empty-state">
@@ -414,6 +436,29 @@ else
     private string? _editingHistoryNote;
     private List<WorkHistoryEntry> _workHistory = [];
     private bool _confirmDeleteWorkItem;
+    private string _todoSearch = string.Empty;
+
+    private IEnumerable<TodoItem> FilteredTodos
+    {
+        get
+        {
+            if (_workItem is null)
+            {
+                return [];
+            }
+
+            if (string.IsNullOrWhiteSpace(_todoSearch))
+            {
+                return _workItem.Todos;
+            }
+
+            var query = _todoSearch.Trim();
+
+            return _workItem.Todos.Where(
+                todo =>
+                    todo.Task.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
