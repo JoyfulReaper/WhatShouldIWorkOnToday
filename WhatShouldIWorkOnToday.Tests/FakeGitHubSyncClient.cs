@@ -15,6 +15,9 @@ internal sealed class FakeGitHubSyncClient
     public Dictionary<string, int> WriteFailuresRemaining { get; } =
         new(StringComparer.Ordinal);
 
+    public Dictionary<string, int> DeleteFailuresRemaining { get; } =
+        new(StringComparer.Ordinal);
+
     public IReadOnlyDictionary<string, GitHubSyncFile> Files =>
         _files;
 
@@ -109,6 +112,18 @@ internal sealed class FakeGitHubSyncClient
     {
         cancellationToken.ThrowIfCancellationRequested();
         Operations.Add($"delete:{path}");
+
+        if (DeleteFailuresRemaining.TryGetValue(
+                path,
+                out var failures) &&
+            failures > 0)
+        {
+            DeleteFailuresRemaining[path] = failures - 1;
+
+            throw new GitHubSyncException(
+                "Simulated transient GitHub delete failure.");
+        }
+
         _files.Remove(path);
 
         return Task.CompletedTask;

@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+
 namespace WhatShouldIWorkOnToday.GitHubSync;
 
 public sealed class GitHubSyncCoordinator(
@@ -12,6 +15,9 @@ public sealed class GitHubSyncCoordinator(
 
     public const string AppliedCommandsPath =
         "commands/applied";
+
+    public const string RejectedCommandsPath =
+        "commands/rejected";
 
     public async Task RunCycleAsync(
         CancellationToken cancellationToken = default)
@@ -66,9 +72,9 @@ public sealed class GitHubSyncCoordinator(
 
                 if (parseResult.CommandId is null)
                 {
-                    logger.LogWarning(
-                        "Ignoring GitHub sync command with invalid filename: {CommandPath}",
-                        entry.Path);
+                    await QuarantineInvalidFilenameAsync(
+                        file,
+                        cancellationToken);
 
                     continue;
                 }
@@ -108,6 +114,59 @@ public sealed class GitHubSyncCoordinator(
         {
             await TryPublishSnapshotAsync(cancellationToken);
         }
+    }
+
+    public static string GetRejectedCommandPath(
+        GitHubSyncFile file)
+    {
+        using var hash = IncrementalHash.CreateHash(
+            HashAlgorithmName.SHA256);
+
+        hash.AppendData(
+            Encoding.UTF8.GetBytes(file.Path));
+        hash.AppendData([0]);
+        hash.AppendData(file.Content);
+
+        var safeHash = Convert.ToHexString(
+                hash.GetHashAndReset())
+            .ToLowerInvariant();
+
+        return $"{RejectedCommandsPath}/" +
+               $"invalid-filename-{safeHash}.json";
+    }
+
+    private async Task QuarantineInvalidFilenameAsync(
+        GitHubSyncFile pendingFile,
+        CancellationToken cancellationToken)
+    {
+        var rejectedPath = GetRejectedCommandPath(
+            pendingFile);
+
+        var existing = await gitHubClient.GetFileAsync(
+            rejectedPath,
+            cancellationToken);
+
+        if (existing is null ||
+            !existing.Content.AsSpan()
+                .SequenceEqual(pendingFile.Content))
+        {
+            logger.LogWarning(
+                "Quarantining GitHub sync command with invalid filename: {CommandPath}",
+                pendingFile.Path);
+
+            await gitHubClient.WriteFileAsync(
+                rejectedPath,
+                pendingFile.Content,
+                "Quarantine WSIWOT command with invalid filename",
+                existing?.Sha,
+                cancellationToken);
+        }
+
+        await gitHubClient.DeleteFileAsync(
+            pendingFile.Path,
+            pendingFile.Sha,
+            "Remove quarantined WSIWOT command",
+            cancellationToken);
     }
 
     private async Task EnsureAppliedReceiptAsync(

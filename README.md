@@ -180,9 +180,11 @@ commands/
     <command-id>.json
   applied/
     <command-id>.json
+  rejected/
+    invalid-filename-<safe-hash>.json
 ```
 
-The worker publishes `state/snapshot.json` only when a stable hash of meaningful WorkItems and Todos changes. It processes pending commands in filename order, writes the result under `commands/applied/`, and only then deletes the pending file. Supported version 1 commands are `createWorkItem`, `createTodo`, and `completeTodo`.
+The worker publishes `state/snapshot.json` only when a stable hash of meaningful WorkItems and Todos changes. It processes pending commands in filename order, writes the result under `commands/applied/`, and only then deletes the pending file. A pending JSON file whose filename is not a valid command GUID is copied byte-for-byte to a deterministic, safely named file under `commands/rejected/` before the pending copy is removed. This quarantines unusable filenames for inspection instead of retrying them forever. Supported version 1 commands are `createWorkItem`, `createTodo`, and `completeTodo`.
 
 Create a WorkItem:
 
@@ -251,7 +253,7 @@ $env:GitHubSync__Token = "github_pat_replace-me"
 $env:GitHubSync__PollIntervalSeconds = "300"
 ```
 
-For Docker, pass the same values with `-e`, especially `-e GitHubSync__Token=...`. The repository does not need empty directories committed: WSIWOT creates snapshot and receipt paths through the GitHub API, while external tools create command files directly under `commands/pending/`.
+For Docker, pass the same values with `-e`, especially `-e GitHubSync__Token=...`. The repository does not need empty directories committed: WSIWOT creates snapshot, receipt, and quarantine paths through the GitHub API, while external tools create command files directly under `commands/pending/`.
 
 When `GitHubSync:Enabled` is `false`, the worker exits immediately and makes no GitHub requests. GitHub sync adds no HTTP endpoint and does not change UI or API authentication.
 
