@@ -8,8 +8,14 @@ public sealed class SyncCommandParserTests
 {
     private readonly SyncCommandParser _parser = new();
 
-    [Fact]
-    public void ValidCommand_IsAccepted()
+    [Theory]
+    [InlineData(SyncCommandTypes.CreateWorkItem)]
+    [InlineData(SyncCommandTypes.CreateTodo)]
+    [InlineData(SyncCommandTypes.CompleteTodo)]
+    [InlineData(SyncCommandTypes.MarkWorkItemWorkedOn)]
+    [InlineData(SyncCommandTypes.SetWorkItemPriority)]
+    [InlineData(SyncCommandTypes.SetTodoPriority)]
+    public void SupportedCommand_IsAccepted(string commandType)
     {
         var id = Guid.NewGuid();
         var result = _parser.Parse(
@@ -17,12 +23,12 @@ public sealed class SyncCommandParserTests
                 id,
                 id.ToString(),
                 schemaVersion: 1,
-                SyncCommandTypes.CreateTodo));
+                commandType));
 
         Assert.True(result.Succeeded);
         Assert.Equal(id, result.CommandId);
         Assert.Equal(
-            SyncCommandTypes.CreateTodo,
+            commandType,
             result.Command!.Type);
     }
 

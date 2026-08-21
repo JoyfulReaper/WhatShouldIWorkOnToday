@@ -186,7 +186,20 @@ commands/
     invalid-filename-<safe-hash>.json
 ```
 
-The worker publishes `state/snapshot.json` only when a stable hash of meaningful WorkItems and Todos changes. The snapshot includes string priority values for every WorkItem and Todo. It processes pending commands in filename order, writes the result under `commands/applied/`, and only then deletes the pending file. A pending JSON file whose filename is not a valid command GUID is copied byte-for-byte to a deterministic, safely named file under `commands/rejected/` before the pending copy is removed. This quarantines unusable filenames for inspection instead of retrying them forever. Supported version 1 commands are `createWorkItem`, `createTodo`, and `completeTodo`.
+The worker publishes `state/snapshot.json` only when a stable hash of meaningful WorkItems and Todos changes. The snapshot includes string priority values for every WorkItem and Todo. It processes pending commands in filename order, writes the result under `commands/applied/`, and only then deletes the pending file. A pending JSON file whose filename is not a valid command GUID is copied byte-for-byte to a deterministic, safely named file under `commands/rejected/` before the pending copy is removed. This quarantines unusable filenames for inspection instead of retrying them forever.
+
+Supported version 1 commands are deliberately constrained:
+
+| Command | Behavior |
+| --- | --- |
+| `createWorkItem` | Creates a WorkItem and, optionally, up to 100 initial Todos atomically |
+| `createTodo` | Adds one Todo to an active WorkItem |
+| `completeTodo` | Completes a Todo, updates its parent, and records work history |
+| `markWorkItemWorkedOn` | Updates an active WorkItem's last-worked time and records an optional note without completing a Todo |
+| `setWorkItemPriority` | Sets a WorkItem to `Low`, `Normal`, or `High` priority |
+| `setTodoPriority` | Sets a Todo to `Low`, `Normal`, or `High` priority |
+
+Delete, archive, WorkItem-completion, and reopen commands are not exposed. See [AGENTS.md](AGENTS.md) for the complete assistant operating procedure and command examples.
 
 Create a WorkItem:
 
@@ -201,7 +214,15 @@ Create a WorkItem:
     "kind": "Maintenance",
     "priority": "High",
     "description": "Bring project docs up to date",
-    "url": "https://example.com/docs"
+    "url": "https://example.com/docs",
+    "todos": [
+      {
+        "task": "Review configuration",
+        "energy": "Low",
+        "effort": "Short",
+        "priority": "Normal"
+      }
+    ]
   }
 }
 ```
@@ -238,7 +259,7 @@ Complete a Todo:
 }
 ```
 
-The pending filename must use the same GUID as the JSON `id`, such as `commands/pending/4e98b35e-0be8-4d1c-a2f9-34757de40bd7.json`. Creation validation and defaults match the normal HTTP API. The optional `priority` field accepts `Low`, `Normal`, or `High`; old commands that omit it continue to create `Normal` priority records. Completing a Todo also updates its parent WorkItem's last-worked timestamp and records work history.
+The pending filename must use the same GUID as the JSON `id`, such as `commands/pending/4e98b35e-0be8-4d1c-a2f9-34757de40bd7.json`. Creation validation and defaults match the normal HTTP API. The optional `priority` field accepts `Low`, `Normal`, or `High`; old commands that omit it continue to create `Normal` priority records. Nested WorkItem creation is all-or-nothing and returns all created IDs. Priority changes that request the current value succeed without changing state. Completing a Todo still updates its parent WorkItem's last-worked timestamp and records work history, while `markWorkItemWorkedOn` records work without completing a Todo.
 
 For durable idempotency, WSIWOT stores each command ID, status, processing time, and full receipt in SQLite in the same transaction as the requested mutation. If the process stops after the database commit but before the GitHub receipt is written, the next cycle recreates the missing receipt without applying the mutation again.
 

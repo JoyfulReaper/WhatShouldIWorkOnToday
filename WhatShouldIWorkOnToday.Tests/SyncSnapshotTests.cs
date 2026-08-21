@@ -96,6 +96,28 @@ public sealed class SyncSnapshotTests
         Assert.NotEqual(
             first.StateHash,
             changed.StateHash);
+
+        await using (var db = await database.Factory
+                         .CreateDbContextAsync())
+        {
+            var todo = await db.TodoItems.SingleAsync();
+            todo.Priority = PriorityLevel.High;
+            await db.SaveChangesAsync();
+        }
+
+        var priorityChanged = await builder.BuildAsync();
+        Assert.NotEqual(changed.StateHash, priorityChanged.StateHash);
+
+        await using (var db = await database.Factory
+                         .CreateDbContextAsync())
+        {
+            var workItem = await db.WorkItems.SingleAsync();
+            workItem.LastWorkedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+        }
+
+        var workedOn = await builder.BuildAsync();
+        Assert.NotEqual(priorityChanged.StateHash, workedOn.StateHash);
     }
 
     [Fact]

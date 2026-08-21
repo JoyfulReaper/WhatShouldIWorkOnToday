@@ -6,6 +6,8 @@ namespace WhatShouldIWorkOnToday.Services;
 
 public sealed class PlanningMutationService
 {
+    public const int MaximumInitialTodoCount = 100;
+
     public PlanningMutationResult<WorkItem> CreateWorkItem(
         AppDbContext db,
         CreateWorkItemInput input)
@@ -97,6 +99,221 @@ public sealed class PlanningMutationService
 
         return PlanningMutationResult<CreatedTodo>
             .Success(new CreatedTodo(todo, workItem));
+    }
+
+    public PlanningMutationResult<CreatedWorkItem>
+        CreateWorkItemWithTodos(
+            AppDbContext db,
+            CreateWorkItemInput input,
+            IReadOnlyList<CreateTodoInput>? todoInputs)
+    {
+        var errors = new Dictionary<string, string[]>();
+        var todos = todoInputs ?? [];
+
+        if (todos.Count > MaximumInitialTodoCount)
+        {
+            errors["todos"] =
+            [
+                $"A maximum of {MaximumInitialTodoCount} todos can be created at once."
+            ];
+        }
+
+        var item = ValidateAndNormalizeWorkItem(
+            input.Name,
+            input.Kind,
+            input.Description,
+            input.Url,
+            input.Priority,
+            string.Empty,
+            errors);
+
+        var normalizedTodos = new List<NormalizedTodo>(
+            todos.Count);
+
+        for (var index = 0; index < todos.Count; index++)
+        {
+            var todo = todos[index];
+            normalizedTodos.Add(
+                ValidateAndNormalizeTodo(
+                    todo.Task,
+                    todo.Energy,
+                    todo.Effort,
+                    todo.Priority,
+                    $"todos[{index}].",
+                    errors));
+        }
+
+        if (errors.Count > 0)
+        {
+            return PlanningMutationResult<CreatedWorkItem>
+                .ValidationFailure(errors);
+        }
+
+        var workItem = new WorkItem
+        {
+            Name = item.Name,
+            Kind = item.Kind,
+            Description = item.Description,
+            Url = item.Url,
+            Priority = item.Priority
+        };
+
+        foreach (var todo in normalizedTodos)
+        {
+            workItem.Todos.Add(
+                new TodoItem
+                {
+                    Task = todo.Task,
+                    Energy = todo.Energy,
+                    Effort = todo.Effort,
+                    Priority = todo.Priority
+                });
+        }
+
+        db.WorkItems.Add(workItem);
+
+        return PlanningMutationResult<CreatedWorkItem>
+            .Success(
+                new CreatedWorkItem(
+                    workItem,
+                    workItem.Todos));
+    }
+
+    public async Task<PlanningMutationResult<WorkItem>>
+        MarkWorkItemWorkedOnAsync(
+            AppDbContext db,
+            int workItemId,
+            string? noteValue,
+            CancellationToken cancellationToken = default)
+    {
+        var errors = new Dictionary<string, string[]>();
+        var note = string.IsNullOrWhiteSpace(noteValue)
+            ? null
+            : noteValue.Trim();
+
+        if (note?.Length > 2000)
+        {
+            errors["note"] =
+            [
+                "Note cannot exceed 2000 characters."
+            ];
+
+            return PlanningMutationResult<WorkItem>
+                .ValidationFailure(errors);
+        }
+
+        var workItem = await db.WorkItems
+            .SingleOrDefaultAsync(
+                x => x.Id == workItemId,
+                cancellationToken);
+
+        if (workItem is null)
+        {
+            return PlanningMutationResult<WorkItem>
+                .NotFound("Work item does not exist.");
+        }
+
+        if (workItem.CompletedAt is not null ||
+            workItem.ArchivedAt is not null)
+        {
+            return PlanningMutationResult<WorkItem>
+                .Conflict(
+                    "Cannot mark an inactive work item as worked on.");
+        }
+
+        var workedAt = DateTimeOffset.UtcNow;
+        workItem.LastWorkedAt = workedAt;
+
+        db.WorkHistoryEntries.Add(
+            new WorkHistoryEntry
+            {
+                WorkItemId = workItem.Id,
+                Note = note,
+                WorkedAt = workedAt
+            });
+
+        return PlanningMutationResult<WorkItem>
+            .Success(workItem);
+    }
+
+    public async Task<PlanningMutationResult<WorkItem>>
+        SetWorkItemPriorityAsync(
+            AppDbContext db,
+            int workItemId,
+            string? priorityValue,
+            CancellationToken cancellationToken = default)
+    {
+        var errors = ValidatePriority(
+            priorityValue,
+            out var priority);
+
+        if (errors is not null)
+        {
+            return PlanningMutationResult<WorkItem>
+                .ValidationFailure(errors);
+        }
+
+        var workItem = await db.WorkItems
+            .SingleOrDefaultAsync(
+                x => x.Id == workItemId,
+                cancellationToken);
+
+        if (workItem is null)
+        {
+            return PlanningMutationResult<WorkItem>
+                .NotFound("Work item does not exist.");
+        }
+
+        if (workItem.Priority == priority)
+        {
+            return PlanningMutationResult<WorkItem>
+                .Success(workItem, changed: false);
+        }
+
+        workItem.Priority = priority;
+
+        return PlanningMutationResult<WorkItem>
+            .Success(workItem);
+    }
+
+    public async Task<PlanningMutationResult<TodoItem>>
+        SetTodoPriorityAsync(
+            AppDbContext db,
+            int todoId,
+            string? priorityValue,
+            CancellationToken cancellationToken = default)
+    {
+        var errors = ValidatePriority(
+            priorityValue,
+            out var priority);
+
+        if (errors is not null)
+        {
+            return PlanningMutationResult<TodoItem>
+                .ValidationFailure(errors);
+        }
+
+        var todo = await db.TodoItems
+            .SingleOrDefaultAsync(
+                x => x.Id == todoId,
+                cancellationToken);
+
+        if (todo is null)
+        {
+            return PlanningMutationResult<TodoItem>
+                .NotFound("Todo does not exist.");
+        }
+
+        if (todo.Priority == priority)
+        {
+            return PlanningMutationResult<TodoItem>
+                .Success(todo, changed: false);
+        }
+
+        todo.Priority = priority;
+
+        return PlanningMutationResult<TodoItem>
+            .Success(todo);
     }
 
     public async Task<PlanningMutationResult<TodoItem>>
@@ -389,6 +606,24 @@ public sealed class PlanningMutationService
                Enum.IsDefined(priority);
     }
 
+    private static Dictionary<string, string[]>? ValidatePriority(
+        string? value,
+        out PriorityLevel priority)
+    {
+        if (TryParsePriority(value, out priority))
+        {
+            return null;
+        }
+
+        return new Dictionary<string, string[]>
+        {
+            ["priority"] =
+            [
+                "Priority must be Low, Normal, or High."
+            ]
+        };
+    }
+
     private static void CompleteTrackedTodo(
         AppDbContext db,
         TodoItem todo,
@@ -439,6 +674,10 @@ public sealed record NormalizedTodo(
 public sealed record CreatedTodo(
     TodoItem Todo,
     WorkItem WorkItem);
+
+public sealed record CreatedWorkItem(
+    WorkItem WorkItem,
+    IReadOnlyList<TodoItem> Todos);
 
 public enum PlanningMutationFailure
 {

@@ -123,6 +123,27 @@ public sealed class SyncCommandProcessor(
                         appliedAtUtc,
                         cancellationToken),
 
+                SyncCommandTypes.MarkWorkItemWorkedOn =>
+                    await ApplyMarkWorkItemWorkedOnAsync(
+                        db,
+                        command,
+                        appliedAtUtc,
+                        cancellationToken),
+
+                SyncCommandTypes.SetWorkItemPriority =>
+                    await ApplySetWorkItemPriorityAsync(
+                        db,
+                        command,
+                        appliedAtUtc,
+                        cancellationToken),
+
+                SyncCommandTypes.SetTodoPriority =>
+                    await ApplySetTodoPriorityAsync(
+                        db,
+                        command,
+                        appliedAtUtc,
+                        cancellationToken),
+
                 _ =>
                     (
                         RejectedReceipt(
@@ -170,14 +191,26 @@ public sealed class SyncCommandProcessor(
             );
         }
 
-        var result = mutationService.CreateWorkItem(
+        var todoInputs = payload.Todos?
+            .Select(todo =>
+                todo is null
+                    ? new CreateTodoInput(null)
+                    : new CreateTodoInput(
+                        todo.Task,
+                        todo.Energy,
+                        todo.Effort,
+                        todo.Priority))
+            .ToList();
+
+        var result = mutationService.CreateWorkItemWithTodos(
             db,
             new CreateWorkItemInput(
                 payload.Name,
                 payload.Kind,
                 payload.Description,
                 payload.Url,
-                payload.Priority));
+                payload.Priority),
+            todoInputs);
 
         if (!result.Succeeded)
         {
@@ -193,12 +226,17 @@ public sealed class SyncCommandProcessor(
 
         await db.SaveChangesAsync(cancellationToken);
 
+        var created = result.Value!;
+
         return (
             AppliedReceipt(
                 command,
                 appliedAtUtc,
                 new SyncCommandResult(
-                    WorkItemId: result.Value!.Id)),
+                    WorkItemId: created.WorkItem.Id,
+                    TodoIds: created.Todos
+                        .Select(todo => todo.Id)
+                        .ToList())),
             true
         );
     }
@@ -315,6 +353,165 @@ public sealed class SyncCommandProcessor(
                     todo.WorkItemId,
                     todo.Id)),
             result.Changed
+        );
+    }
+
+    private async Task<(SyncCommandReceipt, bool)>
+        ApplyMarkWorkItemWorkedOnAsync(
+            AppDbContext db,
+            ParsedSyncCommand command,
+            DateTimeOffset appliedAtUtc,
+            CancellationToken cancellationToken)
+    {
+        var payload = command.Payload
+            .Deserialize<MarkWorkItemWorkedOnCommandPayload>(
+                GitHubSyncJson.Compact);
+
+        if (payload is null)
+        {
+            return MissingPayload(command, appliedAtUtc);
+        }
+
+        var result = await mutationService.MarkWorkItemWorkedOnAsync(
+            db,
+            payload.WorkItemId,
+            payload.Note,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return RejectedMutation(
+                command,
+                appliedAtUtc,
+                result);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return (
+            AppliedReceipt(
+                command,
+                appliedAtUtc,
+                new SyncCommandResult(
+                    WorkItemId: result.Value!.Id)),
+            result.Changed
+        );
+    }
+
+    private async Task<(SyncCommandReceipt, bool)>
+        ApplySetWorkItemPriorityAsync(
+            AppDbContext db,
+            ParsedSyncCommand command,
+            DateTimeOffset appliedAtUtc,
+            CancellationToken cancellationToken)
+    {
+        var payload = command.Payload
+            .Deserialize<SetWorkItemPriorityCommandPayload>(
+                GitHubSyncJson.Compact);
+
+        if (payload is null)
+        {
+            return MissingPayload(command, appliedAtUtc);
+        }
+
+        var result = await mutationService.SetWorkItemPriorityAsync(
+            db,
+            payload.WorkItemId,
+            payload.Priority,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return RejectedMutation(
+                command,
+                appliedAtUtc,
+                result);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return (
+            AppliedReceipt(
+                command,
+                appliedAtUtc,
+                new SyncCommandResult(
+                    WorkItemId: result.Value!.Id)),
+            result.Changed
+        );
+    }
+
+    private async Task<(SyncCommandReceipt, bool)>
+        ApplySetTodoPriorityAsync(
+            AppDbContext db,
+            ParsedSyncCommand command,
+            DateTimeOffset appliedAtUtc,
+            CancellationToken cancellationToken)
+    {
+        var payload = command.Payload
+            .Deserialize<SetTodoPriorityCommandPayload>(
+                GitHubSyncJson.Compact);
+
+        if (payload is null)
+        {
+            return MissingPayload(command, appliedAtUtc);
+        }
+
+        var result = await mutationService.SetTodoPriorityAsync(
+            db,
+            payload.TodoId,
+            payload.Priority,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return RejectedMutation(
+                command,
+                appliedAtUtc,
+                result);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        var todo = result.Value!;
+
+        return (
+            AppliedReceipt(
+                command,
+                appliedAtUtc,
+                new SyncCommandResult(
+                    todo.WorkItemId,
+                    todo.Id)),
+            result.Changed
+        );
+    }
+
+    private static (SyncCommandReceipt, bool) MissingPayload(
+        ParsedSyncCommand command,
+        DateTimeOffset appliedAtUtc)
+    {
+        return (
+            RejectedReceipt(
+                command.Id,
+                command.Type,
+                appliedAtUtc,
+                "Command payload is required."),
+            false
+        );
+    }
+
+    private static (SyncCommandReceipt, bool) RejectedMutation<T>(
+        ParsedSyncCommand command,
+        DateTimeOffset appliedAtUtc,
+        PlanningMutationResult<T> result)
+        where T : class
+    {
+        return (
+            RejectedReceipt(
+                command.Id,
+                command.Type,
+                appliedAtUtc,
+                DescribeFailure(result)),
+            false
         );
     }
 

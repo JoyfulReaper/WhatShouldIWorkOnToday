@@ -13,12 +13,24 @@ public static class SyncCommandTypes
     public const string CompleteTodo =
         "completeTodo";
 
+    public const string MarkWorkItemWorkedOn =
+        "markWorkItemWorkedOn";
+
+    public const string SetWorkItemPriority =
+        "setWorkItemPriority";
+
+    public const string SetTodoPriority =
+        "setTodoPriority";
+
     public static bool IsSupported(string? type)
     {
         return type is
             CreateWorkItem or
             CreateTodo or
-            CompleteTodo;
+            CompleteTodo or
+            MarkWorkItemWorkedOn or
+            SetWorkItemPriority or
+            SetTodoPriority;
     }
 }
 
@@ -42,6 +54,13 @@ public sealed record CreateWorkItemCommandPayload(
     string? Kind = null,
     string? Description = null,
     string? Url = null,
+    string? Priority = null,
+    IReadOnlyList<CreateInitialTodoCommandPayload?>? Todos = null);
+
+public sealed record CreateInitialTodoCommandPayload(
+    string? Task,
+    string? Energy = null,
+    string? Effort = null,
     string? Priority = null);
 
 public sealed record CreateTodoCommandPayload(
@@ -54,6 +73,18 @@ public sealed record CreateTodoCommandPayload(
 public sealed record CompleteTodoCommandPayload(
     int TodoId);
 
+public sealed record MarkWorkItemWorkedOnCommandPayload(
+    int WorkItemId,
+    string? Note = null);
+
+public sealed record SetWorkItemPriorityCommandPayload(
+    int WorkItemId,
+    string? Priority);
+
+public sealed record SetTodoPriorityCommandPayload(
+    int TodoId,
+    string? Priority);
+
 public sealed record SyncCommandReceipt(
     int SchemaVersion,
     Guid Id,
@@ -65,7 +96,8 @@ public sealed record SyncCommandReceipt(
 
 public sealed record SyncCommandResult(
     int? WorkItemId = null,
-    int? TodoId = null);
+    int? TodoId = null,
+    IReadOnlyList<int>? TodoIds = null);
 
 public sealed record SyncCommandProcessingOutcome(
     SyncCommandReceipt Receipt,
