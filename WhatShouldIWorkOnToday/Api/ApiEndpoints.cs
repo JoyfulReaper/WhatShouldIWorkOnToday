@@ -33,6 +33,10 @@ public static partial class ApiEndpoints
             GetDailyPickAsync);
 
         api.MapPost(
+            "/work-items",
+            CreateWorkItemAsync);
+
+        api.MapPost(
             "/work-items/{workItemId:int}/todos",
             CreateTodoAsync);
 

@@ -118,6 +118,7 @@ All API routes require the Bearer API key.
 | `GET` | `/api/todos` | Lists incomplete todos by default |
 | `GET` | `/api/todos/{id}` | Gets one todo |
 | `GET` | `/api/daily-pick` | Gets the deterministic daily pick, or `204 No Content` when none qualifies |
+| `POST` | `/api/work-items` | Creates one work item |
 | `POST` | `/api/work-items/{workItemId}/todos` | Creates one todo on an active work item |
 | `POST` | `/api/todos/bulk` | Creates up to 100 todos across active work items |
 | `POST` | `/api/work-items/bulk` | Creates up to 50 work items and up to 100 nested todos in one request |
@@ -135,6 +136,12 @@ Get the daily pick:
 
 ```powershell
 curl.exe -H "Authorization: Bearer $apiKey" "$baseUri/api/daily-pick"
+```
+
+Create a work item:
+
+```powershell
+curl.exe -X POST "$baseUri/api/work-items" -H "Authorization: Bearer $apiKey" -H "Content-Type: application/json" -d '{"name":"Documentation refresh","kind":"Maintenance","description":"Bring project docs up to date","url":"https://example.com/docs"}'
 ```
 
 Create a todo:
