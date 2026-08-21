@@ -128,6 +128,7 @@ All API routes require the Bearer API key.
 | `GET` | `/api/todos` | Lists incomplete todos by default |
 | `GET` | `/api/todos/{id}` | Gets one todo |
 | `GET` | `/api/daily-pick` | Gets the deterministic daily pick, or `204 No Content` when none qualifies |
+| `GET` | `/api/random-pick` | Gets a uniform or optionally priority-weighted random active Todo, or `204 No Content` when none exists |
 | `POST` | `/api/work-items` | Creates one work item |
 | `POST` | `/api/work-items/{workItemId}/todos` | Creates one todo on an active work item |
 | `POST` | `/api/todos/bulk` | Creates up to 100 todos across active work items |
@@ -147,6 +148,20 @@ Get the daily pick:
 ```powershell
 curl.exe -H "Authorization: Bearer $apiKey" "$baseUri/api/daily-pick"
 ```
+
+Get a uniform random pick (the default):
+
+```powershell
+curl.exe -H "Authorization: Bearer $apiKey" "$baseUri/api/random-pick"
+```
+
+Get a priority-weighted random pick:
+
+```powershell
+curl.exe -H "Authorization: Bearer $apiKey" "$baseUri/api/random-pick?favorPriority=true"
+```
+
+The optional `favorPriority` query parameter defaults to `false`. `false` selects uniformly; `true` uses the WorkItem and Todo priority-weighted random mode. `204 No Content` means there are no active, incomplete Todos.
 
 Create a work item:
 
