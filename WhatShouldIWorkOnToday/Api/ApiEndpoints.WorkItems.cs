@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Data;
 using WhatShouldIWorkOnToday.Models;
+using WhatShouldIWorkOnToday.Services;
 
 namespace WhatShouldIWorkOnToday.Api;
 
@@ -63,6 +64,51 @@ public static partial class ApiEndpoints
         return workItem is null
             ? Results.NotFound()
             : Results.Ok(workItem);
+    }
+
+    private static async Task<IResult> CreateWorkItemAsync(
+        CreateWorkItemRequest request,
+        IDbContextFactory<AppDbContext> dbContextFactory,
+        PlanningMutationService mutationService,
+        CancellationToken cancellationToken)
+    {
+        await using var db =
+            await dbContextFactory.CreateDbContextAsync(
+                cancellationToken);
+
+        var result = mutationService.CreateWorkItem(
+            db,
+            new CreateWorkItemInput(
+                request.Name,
+                request.Kind,
+                request.Description,
+                request.Url));
+
+        if (!result.Succeeded)
+        {
+            return Results.ValidationProblem(
+                result.ValidationErrors!);
+        }
+
+        var workItem = result.Value!;
+        await db.SaveChangesAsync(cancellationToken);
+
+        var response = new WorkItemDto(
+            workItem.Id,
+            workItem.Name,
+            workItem.Description,
+            workItem.Url,
+            workItem.Kind.ToString(),
+            workItem.CreatedAt,
+            workItem.LastWorkedAt,
+            workItem.CompletedAt,
+            workItem.ArchivedAt,
+            0,
+            0);
+
+        return Results.Created(
+            $"/api/work-items/{workItem.Id}",
+            response);
     }
 
     private static async Task<IResult> CreateWorkItemsBulkAsync(
@@ -131,60 +177,14 @@ public static partial class ApiEndpoints
             var item = request.Items[i];
             var prefix = $"items[{i}].";
 
-            var name = item.Name?.Trim()
-                       ?? string.Empty;
-
-            if (name.Length == 0)
-            {
-                errors[$"{prefix}name"] =
-                [
-                    "Name is required."
-                ];
-            }
-            else if (name.Length > 200)
-            {
-                errors[$"{prefix}name"] =
-                [
-                    "Name cannot exceed 200 characters."
-                ];
-            }
-
-            if (!TryParseWorkItemKind(
+            var parsedItem =
+                ValidateAndNormalizeWorkItem(
+                    item.Name,
                     item.Kind,
-                    out var kind))
-            {
-                errors[$"{prefix}kind"] =
-                [
-                    "Kind must be Project, Maintenance, Learning, Idea, or ExternalIssue."
-                ];
-            }
-
-            var description =
-                string.IsNullOrWhiteSpace(
-                    item.Description)
-                    ? null
-                    : item.Description.Trim();
-
-            if (description?.Length > 2000)
-            {
-                errors[$"{prefix}description"] =
-                [
-                    "Description cannot exceed 2000 characters."
-                ];
-            }
-
-            var url =
-                string.IsNullOrWhiteSpace(item.Url)
-                    ? null
-                    : item.Url.Trim();
-
-            if (url?.Length > 2048)
-            {
-                errors[$"{prefix}url"] =
-                [
-                    "URL cannot exceed 2048 characters."
-                ];
-            }
+                    item.Description,
+                    item.Url,
+                    prefix,
+                    errors);
 
             var parsedTodos =
                 new List<(
@@ -251,10 +251,10 @@ public static partial class ApiEndpoints
 
             parsedItems.Add(
                 (
-                    name,
-                    kind,
-                    description,
-                    url,
+                    parsedItem.Name,
+                    parsedItem.Kind,
+                    parsedItem.Description,
+                    parsedItem.Url,
                     parsedTodos
                 ));
         }

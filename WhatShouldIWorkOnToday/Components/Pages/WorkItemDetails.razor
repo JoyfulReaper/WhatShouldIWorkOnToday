@@ -2,7 +2,9 @@
 @using Microsoft.EntityFrameworkCore
 @using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
+@using WhatShouldIWorkOnToday.Services
 @inject IDbContextFactory<AppDbContext> DbContextFactory
+@inject PlanningMutationService MutationService
 @inject NavigationManager Navigation
 
 <PageTitle>@(_workItem?.Name ?? "Work Item")</PageTitle>
@@ -738,37 +740,13 @@ else
         await using var db =
             await DbContextFactory.CreateDbContextAsync();
 
-        var todo = await db.TodoItems.FindAsync(todoId);
+        var result = await MutationService
+            .ToggleTodoAsync(
+                db,
+                todoId);
 
-        if (todo is null)
+        if (!result.Succeeded)
             return;
-
-        if (todo.CompletedAt is null)
-        {
-            var workedAt = DateTimeOffset.UtcNow;
-
-            todo.CompletedAt = workedAt;
-
-            var workItem =
-                await db.WorkItems.FindAsync(todo.WorkItemId);
-
-            if (workItem is null)
-                return;
-
-            workItem.LastWorkedAt = workedAt;
-
-            db.WorkHistoryEntries.Add(new WorkHistoryEntry
-            {
-                WorkItemId = workItem.Id,
-                TodoItemId = todo.Id,
-                TaskSnapshot = todo.Task,
-                WorkedAt = workedAt
-            });
-        }
-        else
-        {
-            todo.CompletedAt = null;
-        }
 
         await db.SaveChangesAsync();
 
