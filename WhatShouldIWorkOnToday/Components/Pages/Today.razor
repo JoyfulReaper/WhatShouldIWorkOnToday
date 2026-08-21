@@ -46,11 +46,19 @@
                 Pick something
             </button>
 
-            <button type="button"
-                    class="secondary"
-                    @onclick="ChooseRandomAsync">
-                Fuck it, random
-            </button>
+            <div class="random-controls">
+                <label class="random-priority-option">
+                    <input type="checkbox"
+                           @bind="_favorRandomPriority" />
+                    <span>Favor priority</span>
+                </label>
+
+                <button type="button"
+                        class="secondary"
+                        @onclick="ChooseRandomAsync">
+                    Fuck it, random
+                </button>
+            </div>
         </div>
     </section>
 
@@ -232,6 +240,7 @@
 
     private TodoItem? _randomTodo;
     private bool _hasRandomChosen;
+    private bool _favorRandomPriority;
 
     private async Task ChooseAsync()
     {
@@ -247,7 +256,8 @@
     private async Task ChooseRandomAsync()
     {
         _randomTodo =
-            await WorkChooser.ChooseRandomAsync();
+            await WorkChooser.ChooseRandomAsync(
+                favorPriority: _favorRandomPriority);
 
         _choices = [];
         _hasChosen = false;

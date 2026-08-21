@@ -25,7 +25,7 @@ The filtered UI chooser considers incomplete todos on active work items whose en
 
 Priority is deliberately simple: `Low` contributes -45 points, `Normal` contributes 0, and `High` contributes +45. The parent WorkItem and Todo contribute independently, so two `High` values add +90. Priority improves or reduces recommendation rank but does not hard-pin an item or override candidate eligibility and neglect in every case.
 
-The UI's separate random action chooses uniformly from all active, incomplete todos and ignores energy, effort, and priority.
+The UI's separate random action remains uniform by default: every active, incomplete Todo has the same chance, regardless of energy, effort, priority, neglect, or daily scoring. Enabling **Favor priority** switches to weighted random selection using only the WorkItem and Todo priorities. Their `Low`/`Normal`/`High` multipliers are combined, increasing the odds of higher-priority work without guaranteeing it; every candidate retains a non-zero chance.
 
 `GET /api/daily-pick` uses the server's local calendar date and defaults to `Medium` energy and `Medium` effort. It replaces the UI chooser's random jitter with a value derived from the date, todo ID, and work-item ID, while applying the same parent and Todo priority biases. Given the same date and unchanged state, its ranking is repeatable. Data changes or an item reaching the 365-day age cap can change the pick.
 
