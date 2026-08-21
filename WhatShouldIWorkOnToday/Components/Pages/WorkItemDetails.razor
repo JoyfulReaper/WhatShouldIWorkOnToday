@@ -26,7 +26,10 @@ else
             {
                 var editingWorkItem = _editingWorkItem;
 
-                <EditForm Model="editingWorkItem" OnValidSubmit="SaveWorkItemAsync" class="panel form-panel form-grid work-item-edit-form">
+                <EditForm Model="editingWorkItem"
+                          OnValidSubmit="SaveWorkItemAsync"
+                          FormName="EditWorkItem"
+                          class="panel form-panel form-grid work-item-edit-form">
                     <DataAnnotationsValidator />
 
                     <div class="form-field">
@@ -159,7 +162,10 @@ else
                 <p>Small enough to start. Specific enough to finish.</p>
             </header>
 
-            <EditForm Model="_newTodo" OnValidSubmit="CreateTodoAsync" class="todo-create-grid">
+            <EditForm Model="_newTodo"
+                      OnValidSubmit="CreateTodoAsync"
+                      FormName="CreateTodo"
+                      class="todo-create-grid">
                 <DataAnnotationsValidator />
 
                 <div class="form-field">
@@ -222,7 +228,10 @@ else
                             {
                                 var editingTodo = _editingTodo;
 
-                                <EditForm Model="editingTodo" OnValidSubmit="SaveTodoAsync" class="todo-edit-form">
+                                <EditForm Model="editingTodo"
+                                          OnValidSubmit="SaveTodoAsync"
+                                          FormName="@($"EditTodo-{todo.Id}")"
+                                          class="todo-edit-form">
                                     <DataAnnotationsValidator />
 
                                     <div class="form-field">

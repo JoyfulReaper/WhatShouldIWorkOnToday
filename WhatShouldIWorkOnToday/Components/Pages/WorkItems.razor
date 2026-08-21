@@ -19,7 +19,10 @@
             <p>Capture the useful version. You can overthink the name later.</p>
         </header>
 
-        <EditForm Model="_newWorkItem" OnValidSubmit="CreateAsync" class="form-grid">
+        <EditForm Model="_newWorkItem"
+                  OnValidSubmit="CreateAsync"
+                  FormName="CreateWorkItem"
+                  class="form-grid">
             <DataAnnotationsValidator />
 
             <div class="form-field">
