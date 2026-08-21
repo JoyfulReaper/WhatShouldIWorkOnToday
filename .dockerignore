@@ -1,0 +1,15 @@
+.git
+.gitignore
+.vs
+.idea
+
+**/bin
+**/obj
+
+**/App_Data
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+README.md
+LICENSE.md

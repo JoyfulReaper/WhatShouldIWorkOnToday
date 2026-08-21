@@ -19,7 +19,10 @@
             <p>Capture the useful version. You can overthink the name later.</p>
         </header>
 
-        <EditForm Model="_newWorkItem" OnValidSubmit="CreateAsync" class="form-grid">
+        <EditForm Model="_newWorkItem"
+                  OnValidSubmit="CreateAsync"
+                  FormName="CreateWorkItem"
+                  class="form-grid">
             <DataAnnotationsValidator />
 
             <div class="form-field">
@@ -56,20 +59,44 @@
         </EditForm>
     </section>
 
+    <div class="panel form-panel">
+        <div class="form-field">
+            <label for="work-item-search">
+                Search work items
+            </label>
+
+            <input id="work-item-search"
+                   type="search"
+                   placeholder="Name, description, URL, kind..."
+                   @bind="_search"
+                   @bind:event="oninput" />
+        </div>
+    </div>
+
     <section class="work-items-section" aria-labelledby="work-items-heading">
         <div class="section-header">
             <h2 id="work-items-heading">All work items</h2>
-            <span class="count-label">@_workItems.Count total</span>
+            <span class="count-label">
+                @FilteredWorkItems.Count() of @_workItems.Count
+            </span>
         </div>
 
         @if (_workItems.Count == 0)
         {
-            <p class="empty-state">No work items yet.</p>
+            <p class="empty-state">
+                No work items yet.
+            </p>
+        }
+        else if (!FilteredWorkItems.Any())
+        {
+            <p class="empty-state">
+                No work items match your search.
+            </p>
         }
         else
         {
             <ul class="work-item-list">
-                @foreach (var workItem in _workItems)
+                @foreach (var workItem in FilteredWorkItems)
                 {
                     <li class="work-item-row">
                         <div>
@@ -116,6 +143,33 @@
 @code {
     private List<WorkItem> _workItems = [];
     private WorkItem _newWorkItem = new();
+    private string _search = string.Empty;
+
+    private IEnumerable<WorkItem> FilteredWorkItems
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_search))
+            {
+                return _workItems;
+            }
+
+            var query = _search.Trim();
+
+            return _workItems.Where(
+                workItem =>
+                    Contains(workItem.Name, query) ||
+                    Contains(workItem.Description, query) ||
+                    Contains(workItem.Url, query) ||
+                    Contains(workItem.Kind.ToString(), query));
+        }
+    }
+
+    private static bool Contains(string? value, string query)
+    {
+        return !string.IsNullOrWhiteSpace(value) &&
+               value.Contains(query, StringComparison.OrdinalIgnoreCase);
+    }
 
     protected override async Task OnInitializedAsync()
     {

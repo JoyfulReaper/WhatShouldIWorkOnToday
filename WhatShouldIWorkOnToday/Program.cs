@@ -1,36 +1,87 @@
-using Microsoft.EntityFrameworkCore;
+using JoyfulReaperLib.MissionControl;
+using WhatShouldIWorkOnToday.Api;
+using WhatShouldIWorkOnToday.Auth;
 using WhatShouldIWorkOnToday.Components;
 using WhatShouldIWorkOnToday.Data;
+using WhatShouldIWorkOnToday.Events;
+using WhatShouldIWorkOnToday.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
+builder.Services
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
 
-var connectionString = builder.Configuration.GetConnectionString("Database")
-    ?? throw new InvalidOperationException("Connection string 'Database' was not found.");
+builder.Services.AddRazorPages();
 
-builder.Services.AddDbContextFactory<AppDbContext>(options =>
-    options.UseSqlite(connectionString));
+builder.Services.AddApplicationAuthentication(builder.Configuration);
+builder.Services.AddApplicationDatabase(builder.Configuration, builder.Environment);
+
+builder.Services.AddMissionControlClient(builder.Configuration.GetSection(MissionControlClientOptions.SectionName));
+
+builder.Services.AddScoped<WsiwotLoginEventPublisher>();
+
+builder.Services.AddScoped<WorkChooser>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+await app.Services.MigrateApplicationDatabaseAsync();
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseExceptionHandler(
+        "/Error",
+        createScopeForErrors: true);
+
     app.UseHsts();
 }
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
+app.UseWhen(
+    context =>
+        !context.Request.Path
+            .StartsWithSegments("/api"),
+    branch =>
+    {
+        branch.UseStatusCodePagesWithReExecute(
+            "/not-found",
+            createScopeForStatusCodePages: true);
+    });
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseWhen(
+        context =>
+            !context.Request.Path
+                .StartsWithSegments("/api") &&
+            !context.Request.Path
+                .StartsWithSegments("/health"),
+        branch =>
+        {
+            branch.UseHttpsRedirection();
+        });
+}
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapRazorPages();
+
+app.MapGet(
+        "/health/live",
+        () => Results.Ok(
+            new
+            {
+                status = "ok"
+            }))
+    .AllowAnonymous();
+
+app.MapApiEndpoints();
+
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    .RequireAuthorization();
 
 app.Run();

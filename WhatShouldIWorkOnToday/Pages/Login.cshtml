@@ -1,0 +1,67 @@
+﻿@page "/login"
+@model LoginModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Sign in - What Should I Work On Today?</title>
+
+    <link rel="stylesheet" href="/app.css" />
+</head>
+
+<body>
+    <main class="app-main">
+        <div class="app-page"
+             style="max-width: 32rem; margin: 4rem auto;">
+            <header class="page-heading">
+                <p class="eyebrow">Authentication required</p>
+                <h1>Sign in</h1>
+                <p class="lead">
+                    Past You has classified this information.
+                </p>
+            </header>
+
+            <section class="panel form-panel">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly"
+                         class="validation-message">
+                    </div>
+
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <div class="form-field">
+                        <label asp-for="Username">
+                            Username
+                        </label>
+
+                        <input asp-for="Username" autocomplete="username" autofocus />
+                    </div>
+
+                    <div class="form-field">
+                        <label asp-for="Password">
+                            Password
+                        </label>
+
+                        <input asp-for="Password"
+                               type="password" autocomplete="current-password" />
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit">
+                            Sign in
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

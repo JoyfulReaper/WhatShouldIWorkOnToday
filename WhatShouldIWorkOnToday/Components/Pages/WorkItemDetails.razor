@@ -3,6 +3,7 @@
 @using WhatShouldIWorkOnToday.Data
 @using WhatShouldIWorkOnToday.Models
 @inject IDbContextFactory<AppDbContext> DbContextFactory
+@inject NavigationManager Navigation
 
 <PageTitle>@(_workItem?.Name ?? "Work Item")</PageTitle>
 
@@ -25,7 +26,10 @@ else
             {
                 var editingWorkItem = _editingWorkItem;
 
-                <EditForm Model="editingWorkItem" OnValidSubmit="SaveWorkItemAsync" class="panel form-panel form-grid work-item-edit-form">
+                <EditForm Model="editingWorkItem"
+                          OnValidSubmit="SaveWorkItemAsync"
+                          FormName="EditWorkItem"
+                          class="panel form-panel form-grid work-item-edit-form">
                     <DataAnnotationsValidator />
 
                     <div class="form-field">
@@ -102,6 +106,52 @@ else
                     <button type="button" class="secondary small" @onclick="ToggleWorkItemArchivedAsync">
                         @(_workItem.ArchivedAt is null ? "Archive" : "Unarchive")
                     </button>
+
+                    @if (!_confirmDeleteWorkItem)
+                    {
+                        <button type="button"
+                                class="secondary small"
+                                @onclick="ConfirmDeleteWorkItem">
+                            Delete permanently
+                        </button>
+                    }
+                </div>
+
+                @if (_confirmDeleteWorkItem)
+                {
+                    <div class="panel">
+                        <p>
+                            This will permanently delete this work item,
+                            all of its todos, and all of its work history.
+                            This cannot be undone.
+                        </p>
+
+                        <div class="row-actions">
+                            <button type="button"
+                                    class="small"
+                                    @onclick="DeleteWorkItemAsync">
+                                Yes, permanently delete
+                            </button>
+
+                            <button type="button"
+                                    class="secondary small"
+                                    @onclick="CancelDeleteWorkItem">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                <div class="form-field work-note-field">
+                    <label>Quick work note</label>
+
+                    <InputTextArea @bind-Value="_workNote" placeholder="What did you actually do?" />
+
+                    <button type="button"
+                            class="small"
+                            @onclick="MarkWorkedAsync">
+                        Mark worked
+                    </button>
                 </div>
             }
         </header>
@@ -112,7 +162,10 @@ else
                 <p>Small enough to start. Specific enough to finish.</p>
             </header>
 
-            <EditForm Model="_newTodo" OnValidSubmit="CreateTodoAsync" class="todo-create-grid">
+            <EditForm Model="_newTodo"
+                      OnValidSubmit="CreateTodoAsync"
+                      FormName="CreateTodo"
+                      class="todo-create-grid">
                 <DataAnnotationsValidator />
 
                 <div class="form-field">
@@ -150,17 +203,39 @@ else
         <section aria-labelledby="todos-heading">
             <div class="section-header">
                 <h2 id="todos-heading">Todos</h2>
-                <span class="count-label">@_workItem.Todos.Count total</span>
+                <span class="count-label">
+                    @FilteredTodos.Count() of @_workItem.Todos.Count
+                </span>
+            </div>
+
+            <div class="form-field">
+                <label for="todo-search">
+                    Search todos
+                </label>
+
+                <input id="todo-search"
+                       type="search"
+                       placeholder="Search tasks..."
+                       @bind="_todoSearch"
+                       @bind:event="oninput" />
             </div>
 
             @if (_workItem.Todos.Count == 0)
             {
-                <p class="empty-state">No todos yet.</p>
+                <p class="empty-state">
+                    No todos yet.
+                </p>
+            }
+            else if (!FilteredTodos.Any())
+            {
+                <p class="empty-state">
+                    No todos match your search.
+                </p>
             }
             else
             {
                 <ul class="todo-list">
-                    @foreach (var todo in _workItem.Todos
+                    @foreach (var todo in FilteredTodos
                         .OrderBy(x => x.CompletedAt.HasValue)
                         .ThenBy(x => x.CreatedAt))
                     {
@@ -175,7 +250,10 @@ else
                             {
                                 var editingTodo = _editingTodo;
 
-                                <EditForm Model="editingTodo" OnValidSubmit="SaveTodoAsync" class="todo-edit-form">
+                                <EditForm Model="editingTodo"
+                                          OnValidSubmit="SaveTodoAsync"
+                                          FormName="@($"EditTodo-{todo.Id}")"
+                                          class="todo-edit-form">
                                     <DataAnnotationsValidator />
 
                                     <div class="form-field">
@@ -230,8 +308,112 @@ else
                                     </div>
                                 </div>
 
-                                <button type="button" class="secondary small" @onclick="() => EditTodo(todo)">Edit</button>
+                                <div class="row-actions">
+                                    <button type="button"
+                                            class="secondary small"
+                                            @onclick="() => EditTodo(todo)">
+                                        Edit
+                                    </button>
+
+                                    @if (_confirmDeleteTodoId == todo.Id)
+                                    {
+                                        <button type="button"
+                                                class="small"
+                                                @onclick="() => DeleteTodoAsync(todo.Id)">
+                                            Confirm delete
+                                        </button>
+
+                                        <button type="button"
+                                                class="secondary small"
+                                                @onclick="CancelDeleteTodo">
+                                            Cancel
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="secondary small"
+                                                @onclick="() => ConfirmDeleteTodo(todo.Id)">
+                                            Delete
+                                        </button>
+                                    }
+                                </div>
                             }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section aria-labelledby="work-history-heading">
+            <div class="section-header">
+                <h2 id="work-history-heading">Work history</h2>
+                <span class="count-label">
+                    Recent @_workHistory.Count
+                </span>
+            </div>
+
+            @if (_workHistory.Count == 0)
+            {
+                <p class="empty-state">
+                    No work recorded yet.
+                </p>
+            }
+            else
+            {
+                <ul class="work-item-list">
+                    @foreach (var entry in _workHistory)
+                    {
+                        <li class="work-item-row">
+                            <div>
+                                <strong>
+                                    @(entry.TaskSnapshot ?? "General work")
+                                </strong>
+
+                                @if (_editingHistoryId == entry.Id)
+                                {
+                                    <div class="form-field">
+                                        <InputTextArea @bind-Value="_editingHistoryNote"
+                                                       placeholder="What did you do?" />
+
+                                        <div class="row-actions">
+                                            <button type="button"
+                                                    class="small"
+                                                    @onclick="SaveHistoryNoteAsync">
+                                                Save
+                                            </button>
+
+                                            <button type="button"
+                                                    class="secondary small"
+                                                    @onclick="CancelHistoryNoteEdit">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @if (!string.IsNullOrWhiteSpace(entry.Note))
+                                    {
+                                        <div class="work-item-description">
+                                            @entry.Note
+                                        </div>
+                                    }
+
+                                    <button type="button"
+                                            class="secondary small @(string.IsNullOrWhiteSpace(entry.Note) ? "history-add-note" : null)"
+                                            @onclick="() => EditHistoryNote(entry)">
+                                        @(string.IsNullOrWhiteSpace(entry.Note)
+                                            ? "Add note"
+                                            : "Edit note")
+                                    </button>
+                                }
+                            </div>
+
+                            <div class="work-item-meta">
+                                <span class="last-worked">
+                                    @(entry.WorkedAt.ToLocalTime().ToString("g"))
+                                </span>
+                            </div>
                         </li>
                     }
                 </ul>
@@ -248,6 +430,35 @@ else
     private WorkItem? _editingWorkItem;
     private TodoItem _newTodo = new();
     private TodoItem? _editingTodo;
+    private int? _confirmDeleteTodoId;
+    private string? _workNote;
+    private int? _editingHistoryId;
+    private string? _editingHistoryNote;
+    private List<WorkHistoryEntry> _workHistory = [];
+    private bool _confirmDeleteWorkItem;
+    private string _todoSearch = string.Empty;
+
+    private IEnumerable<TodoItem> FilteredTodos
+    {
+        get
+        {
+            if (_workItem is null)
+            {
+                return [];
+            }
+
+            if (string.IsNullOrWhiteSpace(_todoSearch))
+            {
+                return _workItem.Todos;
+            }
+
+            var query = _todoSearch.Trim();
+
+            return _workItem.Todos.Where(
+                todo =>
+                    todo.Task.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -263,6 +474,16 @@ else
             .AsNoTracking()
             .Include(x => x.Todos)
             .SingleOrDefaultAsync(x => x.Id == Id);
+
+        var history = await db.WorkHistoryEntries
+            .AsNoTracking()
+            .Where(x => x.WorkItemId == Id)
+            .ToListAsync();
+
+        _workHistory = history
+            .OrderByDescending(x => x.WorkedAt)
+            .Take(20)
+            .ToList();
     }
 
     private void EditWorkItem()
@@ -283,6 +504,44 @@ else
     private void CancelWorkItemEdit()
     {
         _editingWorkItem = null;
+    }
+
+    private void ConfirmDeleteWorkItem()
+    {
+        _confirmDeleteWorkItem = true;
+    }
+
+    private void CancelDeleteWorkItem()
+    {
+        _confirmDeleteWorkItem = false;
+    }
+
+    private async Task DeleteWorkItemAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+        {
+            Navigation.NavigateTo("/work-items");
+            return;
+        }
+
+        var todos = await db.TodoItems
+            .Where(x => x.WorkItemId == Id)
+            .ToListAsync();
+
+        var history = await db.WorkHistoryEntries
+            .Where(x => x.WorkItemId == Id)
+            .ToListAsync();
+
+        db.WorkHistoryEntries.RemoveRange(history);
+        db.TodoItems.RemoveRange(todos);
+        db.WorkItems.Remove(workItem);
+
+        await db.SaveChangesAsync();
+
+        Navigation.NavigateTo("/work-items");
     }
 
     private async Task SaveWorkItemAsync()
@@ -387,6 +646,39 @@ else
         _editingTodo = null;
     }
 
+    private void ConfirmDeleteTodo(int todoId)
+    {
+        _confirmDeleteTodoId = todoId;
+    }
+
+    private void CancelDeleteTodo()
+    {
+        _confirmDeleteTodoId = null;
+    }
+
+    private async Task DeleteTodoAsync(int todoId)
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var todo = await db.TodoItems.FindAsync(todoId);
+
+        if (todo is null)
+            return;
+
+        db.TodoItems.Remove(todo);
+
+        await db.SaveChangesAsync();
+
+        if (_editingTodo?.Id == todoId)
+        {
+            _editingTodo = null;
+        }
+
+        _confirmDeleteTodoId = null;
+
+        await LoadAsync();
+    }
+
     private async Task SaveTodoAsync()
     {
         if (_editingTodo is null)
@@ -410,6 +702,36 @@ else
 
         await LoadAsync();
     }
+    
+    private async Task MarkWorkedAsync()
+    {
+        await using var db =
+            await DbContextFactory.CreateDbContextAsync();
+
+        var workItem = await db.WorkItems.FindAsync(Id);
+
+        if (workItem is null)
+            return;
+
+        var workedAt = DateTimeOffset.UtcNow;
+
+        workItem.LastWorkedAt = workedAt;
+
+        db.WorkHistoryEntries.Add(new WorkHistoryEntry
+        {
+            WorkItemId = workItem.Id,
+            Note = string.IsNullOrWhiteSpace(_workNote)
+                ? null
+                : _workNote.Trim(),
+            WorkedAt = workedAt
+        });
+
+        await db.SaveChangesAsync();
+
+        _workNote = null;
+
+        await LoadAsync();
+    }
 
     private async Task ToggleTodoAsync(int todoId)
     {
@@ -421,11 +743,69 @@ else
         if (todo is null)
             return;
 
-        todo.CompletedAt = todo.CompletedAt is null
-            ? DateTimeOffset.UtcNow
-            : null;
+        if (todo.CompletedAt is null)
+        {
+            var workedAt = DateTimeOffset.UtcNow;
+
+            todo.CompletedAt = workedAt;
+
+            var workItem =
+                await db.WorkItems.FindAsync(todo.WorkItemId);
+
+            if (workItem is null)
+                return;
+
+            workItem.LastWorkedAt = workedAt;
+
+            db.WorkHistoryEntries.Add(new WorkHistoryEntry
+            {
+                WorkItemId = workItem.Id,
+                TodoItemId = todo.Id,
+                TaskSnapshot = todo.Task,
+                WorkedAt = workedAt
+            });
+        }
+        else
+        {
+            todo.CompletedAt = null;
+        }
 
         await db.SaveChangesAsync();
+
+        await LoadAsync();
+    }
+
+    private void EditHistoryNote(WorkHistoryEntry entry)
+    {
+        _editingHistoryId = entry.Id;
+        _editingHistoryNote = entry.Note;
+    }
+
+    private void CancelHistoryNoteEdit()
+    {
+        _editingHistoryId = null;
+        _editingHistoryNote = null;
+    }
+
+    private async Task SaveHistoryNoteAsync()
+    {
+        if (_editingHistoryId is null)
+            return;
+
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var entry = await db.WorkHistoryEntries.FindAsync(_editingHistoryId.Value);
+
+        if (entry is null)
+            return;
+
+        entry.Note = string.IsNullOrWhiteSpace(_editingHistoryNote)
+            ? null
+            : _editingHistoryNote.Trim();
+
+        await db.SaveChangesAsync();
+
+        CancelHistoryNoteEdit();
 
         await LoadAsync();
     }
