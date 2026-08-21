@@ -208,6 +208,18 @@ else
                 </span>
             </div>
 
+            <div class="form-field">
+                <label for="todo-search">
+                    Search todos
+                </label>
+
+                <input id="todo-search"
+                       type="search"
+                       placeholder="Search tasks..."
+                       @bind="_todoSearch"
+                       @bind:event="oninput" />
+            </div>
+
             @if (_workItem.Todos.Count == 0)
             {
                 <p class="empty-state">
@@ -338,18 +350,6 @@ else
                 <span class="count-label">
                     Recent @_workHistory.Count
                 </span>
-            </div>
-
-            <div class="form-field">
-                <label for="todo-search">
-                    Search todos
-                </label>
-
-                <input id="todo-search"
-                       type="search"
-                       placeholder="Search tasks..."
-                       @bind="_todoSearch"
-                       @bind:event="oninput" />
             </div>
 
             @if (_workHistory.Count == 0)
