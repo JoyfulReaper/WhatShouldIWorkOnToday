@@ -85,3 +85,7 @@ app.MapRazorComponents<App>()
     .RequireAuthorization();
 
 app.Run();
+
+public partial class Program
+{
+}

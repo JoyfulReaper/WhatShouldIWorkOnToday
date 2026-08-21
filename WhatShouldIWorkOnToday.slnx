@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="WhatShouldIWorkOnToday/WhatShouldIWorkOnToday.csproj" />
+  <Project Path="WhatShouldIWorkOnToday.Tests/WhatShouldIWorkOnToday.Tests.csproj" />
 </Solution>
