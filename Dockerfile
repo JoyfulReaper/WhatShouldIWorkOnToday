@@ -14,17 +14,11 @@ ARG BUILD_CONFIGURATION=Release
 
 WORKDIR /src
 
-COPY ["NuGet.config", "."]
-COPY ["local-nuget/", "local-nuget/"]
-
-COPY ["WhatShouldIWorkOnToday/WhatShouldIWorkOnToday.csproj", \
-      "WhatShouldIWorkOnToday/"]
+COPY . .
 
 RUN dotnet restore \
     "WhatShouldIWorkOnToday/WhatShouldIWorkOnToday.csproj" \
     --configfile NuGet.config
-
-COPY . .
 
 WORKDIR "/src/WhatShouldIWorkOnToday"
 
