@@ -23,6 +23,8 @@ The receipt is written before the pending file is deleted. Command IDs are durab
 
 # Supported Commands
 
+The assistant command/control surface is limited to the seven command types documented below. `renameWorkItem` changes only the WorkItem name; it does not expose arbitrary WorkItem editing.
+
 Defaults are `Project` for WorkItem kind, `Medium` for energy, `Medium` for effort, and `Normal` for WorkItem and Todo priority. Priority accepts only `Low`, `Normal`, and `High`, case-insensitively.
 
 ## createWorkItem
@@ -138,12 +140,31 @@ The optional note is trimmed; blank text becomes `null`.
 }
 ```
 
+## renameWorkItem
+
+Read the latest `state/snapshot.json` and use the WorkItem's actual ID. The name is trimmed, required, and limited to 200 characters.
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "77777777-7777-4777-8777-777777777777",
+  "type": "renameWorkItem",
+  "createdAtUtc": "2026-08-21T12:30:00Z",
+  "payload": {
+    "workItemId": 27,
+    "name": "Message / Protocol Bots"
+  }
+}
+```
+
 # Important Semantics
 
 - `createWorkItem` with nested Todos is all-or-nothing. An invalid child rejects the whole command. Its applied receipt returns the WorkItem ID and all created Todo IDs.
 - `completeTodo` is state-idempotent. It sets `Todo.CompletedAt`, updates the parent `WorkItem.LastWorkedAt`, and records WorkHistory.
 - `markWorkItemWorkedOn` updates `LastWorkedAt` and records WorkHistory without completing a Todo.
 - Set-priority commands may succeed as no-ops when the requested value is already set. Their receipts are applied, but planning state is unchanged.
+- `renameWorkItem` uses the same WorkItem name validation and normalization as the API and WorkItem creation. A missing WorkItem produces a rejected receipt; an invalid name produces a rejected receipt with validation details.
+- A successful rename receipt contains the WorkItem ID. Renaming to the existing exact normalized name is applied without changing state; a real rename changes SQLite and causes the normal snapshot refresh.
 - Reusing a processed command ID never reapplies its mutation, independently of whether the mutation itself is a no-op.
 
 # Safety
@@ -151,6 +172,7 @@ The optional note is trimmed; blank text becomes `null`.
 - Never put tokens, API keys, credentials, or private operational secrets in command JSON.
 - Never edit `state/snapshot.json` directly.
 - Never invent unsupported command types.
+- `renameWorkItem` changes only the name; it does not authorize other WorkItem edits.
 - No destructive, delete, archive, lifecycle-reopen, or WorkItem-completion command is exposed through this bridge.
 - Prefer explicit IDs from the latest snapshot over fuzzy name matching.
 
@@ -182,3 +204,9 @@ The optional note is trimmed; blank text becomes `null`.
 
 1. Find the WorkItem ID and current priority in the latest snapshot.
 2. Write one `setWorkItemPriority` command.
+
+## Rename a project
+
+1. Fetch the latest snapshot and find the WorkItem's exact ID and current name; never guess the ID from a fuzzy name match.
+2. Write one `renameWorkItem` command with that ID and the new name.
+3. Confirm the applied receipt contains the WorkItem ID, or inspect a rejected receipt before correcting the command.

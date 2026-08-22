@@ -129,6 +129,7 @@ All API routes require the Bearer API key.
 | `GET` | `/api/todos/{id}` | Gets one todo |
 | `GET` | `/api/daily-pick` | Gets the deterministic daily pick, or `204 No Content` when none qualifies |
 | `GET` | `/api/random-pick` | Gets a uniform or optionally priority-weighted random active Todo, or `204 No Content` when none exists |
+| `PUT` | `/api/work-items/{id}/name` | Renames one work item |
 | `POST` | `/api/work-items` | Creates one work item |
 | `POST` | `/api/work-items/{workItemId}/todos` | Creates one todo on an active work item |
 | `POST` | `/api/todos/bulk` | Creates up to 100 todos across active work items |
@@ -168,6 +169,14 @@ Create a work item:
 ```powershell
 curl.exe -X POST "$baseUri/api/work-items" -H "Authorization: Bearer $apiKey" -H "Content-Type: application/json" -d '{"name":"Documentation refresh","kind":"Maintenance","priority":"High","description":"Bring project docs up to date","url":"https://example.com/docs"}'
 ```
+
+Rename a work item:
+
+```powershell
+curl.exe -X PUT "$baseUri/api/work-items/27/name" -H "Authorization: Bearer $apiKey" -H "Content-Type: application/json" -d '{"name":"Message / Protocol Bots"}'
+```
+
+The rename endpoint trims surrounding whitespace and requires a name of at most 200 characters. It returns `404 Not Found` when the WorkItem does not exist, a `400` validation problem for an invalid name, and `200 OK` with `{ "id": <workItemId>, "name": "<normalized name>" }` on success. Renaming to the existing exact normalized name is a successful no-op.
 
 Create a todo:
 
@@ -213,6 +222,7 @@ Supported version 1 commands are deliberately constrained:
 | `markWorkItemWorkedOn` | Updates an active WorkItem's last-worked time and records an optional note without completing a Todo |
 | `setWorkItemPriority` | Sets a WorkItem to `Low`, `Normal`, or `High` priority |
 | `setTodoPriority` | Sets a Todo to `Low`, `Normal`, or `High` priority |
+| `renameWorkItem` | Changes only a WorkItem's name |
 
 Delete, archive, WorkItem-completion, and reopen commands are not exposed. See [AGENTS.md](AGENTS.md) for the complete assistant operating procedure and command examples.
 
@@ -274,7 +284,24 @@ Complete a Todo:
 }
 ```
 
+Rename a WorkItem:
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "7a71fb06-94d1-4cbc-a703-b219efdb062b",
+  "type": "renameWorkItem",
+  "createdAtUtc": "2026-08-21T12:15:00Z",
+  "payload": {
+    "workItemId": 27,
+    "name": "Message / Protocol Bots"
+  }
+}
+```
+
 The pending filename must use the same GUID as the JSON `id`, such as `commands/pending/4e98b35e-0be8-4d1c-a2f9-34757de40bd7.json`. Creation validation and defaults match the normal HTTP API. The optional `priority` field accepts `Low`, `Normal`, or `High`; old commands that omit it continue to create `Normal` priority records. Nested WorkItem creation is all-or-nothing and returns all created IDs. Priority changes that request the current value succeed without changing state. Completing a Todo still updates its parent WorkItem's last-worked timestamp and records work history, while `markWorkItemWorkedOn` records work without completing a Todo.
+
+`renameWorkItem` uses the same required, trimmed, 200-character WorkItem name validation as the API and WorkItem creation. A missing WorkItem or invalid name produces a rejected receipt, with validation details for an invalid name. A successful receipt is applied and contains the WorkItem ID. Renaming to the existing exact normalized name is applied without a state change; a real rename changes SQLite and triggers the normal snapshot refresh. SQLite remains authoritative, and the existing durable command-ID and idempotency behavior applies unchanged.
 
 For durable idempotency, WSIWOT stores each command ID, status, processing time, and full receipt in SQLite in the same transaction as the requested mutation. If the process stops after the database commit but before the GitHub receipt is written, the next cycle recreates the missing receipt without applying the mutation again.
 
@@ -325,5 +352,5 @@ The image exposes port `8080`. For this local Development-mode container, open `
 ## Current limitations
 
 - Authentication is one configured UI user and one shared API key; there is no user or key management UI.
-- The API currently supports reads and creation only. Updates, lifecycle changes, deletion, work-history access, and chooser filtering are UI-only.
+- The API currently supports reads, creation, and WorkItem renaming. Other updates, lifecycle changes, deletion, work-history access, and chooser filtering are UI-only.
 - Search loads data into the Blazor page and filters in memory; there is no full-text index or pagination.
