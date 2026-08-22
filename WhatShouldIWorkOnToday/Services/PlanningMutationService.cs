@@ -237,6 +237,52 @@ public sealed class PlanningMutationService
     }
 
     public async Task<PlanningMutationResult<WorkItem>>
+    RenameWorkItemAsync(
+        AppDbContext db,
+        int workItemId,
+        string? nameValue,
+        CancellationToken cancellationToken = default)
+    {
+        var errors = new Dictionary<string, string[]>();
+
+        var name = ValidateAndNormalizeWorkItemName(
+            nameValue,
+            string.Empty,
+            errors);
+
+        if (errors.Count > 0)
+        {
+            return PlanningMutationResult<WorkItem>
+                .ValidationFailure(errors);
+        }
+
+        var workItem = await db.WorkItems
+            .SingleOrDefaultAsync(
+                x => x.Id == workItemId,
+                cancellationToken);
+
+        if (workItem is null)
+        {
+            return PlanningMutationResult<WorkItem>
+                .NotFound("Work item does not exist.");
+        }
+
+        if (string.Equals(
+                workItem.Name,
+                name,
+                StringComparison.Ordinal))
+        {
+            return PlanningMutationResult<WorkItem>
+                .Success(workItem, changed: false);
+        }
+
+        workItem.Name = name;
+
+        return PlanningMutationResult<WorkItem>
+            .Success(workItem);
+    }
+
+    public async Task<PlanningMutationResult<WorkItem>>
         SetWorkItemPriorityAsync(
             AppDbContext db,
             int workItemId,
@@ -408,23 +454,10 @@ public sealed class PlanningMutationService
             string keyPrefix,
             Dictionary<string, string[]> errors)
     {
-        var name = nameValue?.Trim()
-                   ?? string.Empty;
-
-        if (name.Length == 0)
-        {
-            errors[$"{keyPrefix}name"] =
-            [
-                "Name is required."
-            ];
-        }
-        else if (name.Length > 200)
-        {
-            errors[$"{keyPrefix}name"] =
-            [
-                "Name cannot exceed 200 characters."
-            ];
-        }
+        var name = ValidateAndNormalizeWorkItemName(
+            nameValue,
+            keyPrefix,
+            errors);
 
         if (!TryParseWorkItemKind(
                 kindValue,
@@ -624,6 +657,32 @@ public sealed class PlanningMutationService
         };
     }
 
+    private static string ValidateAndNormalizeWorkItemName(
+        string? nameValue,
+        string keyPrefix,
+        Dictionary<string, string[]> errors)
+    {
+        var name = nameValue?.Trim()
+                   ?? string.Empty;
+
+        if (name.Length == 0)
+        {
+            errors[$"{keyPrefix}name"] =
+            [
+                "Name is required."
+            ];
+        }
+        else if (name.Length > 200)
+        {
+            errors[$"{keyPrefix}name"] =
+            [
+                "Name cannot exceed 200 characters."
+            ];
+        }
+
+        return name;
+    }
+
     private static void CompleteTrackedTodo(
         AppDbContext db,
         TodoItem todo,
@@ -710,7 +769,8 @@ public sealed class PlanningMutationResult<T>
     public PlanningMutationFailure? Failure { get; }
 
     public IReadOnlyDictionary<string, string[]>?
-        ValidationErrors { get; }
+        ValidationErrors
+    { get; }
 
     public string? Error { get; }
 

@@ -11,8 +11,7 @@ public static partial class ApiEndpoints
         IDbContextFactory<AppDbContext> dbContextFactory,
         CancellationToken cancellationToken)
     {
-        await using var db =
-            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var workItems = await db.WorkItems
             .AsNoTracking()
@@ -41,8 +40,7 @@ public static partial class ApiEndpoints
         IDbContextFactory<AppDbContext> dbContextFactory,
         CancellationToken cancellationToken)
     {
-        await using var db =
-            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var workItem = await db.WorkItems
             .AsNoTracking()
@@ -74,9 +72,7 @@ public static partial class ApiEndpoints
         PlanningMutationService mutationService,
         CancellationToken cancellationToken)
     {
-        await using var db =
-            await dbContextFactory.CreateDbContextAsync(
-                cancellationToken);
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var result = mutationService.CreateWorkItem(
             db,
@@ -89,8 +85,7 @@ public static partial class ApiEndpoints
 
         if (!result.Succeeded)
         {
-            return Results.ValidationProblem(
-                result.ValidationErrors!);
+            return Results.ValidationProblem(result.ValidationErrors!);
         }
 
         var workItem = result.Value!;
@@ -160,8 +155,7 @@ public static partial class ApiEndpoints
                 });
         }
 
-        var errors =
-            new Dictionary<string, string[]>();
+        var errors = new Dictionary<string, string[]>();
 
         var parsedItems =
             new List<(
@@ -312,5 +306,45 @@ public static partial class ApiEndpoints
         return Results.Created(
             "/api/work-items",
             response);
+    }
+
+    private static async Task<IResult> RenameWorkItemAsync(
+        int id,
+        RenameWorkItemRequest request,
+        IDbContextFactory<AppDbContext> dbContextFactory,
+        PlanningMutationService mutationService,
+        CancellationToken cancellationToken)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var result = await mutationService.RenameWorkItemAsync(
+            db,
+            id,
+            request.Name,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return result.Failure switch
+            {
+                PlanningMutationFailure.Validation =>
+                    Results.ValidationProblem(result.ValidationErrors!),
+
+                PlanningMutationFailure.NotFound =>
+                    Results.NotFound(),
+
+                _ => Results.Conflict(
+                    new
+                    {
+                        error = result.Error
+                    })
+            };
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        var workItem = result.Value!;
+
+        return Results.Ok(new RenameWorkItemResponse(workItem.Id, workItem.Name));
     }
 }

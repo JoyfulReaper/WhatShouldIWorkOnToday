@@ -4,23 +4,13 @@ namespace WhatShouldIWorkOnToday.GitHubSync;
 
 public static class SyncCommandTypes
 {
-    public const string CreateWorkItem =
-        "createWorkItem";
-
-    public const string CreateTodo =
-        "createTodo";
-
-    public const string CompleteTodo =
-        "completeTodo";
-
-    public const string MarkWorkItemWorkedOn =
-        "markWorkItemWorkedOn";
-
-    public const string SetWorkItemPriority =
-        "setWorkItemPriority";
-
-    public const string SetTodoPriority =
-        "setTodoPriority";
+    public const string CreateWorkItem = "createWorkItem";
+    public const string CreateTodo = "createTodo";
+    public const string CompleteTodo = "completeTodo";
+    public const string MarkWorkItemWorkedOn = "markWorkItemWorkedOn";
+    public const string SetWorkItemPriority = "setWorkItemPriority";
+    public const string SetTodoPriority = "setTodoPriority";
+    public const string RenameWorkItem = "renameWorkItem";
 
     public static bool IsSupported(string? type)
     {
@@ -30,7 +20,8 @@ public static class SyncCommandTypes
             CompleteTodo or
             MarkWorkItemWorkedOn or
             SetWorkItemPriority or
-            SetTodoPriority;
+            SetTodoPriority or
+            RenameWorkItem;
     }
 }
 
@@ -104,3 +95,7 @@ public sealed record SyncCommandProcessingOutcome(
     byte[] ReceiptContent,
     bool StateChanged,
     bool AlreadyProcessed);
+
+public sealed record RenameWorkItemCommandPayload(
+    int WorkItemId,
+    string? Name);

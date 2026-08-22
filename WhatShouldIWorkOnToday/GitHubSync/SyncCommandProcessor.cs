@@ -1,6 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using WhatShouldIWorkOnToday.Data;
 using WhatShouldIWorkOnToday.Models;
 using WhatShouldIWorkOnToday.Services;
@@ -139,6 +139,12 @@ public sealed class SyncCommandProcessor(
 
                 SyncCommandTypes.SetTodoPriority =>
                     await ApplySetTodoPriorityAsync(
+                        db,
+                        command,
+                        appliedAtUtc,
+                        cancellationToken),
+                SyncCommandTypes.RenameWorkItem =>
+                    await ApplyRenameWorkItemAsync(
                         db,
                         command,
                         appliedAtUtc,
@@ -581,5 +587,47 @@ public sealed class SyncCommandProcessor(
 
         return result.Error ??
                "The command could not be applied.";
+    }
+
+    private async Task<(SyncCommandReceipt, bool)>
+    ApplyRenameWorkItemAsync(
+        AppDbContext db,
+        ParsedSyncCommand command,
+        DateTimeOffset appliedAtUtc,
+        CancellationToken cancellationToken)
+    {
+        var payload = command.Payload
+            .Deserialize<RenameWorkItemCommandPayload>(GitHubSyncJson.Compact);
+
+        if (payload is null)
+        {
+            return MissingPayload(
+                command,
+                appliedAtUtc);
+        }
+
+        var result = await mutationService.RenameWorkItemAsync(
+            db,
+            payload.WorkItemId,
+            payload.Name,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return RejectedMutation(
+                command,
+                appliedAtUtc,
+                result);
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return (
+            AppliedReceipt(
+                command,
+                appliedAtUtc,
+                new SyncCommandResult(WorkItemId: result.Value!.Id)),
+            result.Changed
+        );
     }
 }

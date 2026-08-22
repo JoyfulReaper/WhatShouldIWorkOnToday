@@ -330,4 +330,79 @@ public sealed class SyncCommandProcessorTests
 
         return workItem.Id;
     }
+
+    [Fact]
+    public async Task RenameWorkItem_IsValidatedNormalizedAndApplied()
+    {
+        await using var database =
+            await TemporarySqliteDatabase.CreateAsync();
+
+        var workItemId = await CreateWorkItemAsync(
+            database,
+            active: true);
+
+        var outcome = await CreateProcessor(database)
+            .ProcessAsync(
+                Parse(
+                    SyncTestCommands.CreateFile(
+                        Guid.NewGuid(),
+                        SyncCommandTypes.RenameWorkItem,
+                        new
+                        {
+                            workItemId,
+                            name = "  Message / Protocol Bots  "
+                        })));
+
+        Assert.Equal(
+            "applied",
+            outcome.Receipt.Status);
+
+        Assert.Equal(
+            workItemId,
+            outcome.Receipt.Result?.WorkItemId);
+
+        Assert.True(outcome.StateChanged);
+
+        await using var db =
+            await database.Factory.CreateDbContextAsync();
+
+        var workItem =
+            await db.WorkItems.SingleAsync();
+
+        Assert.Equal(
+            "Message / Protocol Bots",
+            workItem.Name);
+    }
+
+    [Fact]
+    public async Task RenameWorkItem_BlankName_IsRejected()
+    {
+        await using var database =
+            await TemporarySqliteDatabase.CreateAsync();
+
+        var workItemId = await CreateWorkItemAsync(
+            database,
+            active: true);
+
+        var outcome = await CreateProcessor(database)
+            .ProcessAsync(
+                Parse(
+                    SyncTestCommands.CreateFile(
+                        Guid.NewGuid(),
+                        SyncCommandTypes.RenameWorkItem,
+                        new
+                        {
+                            workItemId,
+                            name = "   "
+                        })));
+
+        Assert.Equal(
+            "rejected",
+            outcome.Receipt.Status);
+
+        Assert.Contains(
+            "name: Name is required.",
+            outcome.Receipt.Error,
+            StringComparison.Ordinal);
+    }
 }
