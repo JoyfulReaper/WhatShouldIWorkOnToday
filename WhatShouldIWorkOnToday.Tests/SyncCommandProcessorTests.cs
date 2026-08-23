@@ -22,7 +22,8 @@ public sealed class SyncCommandProcessorTests
                 new
                 {
                     name = "  Synced project  ",
-                    description = "  Created remotely  "
+                    description = "  Created remotely  ",
+                    priority = "high"
                 }));
 
         var processor = CreateProcessor(database);
@@ -47,6 +48,7 @@ public sealed class SyncCommandProcessorTests
         Assert.Equal(
             WorkItemKind.Project,
             workItem.Kind);
+        Assert.Equal(PriorityLevel.High, workItem.Priority);
         Assert.Equal(
             first.Receipt.Result!.WorkItemId,
             workItem.Id);
@@ -104,7 +106,8 @@ public sealed class SyncCommandProcessorTests
                 new
                 {
                     workItemId,
-                    task = "  Synced todo  "
+                    task = "  Synced todo  ",
+                    priority = "low"
                 }));
 
         var processor = CreateProcessor(database);
@@ -127,6 +130,7 @@ public sealed class SyncCommandProcessorTests
         Assert.Equal("Synced todo", todo.Task);
         Assert.Equal(EnergyLevel.Medium, todo.Energy);
         Assert.Equal(EffortLevel.Medium, todo.Effort);
+        Assert.Equal(PriorityLevel.Low, todo.Priority);
         Assert.Equal(
             first.Receipt.Result!.TodoId,
             todo.Id);
@@ -166,6 +170,37 @@ public sealed class SyncCommandProcessorTests
         Assert.Equal(
             0,
             await db.TodoItems.CountAsync());
+    }
+
+    [Fact]
+    public async Task OldCreationCommands_DefaultBothPrioritiesToNormal()
+    {
+        await using var database = await TemporarySqliteDatabase.CreateAsync();
+        var processor = CreateProcessor(database);
+
+        var workOutcome = await processor.ProcessAsync(
+            Parse(
+                SyncTestCommands.CreateFile(
+                    Guid.NewGuid(),
+                    SyncCommandTypes.CreateWorkItem,
+                    new { name = "Old command parent" })));
+
+        var workItemId = workOutcome.Receipt.Result!.WorkItemId!.Value;
+
+        await processor.ProcessAsync(
+            Parse(
+                SyncTestCommands.CreateFile(
+                    Guid.NewGuid(),
+                    SyncCommandTypes.CreateTodo,
+                    new { workItemId, task = "Old command todo" })));
+
+        await using var db = await database.Factory.CreateDbContextAsync();
+        Assert.Equal(
+            PriorityLevel.Normal,
+            (await db.WorkItems.SingleAsync()).Priority);
+        Assert.Equal(
+            PriorityLevel.Normal,
+            (await db.TodoItems.SingleAsync()).Priority);
     }
 
     [Fact]
@@ -294,5 +329,80 @@ public sealed class SyncCommandProcessorTests
         await db.SaveChangesAsync();
 
         return workItem.Id;
+    }
+
+    [Fact]
+    public async Task RenameWorkItem_IsValidatedNormalizedAndApplied()
+    {
+        await using var database =
+            await TemporarySqliteDatabase.CreateAsync();
+
+        var workItemId = await CreateWorkItemAsync(
+            database,
+            active: true);
+
+        var outcome = await CreateProcessor(database)
+            .ProcessAsync(
+                Parse(
+                    SyncTestCommands.CreateFile(
+                        Guid.NewGuid(),
+                        SyncCommandTypes.RenameWorkItem,
+                        new
+                        {
+                            workItemId,
+                            name = "  Message / Protocol Bots  "
+                        })));
+
+        Assert.Equal(
+            "applied",
+            outcome.Receipt.Status);
+
+        Assert.Equal(
+            workItemId,
+            outcome.Receipt.Result?.WorkItemId);
+
+        Assert.True(outcome.StateChanged);
+
+        await using var db =
+            await database.Factory.CreateDbContextAsync();
+
+        var workItem =
+            await db.WorkItems.SingleAsync();
+
+        Assert.Equal(
+            "Message / Protocol Bots",
+            workItem.Name);
+    }
+
+    [Fact]
+    public async Task RenameWorkItem_BlankName_IsRejected()
+    {
+        await using var database =
+            await TemporarySqliteDatabase.CreateAsync();
+
+        var workItemId = await CreateWorkItemAsync(
+            database,
+            active: true);
+
+        var outcome = await CreateProcessor(database)
+            .ProcessAsync(
+                Parse(
+                    SyncTestCommands.CreateFile(
+                        Guid.NewGuid(),
+                        SyncCommandTypes.RenameWorkItem,
+                        new
+                        {
+                            workItemId,
+                            name = "   "
+                        })));
+
+        Assert.Equal(
+            "rejected",
+            outcome.Receipt.Status);
+
+        Assert.Contains(
+            "name: Name is required.",
+            outcome.Receipt.Error,
+            StringComparison.Ordinal);
     }
 }

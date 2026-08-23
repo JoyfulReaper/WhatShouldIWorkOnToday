@@ -39,6 +39,7 @@ public static partial class ApiEndpoints
                 x.Task,
                 x.Energy.ToString(),
                 x.Effort.ToString(),
+                x.Priority.ToString(),
                 x.CreatedAt,
                 x.CompletedAt))
             .ToListAsync(cancellationToken);
@@ -64,6 +65,7 @@ public static partial class ApiEndpoints
                 x.Task,
                 x.Energy.ToString(),
                 x.Effort.ToString(),
+                x.Priority.ToString(),
                 x.CreatedAt,
                 x.CompletedAt))
             .SingleOrDefaultAsync(cancellationToken);
@@ -90,7 +92,8 @@ public static partial class ApiEndpoints
             new CreateTodoInput(
                 request.Task,
                 request.Energy,
-                request.Effort),
+                request.Effort,
+                request.Priority),
             cancellationToken);
 
         if (!result.Succeeded)
@@ -124,6 +127,7 @@ public static partial class ApiEndpoints
             todo.Task,
             todo.Energy.ToString(),
             todo.Effort.ToString(),
+            todo.Priority.ToString(),
             todo.CreatedAt,
             todo.CompletedAt);
 
@@ -168,7 +172,8 @@ public static partial class ApiEndpoints
                 int WorkItemId,
                 string Task,
                 EnergyLevel Energy,
-                EffortLevel Effort)>();
+                EffortLevel Effort,
+                PriorityLevel Priority)>();
 
         for (var i = 0;
              i < request.Items.Count;
@@ -185,50 +190,21 @@ public static partial class ApiEndpoints
                 ];
             }
 
-            var task = item.Task?.Trim()
-                       ?? string.Empty;
-
-            if (task.Length == 0)
-            {
-                errors[$"{prefix}task"] =
-                [
-                    "Task is required."
-                ];
-            }
-            else if (task.Length > 500)
-            {
-                errors[$"{prefix}task"] =
-                [
-                    "Task cannot exceed 500 characters."
-                ];
-            }
-
-            if (!TryParseEnergy(
-                    item.Energy,
-                    out var energy))
-            {
-                errors[$"{prefix}energy"] =
-                [
-                    "Energy must be Low, Medium, or High."
-                ];
-            }
-
-            if (!TryParseEffort(
-                    item.Effort,
-                    out var effort))
-            {
-                errors[$"{prefix}effort"] =
-                [
-                    "Effort must be Short, Medium, or Long."
-                ];
-            }
+            var parsedTodo = ValidateAndNormalizeTodo(
+                item.Task,
+                item.Energy,
+                item.Effort,
+                item.Priority,
+                prefix,
+                errors);
 
             parsedItems.Add(
                 (
                     item.WorkItemId,
-                    task,
-                    energy,
-                    effort
+                    parsedTodo.Task,
+                    parsedTodo.Energy,
+                    parsedTodo.Effort,
+                    parsedTodo.Priority
                 ));
         }
 
@@ -292,7 +268,8 @@ public static partial class ApiEndpoints
                 WorkItemId = item.WorkItemId,
                 Task = item.Task,
                 Energy = item.Energy,
-                Effort = item.Effort
+                Effort = item.Effort,
+                Priority = item.Priority
             })
             .ToList();
 
@@ -308,6 +285,7 @@ public static partial class ApiEndpoints
                 todo.Task,
                 todo.Energy.ToString(),
                 todo.Effort.ToString(),
+                todo.Priority.ToString(),
                 todo.CreatedAt,
                 todo.CompletedAt))
             .ToList();

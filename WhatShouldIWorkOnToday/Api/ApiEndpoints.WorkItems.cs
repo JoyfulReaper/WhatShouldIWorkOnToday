@@ -11,8 +11,7 @@ public static partial class ApiEndpoints
         IDbContextFactory<AppDbContext> dbContextFactory,
         CancellationToken cancellationToken)
     {
-        await using var db =
-            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var workItems = await db.WorkItems
             .AsNoTracking()
@@ -23,6 +22,7 @@ public static partial class ApiEndpoints
                 x.Description,
                 x.Url,
                 x.Kind.ToString(),
+                x.Priority.ToString(),
                 x.CreatedAt,
                 x.LastWorkedAt,
                 x.CompletedAt,
@@ -40,8 +40,7 @@ public static partial class ApiEndpoints
         IDbContextFactory<AppDbContext> dbContextFactory,
         CancellationToken cancellationToken)
     {
-        await using var db =
-            await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var workItem = await db.WorkItems
             .AsNoTracking()
@@ -52,6 +51,7 @@ public static partial class ApiEndpoints
                 x.Description,
                 x.Url,
                 x.Kind.ToString(),
+                x.Priority.ToString(),
                 x.CreatedAt,
                 x.LastWorkedAt,
                 x.CompletedAt,
@@ -72,9 +72,7 @@ public static partial class ApiEndpoints
         PlanningMutationService mutationService,
         CancellationToken cancellationToken)
     {
-        await using var db =
-            await dbContextFactory.CreateDbContextAsync(
-                cancellationToken);
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var result = mutationService.CreateWorkItem(
             db,
@@ -82,12 +80,12 @@ public static partial class ApiEndpoints
                 request.Name,
                 request.Kind,
                 request.Description,
-                request.Url));
+                request.Url,
+                request.Priority));
 
         if (!result.Succeeded)
         {
-            return Results.ValidationProblem(
-                result.ValidationErrors!);
+            return Results.ValidationProblem(result.ValidationErrors!);
         }
 
         var workItem = result.Value!;
@@ -99,6 +97,7 @@ public static partial class ApiEndpoints
             workItem.Description,
             workItem.Url,
             workItem.Kind.ToString(),
+            workItem.Priority.ToString(),
             workItem.CreatedAt,
             workItem.LastWorkedAt,
             workItem.CompletedAt,
@@ -156,8 +155,7 @@ public static partial class ApiEndpoints
                 });
         }
 
-        var errors =
-            new Dictionary<string, string[]>();
+        var errors = new Dictionary<string, string[]>();
 
         var parsedItems =
             new List<(
@@ -165,10 +163,12 @@ public static partial class ApiEndpoints
                 WorkItemKind Kind,
                 string? Description,
                 string? Url,
+                PriorityLevel Priority,
                 List<(
                     string Task,
                     EnergyLevel Energy,
-                    EffortLevel Effort)> Todos)>();
+                    EffortLevel Effort,
+                    PriorityLevel Priority)> Todos)>();
 
         for (var i = 0;
              i < request.Items.Count;
@@ -183,6 +183,7 @@ public static partial class ApiEndpoints
                     item.Kind,
                     item.Description,
                     item.Url,
+                    item.Priority,
                     prefix,
                     errors);
 
@@ -190,7 +191,8 @@ public static partial class ApiEndpoints
                 new List<(
                     string Task,
                     EnergyLevel Energy,
-                    EffortLevel Effort)>();
+                    EffortLevel Effort,
+                    PriorityLevel Priority)>();
 
             var todos = item.Todos ?? [];
 
@@ -203,49 +205,20 @@ public static partial class ApiEndpoints
                 var todoPrefix =
                     $"{prefix}todos[{todoIndex}].";
 
-                var task = todo.Task?.Trim()
-                           ?? string.Empty;
-
-                if (task.Length == 0)
-                {
-                    errors[$"{todoPrefix}task"] =
-                    [
-                        "Task is required."
-                    ];
-                }
-                else if (task.Length > 500)
-                {
-                    errors[$"{todoPrefix}task"] =
-                    [
-                        "Task cannot exceed 500 characters."
-                    ];
-                }
-
-                if (!TryParseEnergy(
-                        todo.Energy,
-                        out var energy))
-                {
-                    errors[$"{todoPrefix}energy"] =
-                    [
-                        "Energy must be Low, Medium, or High."
-                    ];
-                }
-
-                if (!TryParseEffort(
-                        todo.Effort,
-                        out var effort))
-                {
-                    errors[$"{todoPrefix}effort"] =
-                    [
-                        "Effort must be Short, Medium, or Long."
-                    ];
-                }
+                var parsedTodo = ValidateAndNormalizeTodo(
+                    todo.Task,
+                    todo.Energy,
+                    todo.Effort,
+                    todo.Priority,
+                    todoPrefix,
+                    errors);
 
                 parsedTodos.Add(
                     (
-                        task,
-                        energy,
-                        effort
+                        parsedTodo.Task,
+                        parsedTodo.Energy,
+                        parsedTodo.Effort,
+                        parsedTodo.Priority
                     ));
             }
 
@@ -255,6 +228,7 @@ public static partial class ApiEndpoints
                     parsedItem.Kind,
                     parsedItem.Description,
                     parsedItem.Url,
+                    parsedItem.Priority,
                     parsedTodos
                 ));
         }
@@ -274,7 +248,8 @@ public static partial class ApiEndpoints
                     Name = item.Name,
                     Kind = item.Kind,
                     Description = item.Description,
-                    Url = item.Url
+                    Url = item.Url,
+                    Priority = item.Priority
                 };
 
                 foreach (var todo in item.Todos)
@@ -284,7 +259,8 @@ public static partial class ApiEndpoints
                         {
                             Task = todo.Task,
                             Energy = todo.Energy,
-                            Effort = todo.Effort
+                            Effort = todo.Effort,
+                            Priority = todo.Priority
                         });
                 }
 
@@ -304,6 +280,7 @@ public static partial class ApiEndpoints
                         workItem.Description,
                         workItem.Url,
                         workItem.Kind.ToString(),
+                        workItem.Priority.ToString(),
                         workItem.CreatedAt,
                         workItem.LastWorkedAt,
                         workItem.CompletedAt,
@@ -320,6 +297,7 @@ public static partial class ApiEndpoints
                                 todo.Task,
                                 todo.Energy.ToString(),
                                 todo.Effort.ToString(),
+                                todo.Priority.ToString(),
                                 todo.CreatedAt,
                                 todo.CompletedAt))
                         .ToList()))
@@ -328,5 +306,45 @@ public static partial class ApiEndpoints
         return Results.Created(
             "/api/work-items",
             response);
+    }
+
+    private static async Task<IResult> RenameWorkItemAsync(
+        int id,
+        RenameWorkItemRequest request,
+        IDbContextFactory<AppDbContext> dbContextFactory,
+        PlanningMutationService mutationService,
+        CancellationToken cancellationToken)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var result = await mutationService.RenameWorkItemAsync(
+            db,
+            id,
+            request.Name,
+            cancellationToken);
+
+        if (!result.Succeeded)
+        {
+            return result.Failure switch
+            {
+                PlanningMutationFailure.Validation =>
+                    Results.ValidationProblem(result.ValidationErrors!),
+
+                PlanningMutationFailure.NotFound =>
+                    Results.NotFound(),
+
+                _ => Results.Conflict(
+                    new
+                    {
+                        error = result.Error
+                    })
+            };
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        var workItem = result.Value!;
+
+        return Results.Ok(new RenameWorkItemResponse(workItem.Id, workItem.Name));
     }
 }

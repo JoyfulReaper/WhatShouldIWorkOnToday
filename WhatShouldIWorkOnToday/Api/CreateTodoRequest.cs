@@ -3,4 +3,5 @@
 public sealed record CreateTodoRequest(
     string Task,
     string? Energy = null,
-    string? Effort = null);
+    string? Effort = null,
+    string? Priority = null);

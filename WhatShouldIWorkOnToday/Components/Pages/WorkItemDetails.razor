@@ -50,6 +50,16 @@ else
                         </InputSelect>
                     </div>
 
+                    <div class="form-field">
+                        <label>Priority</label>
+                        <InputSelect @bind-Value="editingWorkItem.Priority">
+                            @foreach (var value in Enum.GetValues<PriorityLevel>())
+                            {
+                                <option value="@value">@value</option>
+                            }
+                        </InputSelect>
+                    </div>
+
                     <div class="form-field wide">
                         <label>Description</label>
                         <InputTextArea @bind-Value="editingWorkItem.Description" />
@@ -86,6 +96,7 @@ else
 
                 <div class="badge-row">
                     <span class="badge accent">@_workItem.Kind</span>
+                    <span class="badge">@_workItem.Priority priority</span>
 
                     @if (_workItem.CompletedAt is not null)
                     {
@@ -196,6 +207,16 @@ else
                     </InputSelect>
                 </div>
 
+                <div class="form-field">
+                    <label>Priority</label>
+                    <InputSelect @bind-Value="_newTodo.Priority">
+                        @foreach (var value in Enum.GetValues<PriorityLevel>())
+                        {
+                            <option value="@value">@value</option>
+                        }
+                    </InputSelect>
+                </div>
+
                 <div class="form-actions">
                     <button type="submit">Add todo</button>
                 </div>
@@ -284,6 +305,16 @@ else
                                         </InputSelect>
                                     </div>
 
+                                    <div class="form-field">
+                                        <label>Priority</label>
+                                        <InputSelect @bind-Value="editingTodo.Priority">
+                                            @foreach (var value in Enum.GetValues<PriorityLevel>())
+                                            {
+                                                <option value="@value">@value</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+
                                     <div class="row-actions">
                                         <button type="submit" class="small">Save</button>
                                         <button type="button" class="secondary small" @onclick="CancelEdit">Cancel</button>
@@ -307,6 +338,11 @@ else
                                     <div class="badge-row">
                                         <span class="badge accent">@todo.Energy energy</span>
                                         <span class="badge">@todo.Effort effort</span>
+
+                                        @if (todo.Priority != PriorityLevel.Normal)
+                                        {
+                                            <span class="badge">@todo.Priority priority</span>
+                                        }
                                     </div>
                                 </div>
 
@@ -499,7 +535,8 @@ else
             Name = _workItem.Name,
             Description = _workItem.Description,
             Url = _workItem.Url,
-            Kind = _workItem.Kind
+            Kind = _workItem.Kind,
+            Priority = _workItem.Priority
         };
     }
 
@@ -563,6 +600,7 @@ else
         workItem.Description = _editingWorkItem.Description;
         workItem.Url = _editingWorkItem.Url;
         workItem.Kind = _editingWorkItem.Kind;
+        workItem.Priority = _editingWorkItem.Priority;
 
         await db.SaveChangesAsync();
 
@@ -622,7 +660,8 @@ else
             WorkItemId = _workItem.Id,
             Task = _newTodo.Task,
             Energy = _newTodo.Energy,
-            Effort = _newTodo.Effort
+            Effort = _newTodo.Effort,
+            Priority = _newTodo.Priority
         });
 
         await db.SaveChangesAsync();
@@ -639,7 +678,8 @@ else
             Id = todo.Id,
             Task = todo.Task,
             Energy = todo.Energy,
-            Effort = todo.Effort
+            Effort = todo.Effort,
+            Priority = todo.Priority
         };
     }
 
@@ -697,6 +737,7 @@ else
         todo.Task = _editingTodo.Task;
         todo.Energy = _editingTodo.Energy;
         todo.Effort = _editingTodo.Effort;
+        todo.Priority = _editingTodo.Priority;
 
         await db.SaveChangesAsync();
 

@@ -22,6 +22,7 @@ public sealed class SyncSnapshotTests
             {
                 Name = "Snapshot project",
                 Kind = WorkItemKind.Learning,
+                Priority = PriorityLevel.High,
                 Description = "Useful state",
                 Url = "https://example.com/project"
             };
@@ -31,7 +32,8 @@ public sealed class SyncSnapshotTests
                 {
                     Task = "Read documentation",
                     Energy = EnergyLevel.Low,
-                    Effort = EffortLevel.Short
+                    Effort = EffortLevel.Short,
+                    Priority = PriorityLevel.Low
                 });
 
             db.WorkItems.Add(workItem);
@@ -53,6 +55,10 @@ public sealed class SyncSnapshotTests
         Assert.Equal(
             "Learning",
             workItemSnapshot.Kind);
+        Assert.Equal("High", workItemSnapshot.Priority);
+        Assert.Equal(
+            "Low",
+            Assert.Single(workItemSnapshot.Todos).Priority);
         Assert.Equal(
             "Read documentation",
             Assert.Single(workItemSnapshot.Todos).Task);
@@ -90,6 +96,28 @@ public sealed class SyncSnapshotTests
         Assert.NotEqual(
             first.StateHash,
             changed.StateHash);
+
+        await using (var db = await database.Factory
+                         .CreateDbContextAsync())
+        {
+            var todo = await db.TodoItems.SingleAsync();
+            todo.Priority = PriorityLevel.High;
+            await db.SaveChangesAsync();
+        }
+
+        var priorityChanged = await builder.BuildAsync();
+        Assert.NotEqual(changed.StateHash, priorityChanged.StateHash);
+
+        await using (var db = await database.Factory
+                         .CreateDbContextAsync())
+        {
+            var workItem = await db.WorkItems.SingleAsync();
+            workItem.LastWorkedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+        }
+
+        var workedOn = await builder.BuildAsync();
+        Assert.NotEqual(priorityChanged.StateHash, workedOn.StateHash);
     }
 
     [Fact]

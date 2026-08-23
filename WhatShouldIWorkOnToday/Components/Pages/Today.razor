@@ -46,11 +46,19 @@
                 Pick something
             </button>
 
-            <button type="button"
-                    class="secondary"
-                    @onclick="ChooseRandomAsync">
-                Fuck it, random
-            </button>
+            <div class="random-controls">
+                <label class="random-priority-option">
+                    <input type="checkbox"
+                           @bind="_favorRandomPriority" />
+                    <span>Favor priority</span>
+                </label>
+
+                <button type="button"
+                        class="secondary"
+                        @onclick="ChooseRandomAsync">
+                    Fuck it, random
+                </button>
+            </div>
         </div>
     </section>
 
@@ -90,6 +98,11 @@
                             <span class="badge">
                                 @_randomTodo.Effort effort
                             </span>
+
+                            @if (_randomTodo.Priority != PriorityLevel.Normal)
+                            {
+                                <span class="badge">@_randomTodo.Priority priority</span>
+                            }
                         </div>
 
                         @if (_randomTodo.WorkItem.LastWorkedAt is null)
@@ -169,6 +182,16 @@
                                 <span class="badge">
                                     @todo.Effort effort
                                 </span>
+
+                                @if (todo.WorkItem.Priority != PriorityLevel.Normal)
+                                {
+                                    <span class="badge">@todo.WorkItem.Priority work-item priority</span>
+                                }
+
+                                @if (todo.Priority != PriorityLevel.Normal)
+                                {
+                                    <span class="badge">@todo.Priority todo priority</span>
+                                }
                             </div>
 
                             @if (todo.WorkItem.LastWorkedAt is null)
@@ -217,6 +240,7 @@
 
     private TodoItem? _randomTodo;
     private bool _hasRandomChosen;
+    private bool _favorRandomPriority;
 
     private async Task ChooseAsync()
     {
@@ -232,7 +256,8 @@
     private async Task ChooseRandomAsync()
     {
         _randomTodo =
-            await WorkChooser.ChooseRandomAsync();
+            await WorkChooser.ChooseRandomAsync(
+                favorPriority: _favorRandomPriority);
 
         _choices = [];
         _hasChosen = false;

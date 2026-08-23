@@ -71,7 +71,8 @@ public sealed class CreateWorkItemTests(
             "  Documentation refresh  ",
             "maintenance",
             "  Bring project docs up to date  ",
-            "  https://example.com/docs  ");
+            "  https://example.com/docs  ",
+            "HIGH");
 
         using var response = await client.PostAsJsonAsync(
             "/api/work-items",
@@ -95,6 +96,7 @@ public sealed class CreateWorkItemTests(
         Assert.Equal(
             "Maintenance",
             created.Kind);
+        Assert.Equal("High", created.Priority);
         Assert.Equal(
             "Bring project docs up to date",
             created.Description);
@@ -140,6 +142,7 @@ public sealed class CreateWorkItemTests(
 
         Assert.NotNull(created);
         Assert.Equal("Project", created.Kind);
+        Assert.Equal("Normal", created.Priority);
         Assert.Null(created.Description);
         Assert.Null(created.Url);
     }

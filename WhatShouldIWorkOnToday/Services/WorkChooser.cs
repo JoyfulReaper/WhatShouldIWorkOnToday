@@ -33,6 +33,7 @@ public sealed class WorkChooser(
     }
 
     public async Task<TodoItem?> ChooseRandomAsync(
+        bool favorPriority = false,
         CancellationToken cancellationToken = default)
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -46,16 +47,85 @@ public sealed class WorkChooser(
                 x.WorkItem.ArchivedAt == null)
             .ToListAsync(cancellationToken);
 
-        return candidates.Count == 0
-            ? null
-            : candidates[Random.Shared.Next(candidates.Count)];
+        if (candidates.Count == 0)
+        {
+            return null;
+        }
+
+        if (!favorPriority)
+        {
+            return SelectUniformCandidate(
+                candidates,
+                Random.Shared.Next(candidates.Count));
+        }
+
+        var totalWeight = candidates.Sum(
+            GetRandomPriorityWeight);
+        var draw = Random.Shared.Next(totalWeight);
+
+        return SelectWeightedCandidate(candidates, draw);
+    }
+
+    internal static TodoItem SelectUniformCandidate(
+        IReadOnlyList<TodoItem> candidates,
+        int index)
+    {
+        return candidates[index];
+    }
+
+    internal static int GetRandomPriorityWeight(
+        TodoItem todo)
+    {
+        return GetRandomPriorityMultiplier(
+                   todo.WorkItem.Priority) *
+               GetRandomPriorityMultiplier(todo.Priority);
+    }
+
+    internal static TodoItem SelectWeightedCandidate(
+        IReadOnlyList<TodoItem> candidates,
+        int draw)
+    {
+        if (draw < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(draw));
+        }
+
+        var cumulativeWeight = 0;
+
+        foreach (var candidate in candidates)
+        {
+            cumulativeWeight += GetRandomPriorityWeight(
+                candidate);
+
+            if (draw < cumulativeWeight)
+            {
+                return candidate;
+            }
+        }
+
+        throw new ArgumentOutOfRangeException(
+            nameof(draw),
+            "Draw must be within the total candidate weight.");
+    }
+
+    private static int GetRandomPriorityMultiplier(
+        PriorityLevel priority)
+    {
+        return priority switch
+        {
+            PriorityLevel.Low => 1,
+            PriorityLevel.High => 4,
+            _ => 2
+        };
     }
 
     private static double GetNeglectScore(
         TodoItem todo)
     {
         return GetAgeScore(todo) +
-               Random.Shared.NextDouble() * 30;
+               Random.Shared.NextDouble() * 30 +
+               GetPriorityScore(todo);
     }
 
     private static double GetDailyScore(
@@ -63,7 +133,24 @@ public sealed class WorkChooser(
         DateOnly date)
     {
         return GetAgeScore(todo) +
-               GetDailyRandomScore(todo, date) * 30;
+               GetDailyRandomScore(todo, date) * 30 +
+               GetPriorityScore(todo);
+    }
+
+    internal static int GetPriorityScore(TodoItem todo)
+    {
+        return GetPriorityBias(todo.WorkItem.Priority) +
+               GetPriorityBias(todo.Priority);
+    }
+
+    private static int GetPriorityBias(PriorityLevel priority)
+    {
+        return priority switch
+        {
+            PriorityLevel.Low => -45,
+            PriorityLevel.High => 45,
+            _ => 0
+        };
     }
 
     private static double GetAgeScore(

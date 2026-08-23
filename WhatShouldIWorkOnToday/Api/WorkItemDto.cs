@@ -6,6 +6,7 @@ public sealed record WorkItemDto(
     string? Description,
     string? Url,
     string Kind,
+    string Priority,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastWorkedAt,
     DateTimeOffset? CompletedAt,

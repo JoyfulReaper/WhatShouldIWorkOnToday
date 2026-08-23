@@ -41,6 +41,16 @@
                 </InputSelect>
             </div>
 
+            <div class="form-field">
+                <label>Priority</label>
+                <InputSelect @bind-Value="_newWorkItem.Priority">
+                    @foreach (var value in Enum.GetValues<PriorityLevel>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
+
             <div class="form-field wide">
                 <label>Description</label>
                 <InputTextArea @bind-Value="_newWorkItem.Description" />
@@ -114,6 +124,11 @@
                             <div class="badge-row">
                                 <span class="badge accent">@workItem.Kind</span>
 
+                                @if (workItem.Priority != PriorityLevel.Normal)
+                                {
+                                    <span class="badge">@workItem.Priority priority</span>
+                                }
+
                                 @if (workItem.CompletedAt is not null)
                                 {
                                     <span class="badge completed">Completed</span>
@@ -161,7 +176,8 @@
                     Contains(workItem.Name, query) ||
                     Contains(workItem.Description, query) ||
                     Contains(workItem.Url, query) ||
-                    Contains(workItem.Kind.ToString(), query));
+                    Contains(workItem.Kind.ToString(), query) ||
+                    Contains(workItem.Priority.ToString(), query));
         }
     }
 

@@ -32,6 +32,14 @@ public static partial class ApiEndpoints
             "/daily-pick",
             GetDailyPickAsync);
 
+        api.MapGet(
+            "/random-pick",
+            GetRandomPickAsync);
+
+        api.MapPut(
+            "/work-items/{id:int}/name",
+            RenameWorkItemAsync);
+
         api.MapPost(
             "/work-items",
             CreateWorkItemAsync);

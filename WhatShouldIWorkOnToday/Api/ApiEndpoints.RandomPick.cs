@@ -1,24 +1,25 @@
-﻿using WhatShouldIWorkOnToday.Services;
+using WhatShouldIWorkOnToday.Services;
 
 namespace WhatShouldIWorkOnToday.Api;
 
 public static partial class ApiEndpoints
 {
-    private static async Task<IResult> GetDailyPickAsync(
+    private static async Task<IResult> GetRandomPickAsync(
         WorkChooser workChooser,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool favorPriority = false)
     {
-        var date = DateOnly.FromDateTime(DateTime.Now);
-        var todo = await workChooser.ChooseDailyAsync(date, cancellationToken: cancellationToken);
+        var todo = await workChooser.ChooseRandomAsync(
+            favorPriority,
+            cancellationToken);
 
         if (todo is null)
         {
             return Results.NoContent();
         }
 
-        var response =
-            new DailyPickDto(
-                date,
+        return Results.Ok(
+            new RandomPickDto(
                 new TodoItemDto(
                     todo.Id,
                     todo.WorkItemId,
@@ -29,8 +30,6 @@ public static partial class ApiEndpoints
                     todo.Priority.ToString(),
                     todo.CreatedAt,
                     todo.CompletedAt),
-                todo.WorkItem.LastWorkedAt);
-
-        return Results.Ok(response);
+                favorPriority));
     }
 }

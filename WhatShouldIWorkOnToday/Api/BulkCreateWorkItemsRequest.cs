@@ -8,4 +8,5 @@ public sealed record BulkCreateWorkItemRequest(
     string? Kind = null,
     string? Description = null,
     string? Url = null,
-    IReadOnlyList<CreateTodoRequest>? Todos = null);
+    IReadOnlyList<CreateTodoRequest>? Todos = null,
+    string? Priority = null);
