@@ -1,0 +1,85 @@
+﻿@page "/work-notes"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>Work Notes</PageTitle>
+
+<div class="app-page">
+    <header class="page-heading">
+        <p class="eyebrow">Work log</p>
+        <h1>Recent Work Notes</h1>
+        <p class="lead">
+            What actually got done lately.
+        </p>
+    </header>
+
+    @if (_entries.Count == 0)
+    {
+        <p class="empty-state">
+            No work recorded yet.
+        </p>
+    }
+    else
+    {
+        <ul class="work-notes-list">
+            @foreach (var entry in _entries)
+            {
+                <li class="work-note-card">
+                    <div class="work-note-header">
+                        <div>
+                            <a class="work-note-project"
+                               href="@($"/work-items/{entry.WorkItemId}")">
+                                @entry.WorkItem.Name
+                            </a>
+
+                            @if (!string.IsNullOrWhiteSpace(entry.TaskSnapshot))
+                            {
+                                <div class="work-note-task">
+                                    @entry.TaskSnapshot
+                                </div>
+                            }
+                        </div>
+
+                        <time class="work-note-time">
+                            @entry.WorkedAt.ToLocalTime().ToString("g")
+                        </time>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(entry.Note))
+                    {
+                        <div class="work-note-text">
+                            @entry.Note
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="work-note-text empty">
+                            No note.
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    private List<WorkHistoryEntry> _entries = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var entries = await db.WorkHistoryEntries
+            .AsNoTracking()
+            .Include(x => x.WorkItem)
+            .ToListAsync();
+
+        _entries = entries
+            .OrderByDescending(x => x.WorkedAt)
+            .Take(100)
+            .ToList();
+    }
+}

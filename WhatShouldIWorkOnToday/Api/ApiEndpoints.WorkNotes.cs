@@ -15,8 +15,12 @@ public static partial class ApiEndpoints
 
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        var notes = await db.WorkHistoryEntries
+        var entries = await db.WorkHistoryEntries
             .AsNoTracking()
+            .Include(x => x.WorkItem)
+            .ToListAsync(cancellationToken);
+
+        var notes = entries
             .OrderByDescending(x => x.WorkedAt)
             .Take(take)
             .Select(x => new WorkNoteDto(
@@ -27,7 +31,7 @@ public static partial class ApiEndpoints
                 x.TaskSnapshot,
                 x.Note,
                 x.WorkedAt))
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         return Results.Ok(notes);
     }
@@ -50,9 +54,13 @@ public static partial class ApiEndpoints
             return Results.NotFound();
         }
 
-        var notes = await db.WorkHistoryEntries
+        var entries = await db.WorkHistoryEntries
             .AsNoTracking()
+            .Include(x => x.WorkItem)
             .Where(x => x.WorkItemId == id)
+            .ToListAsync(cancellationToken);
+
+        var notes = entries
             .OrderByDescending(x => x.WorkedAt)
             .Select(x => new WorkNoteDto(
                 x.Id,
@@ -62,7 +70,7 @@ public static partial class ApiEndpoints
                 x.TaskSnapshot,
                 x.Note,
                 x.WorkedAt))
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         return Results.Ok(notes);
     }
