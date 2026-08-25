@@ -6,9 +6,10 @@ public static partial class ApiEndpoints
 {
     private static async Task<IResult> GetDailyPickAsync(
         WorkChooser workChooser,
+        PlanningClock planningClock,
         CancellationToken cancellationToken)
     {
-        var date = DateOnly.FromDateTime(DateTime.Now);
+        var date = planningClock.Today();
         var todo = await workChooser.ChooseDailyAsync(date, cancellationToken: cancellationToken);
 
         if (todo is null)
