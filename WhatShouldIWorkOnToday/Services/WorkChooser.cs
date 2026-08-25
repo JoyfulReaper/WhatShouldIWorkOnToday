@@ -194,14 +194,25 @@ public sealed class WorkChooser(
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var existingPick = await db.DailyPicks
-            .AsNoTracking()
             .Include(x => x.TodoItem)
             .ThenInclude(x => x.WorkItem)
-            .SingleOrDefaultAsync(x => x.Date == date, cancellationToken);
+            .SingleOrDefaultAsync(
+                x => x.Date == date,
+                cancellationToken);
 
         if (existingPick is not null)
         {
-            return existingPick.TodoItem;
+            var existingTodo = existingPick.TodoItem;
+
+            if (existingTodo.CompletedAt is null &&
+                existingTodo.WorkItem.CompletedAt is null &&
+                existingTodo.WorkItem.ArchivedAt is null)
+            {
+                return existingTodo;
+            }
+
+            db.DailyPicks.Remove(existingPick);
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         var candidates = await db.TodoItems

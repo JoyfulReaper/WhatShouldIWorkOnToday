@@ -8,6 +8,43 @@ namespace WhatShouldIWorkOnToday.Tests;
 public sealed class DailyPickTests
 {
     [Fact]
+    public async Task CompletedDailyPick_IsReplaced()
+    {
+        await using var database = await TemporarySqliteDatabase.CreateAsync();
+        await SeedTodosAsync(database);
+
+        var chooser = new WorkChooser(database.Factory);
+        var date = new DateOnly(2026, 8, 25);
+
+        var first = await chooser.ChooseDailyAsync(date);
+
+        Assert.NotNull(first);
+
+        await using (var db = await database.Factory.CreateDbContextAsync())
+        {
+            var todo = await db.TodoItems
+                .SingleAsync(x => x.Id == first.Id);
+
+            todo.CompletedAt = DateTimeOffset.UtcNow;
+
+            await db.SaveChangesAsync();
+        }
+
+        var second = await chooser.ChooseDailyAsync(date);
+
+        Assert.NotNull(second);
+        Assert.NotEqual(first.Id, second.Id);
+
+        await using var verifyDb =
+            await database.Factory.CreateDbContextAsync();
+
+        var dailyPick = await verifyDb.DailyPicks
+            .SingleAsync(x => x.Date == date);
+
+        Assert.Equal(second.Id, dailyPick.TodoItemId);
+    }
+
+    [Fact]
     public async Task ConcurrentRequestsForSameDate_ReturnSamePick()
     {
         await using var database = await TemporarySqliteDatabase.CreateAsync();
