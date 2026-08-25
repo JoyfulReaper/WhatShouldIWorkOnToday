@@ -8,6 +8,31 @@ namespace WhatShouldIWorkOnToday.Tests;
 public sealed class DailyPickTests
 {
     [Fact]
+    public async Task ConcurrentRequestsForSameDate_ReturnSamePick()
+    {
+        await using var database = await TemporarySqliteDatabase.CreateAsync();
+        await SeedTodosAsync(database);
+
+        var chooser = new WorkChooser(database.Factory);
+        var date = new DateOnly(2026, 8, 25);
+
+        var firstTask = chooser.ChooseDailyAsync(date);
+        var secondTask = chooser.ChooseDailyAsync(date);
+
+        var results = await Task.WhenAll(firstTask, secondTask);
+
+        Assert.NotNull(results[0]);
+        Assert.NotNull(results[1]);
+        Assert.Equal(results[0]!.Id, results[1]!.Id);
+
+        await using var db = await database.Factory.CreateDbContextAsync();
+
+        Assert.Equal(
+            1,
+            await db.DailyPicks.CountAsync(x => x.Date == date));
+    }
+
+    [Fact]
     public async Task SameDate_ReturnsPersistedPick()
     {
         await using var database = await TemporarySqliteDatabase.CreateAsync();

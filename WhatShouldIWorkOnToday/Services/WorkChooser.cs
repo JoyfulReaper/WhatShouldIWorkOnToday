@@ -230,8 +230,30 @@ public sealed class WorkChooser(
             TodoItemId = todo.Id
         });
 
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
 
-        return todo;
+            return todo;
+        }
+        catch (DbUpdateException)
+        {
+            db.ChangeTracker.Clear();
+
+            var persistedPick = await db.DailyPicks
+                .AsNoTracking()
+                .Include(x => x.TodoItem)
+                .ThenInclude(x => x.WorkItem)
+                .SingleOrDefaultAsync(
+                    x => x.Date == date,
+                    cancellationToken);
+
+            if (persistedPick is not null)
+            {
+                return persistedPick.TodoItem;
+            }
+
+            throw;
+        }
     }
 }
