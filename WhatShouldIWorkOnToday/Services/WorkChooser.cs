@@ -193,6 +193,17 @@ public sealed class WorkChooser(
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
+        var existingPick = await db.DailyPicks
+            .AsNoTracking()
+            .Include(x => x.TodoItem)
+            .ThenInclude(x => x.WorkItem)
+            .SingleOrDefaultAsync(x => x.Date == date, cancellationToken);
+
+        if (existingPick is not null)
+        {
+            return existingPick.TodoItem;
+        }
+
         var candidates = await db.TodoItems
             .AsNoTracking()
             .Include(x => x.WorkItem)
@@ -204,9 +215,23 @@ public sealed class WorkChooser(
                 x.Effort <= effort)
             .ToListAsync(cancellationToken);
 
-        return candidates
-            .OrderByDescending(
-                todo => GetDailyScore(todo, date))
+        var todo = candidates
+            .OrderByDescending(todo => GetDailyScore(todo, date))
             .FirstOrDefault();
+
+        if (todo is null)
+        {
+            return null;
+        }
+
+        db.DailyPicks.Add(new DailyPick
+        {
+            Date = date,
+            TodoItemId = todo.Id
+        });
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return todo;
     }
 }

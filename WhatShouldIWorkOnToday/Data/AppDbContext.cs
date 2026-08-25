@@ -11,9 +11,18 @@ public sealed class AppDbContext(
 
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
+    public DbSet<DailyPick> DailyPicks => Set<DailyPick>();
+
     public DbSet<WorkHistoryEntry> WorkHistoryEntries =>
         Set<WorkHistoryEntry>();
 
     public DbSet<ProcessedSyncCommand> ProcessedSyncCommands =>
         Set<ProcessedSyncCommand>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DailyPick>()
+            .HasIndex(x => x.Date)
+            .IsUnique();
+    }
 }
