@@ -17,137 +17,93 @@
         </p>
     </header>
 
-    <section class="results-section"
-             aria-label="Daily pick">
-        <div class="results-heading">
-            <div>
-                <p class="eyebrow">Daily pick</p>
-                <h2>@_dailyDate.ToString("MMMM d, yyyy")</h2>
+    <div class="today-top-grid">
+        <section class="daily-pick-section"
+                 aria-label="Daily pick">
+            <div class="results-heading">
+                <div>
+                    <p class="eyebrow">Daily pick</p>
+                    <h2>@_dailyDate.ToString("MMMM d, yyyy")</h2>
+                </div>
             </div>
-        </div>
 
-        @if (_dailyTodo is null)
-        {
-            <p class="empty-state">
-                No eligible daily pick.
-            </p>
-        }
-        else
-        {
-            <ul class="choice-list">
-                <li class="choice-card">
-                    <div class="choice-project">
-                        <a href="@($"/work-items/{_dailyTodo.WorkItemId}")">
-                            @_dailyTodo.WorkItem.Name
-                        </a>
-                    </div>
+            @if (_dailyTodo is null)
+            {
+                <p class="empty-state">
+                    No eligible daily pick.
+                </p>
+            }
+            else
+            {
+                <ul class="choice-list single-choice">
+                    <li class="choice-card">
+                        <div class="choice-project">
+                            <a href="@($"/work-items/{_dailyTodo.WorkItemId}")">
+                                @_dailyTodo.WorkItem.Name
+                            </a>
+                        </div>
 
-                    <div class="choice-task">
-                        @_dailyTodo.Task
-                    </div>
+                        <div class="choice-task">
+                            @_dailyTodo.Task
+                        </div>
 
-                    <div class="badge-row">
-                        <span class="badge accent">
-                            @_dailyTodo.Energy energy
-                        </span>
-
-                        <span class="badge">
-                            @_dailyTodo.Effort effort
-                        </span>
-
-                        @if (_dailyTodo.WorkItem.Priority != PriorityLevel.Normal)
-                        {
-                            <span class="badge">
-                                @_dailyTodo.WorkItem.Priority work-item priority
+                        <div class="badge-row">
+                            <span class="badge accent">
+                                @_dailyTodo.Energy energy
                             </span>
+
+                            <span class="badge">
+                                @_dailyTodo.Effort effort
+                            </span>
+
+                            @if (_dailyTodo.WorkItem.Priority != PriorityLevel.Normal)
+                            {
+                                <span class="badge">
+                                    @_dailyTodo.WorkItem.Priority work-item priority
+                                </span>
+                            }
+
+                            @if (_dailyTodo.Priority != PriorityLevel.Normal)
+                            {
+                                <span class="badge">
+                                    @_dailyTodo.Priority todo priority
+                                </span>
+                            }
+                        </div>
+
+                        @if (_dailyTodo.WorkItem.LastWorkedAt is null)
+                        {
+                            <div class="choice-context">
+                                Never worked on.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="choice-context">
+                                Last worked:
+                                @(_dailyTodo.WorkItem.LastWorkedAt.Value
+                                    .ToLocalTime()
+                                    .ToString("g"))
+                            </div>
                         }
 
-                        @if (_dailyTodo.Priority != PriorityLevel.Normal)
-                        {
-                            <span class="badge">
-                                @_dailyTodo.Priority todo priority
-                            </span>
-                        }
-                    </div>
-
-                    @if (_dailyTodo.WorkItem.LastWorkedAt is null)
-                    {
-                        <div class="choice-context">
-                            Never worked on.
+                        <div class="choice-actions row-actions">
+                            <button type="button"
+                                    class="small"
+                                    @onclick="OpenDailyTodo">
+                                Work on this
+                            </button>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="choice-context">
-                            Last worked:
-                            @(_dailyTodo.WorkItem.LastWorkedAt.Value
-                                .ToLocalTime()
-                                .ToString("g"))
-                        </div>
-                    }
+                    </li>
+                </ul>
+            }
+        </section>
 
-                    <div class="choice-actions row-actions">
-                        <button type="button"
-                                class="small"
-                                @onclick="OpenDailyTodo">
-                            Work on this
-                        </button>
-                    </div>
-                </li>
-            </ul>
-        }
-    </section>
+        <section class="random-pick-section"
+                 aria-label="Random pick">
+            <p class="eyebrow">Random pick</p>
+            <h2>Leave it to chance</h2>
 
-    <section class="panel chooser-panel"
-             aria-label="Chooser filters">
-        <div class="chooser-controls">
-            <div class="form-field">
-                <label>Energy</label>
-
-                <InputSelect @bind-Value="_energy">
-                    @foreach (var value in Enum.GetValues<EnergyLevel>())
-                    {
-                        <option value="@value">@value</option>
-                    }
-                </InputSelect>
-            </div>
-
-            <div class="form-field">
-                <label>Available time / effort</label>
-
-                <InputSelect @bind-Value="_effort">
-                    @foreach (var value in Enum.GetValues<EffortLevel>())
-                    {
-                        <option value="@value">@value</option>
-                    }
-                </InputSelect>
-            </div>
-
-            <button type="button"
-                    @onclick="ChooseAsync">
-                Pick something
-            </button>
-
-            <div class="random-controls">
-                <label class="random-priority-option">
-                    <input type="checkbox"
-                           @bind="_favorRandomPriority" />
-                    <span>Favor priority</span>
-                </label>
-
-                <button type="button"
-                        class="secondary"
-                        @onclick="ChooseRandomAsync">
-                    Fuck it, random
-                </button>
-            </div>
-        </div>
-    </section>
-
-    @if (_hasRandomChosen)
-    {
-        <section class="results-section"
-                 aria-live="polite">
             @if (_randomTodo is null)
             {
                 <p class="empty-state">
@@ -156,12 +112,14 @@
             }
             else
             {
-                <div class="results-heading">
-                    <h2>The universe has decided...</h2>
-                </div>
-
-                <ul class="choice-list">
+                <ul class="choice-list single-choice">
                     <li class="choice-card">
+                        <label class="random-priority-option">
+                            <input type="checkbox"
+                                   @bind="_favorRandomPriority" />
+                            <span>Favor priority</span>
+                        </label>
+
                         <div class="choice-project">
                             <a href="@($"/work-items/{_randomTodo.WorkItemId}")">
                                 @_randomTodo.WorkItem.Name
@@ -183,7 +141,9 @@
 
                             @if (_randomTodo.Priority != PriorityLevel.Normal)
                             {
-                                <span class="badge">@_randomTodo.Priority priority</span>
+                                <span class="badge">
+                                    @_randomTodo.Priority priority
+                                </span>
                             }
                         </div>
 
@@ -220,7 +180,39 @@
                 </ul>
             }
         </section>
-    }
+    </div>
+
+    <section class="panel chooser-panel"
+             aria-label="Chooser filters">
+        <div class="chooser-controls">
+            <div class="form-field">
+                <label>Energy</label>
+
+                <InputSelect @bind-Value="_energy">
+                    @foreach (var value in Enum.GetValues<EnergyLevel>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="form-field">
+                <label>Available time / effort</label>
+
+                <InputSelect @bind-Value="_effort">
+                    @foreach (var value in Enum.GetValues<EffortLevel>())
+                    {
+                        <option value="@value">@value</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <button type="button"
+                    @onclick="ChooseAsync">
+                Pick something
+            </button>
+        </div>
+    </section>
 
     @if (_hasChosen)
     {
@@ -267,12 +259,16 @@
 
                                 @if (todo.WorkItem.Priority != PriorityLevel.Normal)
                                 {
-                                    <span class="badge">@todo.WorkItem.Priority work-item priority</span>
+                                    <span class="badge">
+                                        @todo.WorkItem.Priority work-item priority
+                                    </span>
                                 }
 
                                 @if (todo.Priority != PriorityLevel.Normal)
                                 {
-                                    <span class="badge">@todo.Priority todo priority</span>
+                                    <span class="badge">
+                                        @todo.Priority todo priority
+                                    </span>
                                 }
                             </div>
 
@@ -331,6 +327,9 @@
     {
         _dailyDate = PlanningClock.Today();
         _dailyTodo = await WorkChooser.ChooseDailyAsync(_dailyDate);
+        _randomTodo = await WorkChooser.ChooseRandomAsync(favorPriority: _favorRandomPriority);
+
+        _hasRandomChosen = true;
     }
 
     private async Task ChooseAsync()
@@ -346,9 +345,8 @@
 
     private async Task ChooseRandomAsync()
     {
-        _randomTodo =
-            await WorkChooser.ChooseRandomAsync(
-                favorPriority: _favorRandomPriority);
+        _randomTodo = await WorkChooser.ChooseRandomAsync(
+            favorPriority: _favorRandomPriority);
 
         _choices = [];
         _hasChosen = false;
@@ -358,7 +356,9 @@
     private void OpenRandomTodo()
     {
         if (_randomTodo is null)
+        {
             return;
+        }
 
         Navigation.NavigateTo(
             $"/work-items/{_randomTodo.WorkItemId}");
@@ -373,8 +373,11 @@
     private void OpenDailyTodo()
     {
         if (_dailyTodo is null)
+        {
             return;
+        }
 
-        Navigation.NavigateTo($"/work-items/{_dailyTodo.WorkItemId}");
+        Navigation.NavigateTo(
+            $"/work-items/{_dailyTodo.WorkItemId}");
     }
 }
