@@ -1,0 +1,57 @@
+.today-top-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.daily-pick-section,
+.random-pick-section {
+    min-width: 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+    .daily-pick-section h2,
+    .random-pick-section h2 {
+        margin-bottom: 1rem;
+    }
+
+.choice-list.single-choice {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 0;
+}
+
+.daily-pick-section .choice-card,
+.random-pick-section .choice-card {
+    height: 100%;
+}
+
+.random-priority-option {
+    display: inline-flex;
+    align-self: flex-end;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.9rem;
+    white-space: nowrap;
+}
+
+    .random-priority-option input {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+    }
+
+.today-top-grid + .chooser-panel {
+    margin-top: 0;
+}
+
+@media (max-width: 800px) {
+    .today-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .random-priority-option {
+        align-self: flex-start;
+    }
+}

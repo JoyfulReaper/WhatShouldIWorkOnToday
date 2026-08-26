@@ -56,6 +56,22 @@ public static partial class ApiEndpoints
             "/work-items/bulk",
             CreateWorkItemsBulkAsync);
 
+        api.MapGet(
+            "/work-notes",
+            GetWorkNotesAsync);
+
+        api.MapGet(
+            "/work-items/{id:int}/work-notes",
+            GetWorkItemWorkNotesAsync);
+
+        api.MapPost(
+            "/work-items/{id:int}/work-notes",
+            CreateWorkNoteAsync);
+
+        api.MapPut(
+            "/work-notes/{id:int}",
+            UpdateWorkNoteAsync);
+
         return endpoints;
     }
 }

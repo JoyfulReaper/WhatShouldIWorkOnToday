@@ -22,6 +22,10 @@ builder.Services.AddGitHubSync(builder.Configuration);
 builder.Services.AddMissionControlClient(builder.Configuration.GetSection(MissionControlClientOptions.SectionName));
 
 builder.Services.AddScoped<WsiwotLoginEventPublisher>();
+builder.Services.Configure<PlanningOptions>(builder.Configuration.GetSection(PlanningOptions.SectionName));
+
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<PlanningClock>();
 
 builder.Services.AddScoped<WorkChooser>();
 builder.Services.AddSingleton<PlanningMutationService>();

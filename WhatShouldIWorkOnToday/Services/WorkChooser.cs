@@ -193,6 +193,28 @@ public sealed class WorkChooser(
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
+        var existingPick = await db.DailyPicks
+            .Include(x => x.TodoItem)
+            .ThenInclude(x => x.WorkItem)
+            .SingleOrDefaultAsync(
+                x => x.Date == date,
+                cancellationToken);
+
+        if (existingPick is not null)
+        {
+            var existingTodo = existingPick.TodoItem;
+
+            if (existingTodo.CompletedAt is null &&
+                existingTodo.WorkItem.CompletedAt is null &&
+                existingTodo.WorkItem.ArchivedAt is null)
+            {
+                return existingTodo;
+            }
+
+            db.DailyPicks.Remove(existingPick);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
         var candidates = await db.TodoItems
             .AsNoTracking()
             .Include(x => x.WorkItem)
@@ -204,9 +226,45 @@ public sealed class WorkChooser(
                 x.Effort <= effort)
             .ToListAsync(cancellationToken);
 
-        return candidates
-            .OrderByDescending(
-                todo => GetDailyScore(todo, date))
+        var todo = candidates
+            .OrderByDescending(todo => GetDailyScore(todo, date))
             .FirstOrDefault();
+
+        if (todo is null)
+        {
+            return null;
+        }
+
+        db.DailyPicks.Add(new DailyPick
+        {
+            Date = date,
+            TodoItemId = todo.Id
+        });
+
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+
+            return todo;
+        }
+        catch (DbUpdateException)
+        {
+            db.ChangeTracker.Clear();
+
+            var persistedPick = await db.DailyPicks
+                .AsNoTracking()
+                .Include(x => x.TodoItem)
+                .ThenInclude(x => x.WorkItem)
+                .SingleOrDefaultAsync(
+                    x => x.Date == date,
+                    cancellationToken);
+
+            if (persistedPick is not null)
+            {
+                return persistedPick.TodoItem;
+            }
+
+            throw;
+        }
     }
 }

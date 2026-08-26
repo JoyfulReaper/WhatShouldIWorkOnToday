@@ -1,0 +1,124 @@
+﻿@page "/work-notes"
+@using Microsoft.EntityFrameworkCore
+@using WhatShouldIWorkOnToday.Data
+@using WhatShouldIWorkOnToday.Models
+@inject IDbContextFactory<AppDbContext> DbContextFactory
+
+<PageTitle>Work Notes</PageTitle>
+
+<header class="page-heading">
+    <p class="eyebrow">Work log</p>
+    <h1>Recent Work Notes</h1>
+    <p class="lead">
+        What actually got done lately.
+    </p>
+</header>
+
+@if (_entries.Count > 0)
+{
+    <div class="work-notes-filter">
+        <div class="form-field">
+            <label for="work-item-filter">
+                Work item
+            </label>
+
+            <select id="work-item-filter"
+                    @bind="_selectedWorkItemId">
+                <option value="">All work items</option>
+
+                @foreach (var workItem in WorkItems)
+                {
+                    <option value="@workItem.Id">
+                        @workItem.Name
+                    </option>
+                }
+            </select>
+        </div>
+    </div>
+}
+
+@if (_entries.Count == 0)
+{
+    <p class="empty-state">
+        No work recorded yet.
+    </p>
+}
+else if (!FilteredEntries.Any())
+{
+    <p class="empty-state">
+        No work notes for that work item.
+    </p>
+}
+else
+{
+    <ul class="work-notes-list">
+        @foreach (var entry in FilteredEntries)
+        {
+            <li class="work-note-card">
+                <div class="work-note-header">
+                    <div>
+                        <a class="work-note-project"
+                           href="@($"/work-items/{entry.WorkItemId}")">
+                            @entry.WorkItem.Name
+                        </a>
+
+                        @if (!string.IsNullOrWhiteSpace(entry.TaskSnapshot))
+                        {
+                            <div class="work-note-task">
+                                @entry.TaskSnapshot
+                            </div>
+                        }
+                    </div>
+
+                    <time class="work-note-time">
+                        @entry.WorkedAt.ToLocalTime().ToString("g")
+                    </time>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(entry.Note))
+                {
+                    <div class="work-note-text">
+                        @entry.Note
+                    </div>
+                }
+                else
+                {
+                    <div class="work-note-text empty">
+                        No note.
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<WorkHistoryEntry> _entries = [];
+    private int? _selectedWorkItemId;
+
+    private IEnumerable<WorkHistoryEntry> FilteredEntries =>
+        _selectedWorkItemId is null
+            ? _entries
+            : _entries.Where(x => x.WorkItemId == _selectedWorkItemId);
+
+    private IEnumerable<WorkItem> WorkItems =>
+        _entries
+            .Select(x => x.WorkItem)
+            .DistinctBy(x => x.Id)
+            .OrderBy(x => x.Name);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+
+        var entries = await db.WorkHistoryEntries
+            .AsNoTracking()
+            .Include(x => x.WorkItem)
+            .ToListAsync();
+
+        _entries = entries
+            .OrderByDescending(x => x.WorkedAt)
+            .Take(100)
+            .ToList();
+    }
+}
